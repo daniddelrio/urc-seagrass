@@ -5,8 +5,8 @@ import BasePopup from "./components/BasePopup";
 function App() {
   return (
     <div className="App">
-      {/* <BaseMap /> */}
-      <BasePopup />
+      <BaseMap />
+      {/* <BasePopup /> */}
     </div>
   );
 }
