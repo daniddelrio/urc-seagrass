@@ -1,55 +1,55 @@
-import React, { Component } from 'react';
-import styled from 'styled-components';
+import React, { Component } from "react";
+import styled from "styled-components";
 
 const StatusBoxColors = {
   DISTURBED: {
     background: "#FFEBD8",
-    border: "#F58E2E", 
-    font: "#DC6A00"
+    border: "#F58E2E",
+    font: "#DC6A00",
   },
   CONSERVED: {
     background: "#E8FFED",
-    border: "#2DB44B", 
-    font: "#0A8324"
-  }
+    border: "#2DB44B",
+    font: "#0A8324",
+  },
 };
 
-const BaseFrame = styled.div`
-  width: 221px;
-  height: 230px;
-  background-color: #F9F9F9;
+// const BaseFrame = styled.div`
+//   width: 221px;
+//   height: 230px;
+//   background-color: #f9f9f9;
 
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-`
+//   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+// `;
 
 const PopupImage = styled.div`
   height: 106px;
-  background-color: #C4C4C4;
-`
+  background-color: #c4c4c4;
+`;
 
 const AreaInfo = styled.div`
   height: 100%;
-  padding: 1.0rem;
+  padding: 1rem;
   padding-top: 0.7rem;
-`
+`;
 
 const AreaHeader = styled.div`
   display: flex;
   flex-wrap: wrap;
   margin-bottom: 0.2rem;
-`
+`;
 
 const AreaName = styled.strong`
   font-weight: 600;
   font-size: 13px;
   line-height: 16px;
   margin-right: 0.4rem;
-`
+`;
 
 const StatusBox = styled.div`
   max-width: 150px;
-  background: ${props => StatusBoxColors[props.status]["background"]};
-  border: 0.7px solid ${props => StatusBoxColors[props.status]["border"]};
+  background: ${(props) => StatusBoxColors[props.status]["background"]};
+  border: 0.7px solid ${(props) => StatusBoxColors[props.status]["border"]};
   box-sizing: border-box;
   border-radius: 7px;
   padding: 0.15rem;
@@ -60,13 +60,13 @@ const StatusBox = styled.div`
   font-size: 7px;
   line-height: 10px;
   text-align: center;
-  color: ${props => StatusBoxColors[props.status]["font"]};
-`
+  color: ${(props) => StatusBoxColors[props.status]["font"]};
+`;
 
 const InfoStat = styled.span`
   font-size: 11px;
   color: #767676;
-`
+`;
 
 const ModifyButton = styled.button`
   margin-top: 0.7rem;
@@ -74,64 +74,57 @@ const ModifyButton = styled.button`
   padding-left: 0.7rem;
   padding-right: 0.7rem;
 
-  border: 0.7px solid #C4C4C4;
+  border: 0.7px solid #c4c4c4;
   box-sizing: border-box;
   border-radius: 9.5px;
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
 
   font-weight: 600;
   font-size: 9px;
   line-height: 12px;
   text-align: center;
-  color: #AEAEAE;
-`
+  color: #aeaeae;
+`;
 
-const BoxArrow = styled.div`
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 20px solid #F9F9F9;
-  margin: 0 auto;
-  margin-top: 2px;
+// const BoxArrow = styled.div`
+//   width: 0;
+//   height: 0;
+//   border-left: 10px solid transparent;
+//   border-right: 10px solid transparent;
+//   border-top: 20px solid #f9f9f9;
+//   margin: 0 auto;
+//   margin-top: 2px;
 
-  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
-  -webkit-filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
-`
+//   filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
+//   -webkit-filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
+// `;
 
 class BasePopup extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      areaName: "Adjacent Residential",
-      status: "CONSERVED",
-      seagrassCount: 13.74,
-      percentage: 11.30
-    };
-  }
-
   render() {
-    const { areaName, status, seagrassCount, percentage } = this.state
+    const { properties } = this.props;
 
     return (
-      <BaseFrame>
-        <div>
-          <PopupImage />
-          <AreaInfo>
-            <AreaHeader>
-              <AreaName>{ areaName }</AreaName>
-              <StatusBox status={status}>{ status }</StatusBox>
-            </AreaHeader>
-            <InfoStat>Total Seagrass Count: <strong>{seagrassCount}</strong></InfoStat>
-            <br />
-            <InfoStat>Inorganic Carbon Percentage: <strong>{percentage}</strong></InfoStat>
-            <ModifyButton disabled>
-              Modify Data
-            </ModifyButton>
-          </AreaInfo>
-        </div>
-        <BoxArrow />
-      </BaseFrame>
+      <div>
+        <PopupImage />
+        <AreaInfo>
+          <AreaHeader>
+            <AreaName>{properties.areaName}</AreaName>
+            <StatusBox status={properties.status}>
+              {properties.status}
+            </StatusBox>
+          </AreaHeader>
+          <InfoStat>
+            Total Seagrass Count: <strong>{properties.seagrassCount}</strong>
+          </InfoStat>
+          <br />
+          <InfoStat>
+            Inorganic Carbon Percentage:{" "}
+            <strong>{properties.percentage}</strong>
+          </InfoStat>
+          <br />
+          <ModifyButton disabled>Modify Data</ModifyButton>
+        </AreaInfo>
+      </div>
     );
   }
 }
