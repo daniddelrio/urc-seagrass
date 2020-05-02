@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 import styled from "styled-components";
 import PayPal from "../assets/paypal.svg";
-import Hamburger from "../assets/hamburger.svg";
 
 const SidebarFrame = styled.div`
   position: relative;
-  width: 40%;
+  width: 0%;
   height: 88vh;
   background: #474747;
+  overflow: hidden;
 
   padding: 2rem;
   z-index: 15;
@@ -82,13 +82,6 @@ const PayPalButton = styled(ParentButton)`
   align-items: center;
 `;
 
-const HamburgerIcon = styled.img`
-  position: absolute;
-
-  bottom: 2rem;
-  left: -4rem;
-`;
-
 class BaseSidebar extends Component {
   render() {
     return (
@@ -104,8 +97,6 @@ class BaseSidebar extends Component {
           <PayPalText>Want to help the initiative?</PayPalText>
           <PayPalButton>Support us via  &nbsp;<img src={PayPal} alt="Paypal Logo"/></PayPalButton>
         </PayPalDiv>
-
-        <HamburgerIcon src={Hamburger} alt="Sidebar" onClick={this.props.toggleSidebar}/>
       </SidebarFrame>
     );
   }
