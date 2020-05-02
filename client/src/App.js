@@ -1,18 +1,11 @@
 import React from "react";
-import BaseMap from "./components/BaseMap";
-import BaseSidebar from "./components/BaseSidebar";
-import styled from "styled-components";
-
-const AppDiv = styled.div`
-	display: flex;
-`;
+import Parent from "./components/Parent";
 
 function App() {
 	return (
-		<AppDiv className="App">
-			<BaseMap />
-			<BaseSidebar />
-		</AppDiv>
+		<div className="App">
+			<Parent />
+		</div>
 	);
 }
 

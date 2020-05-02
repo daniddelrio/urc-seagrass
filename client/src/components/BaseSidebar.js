@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import styled from "styled-components";
 import PayPal from "../assets/paypal.svg";
+import Hamburger from "../assets/hamburger.svg";
 
 const SidebarFrame = styled.div`
   position: relative;
@@ -9,6 +10,7 @@ const SidebarFrame = styled.div`
   background: #474747;
 
   padding: 2rem;
+  z-index: 15;
 `;
 
 const SidebarTitle = styled.h1`
@@ -80,10 +82,17 @@ const PayPalButton = styled(ParentButton)`
   align-items: center;
 `;
 
+const HamburgerIcon = styled.img`
+  position: absolute;
+
+  bottom: 2rem;
+  left: -4rem;
+`;
+
 class BaseSidebar extends Component {
   render() {
     return (
-      <SidebarFrame>
+      <SidebarFrame isOpen={this.props.isOpen}>
         <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
         <SidebarSubheader>Welcome to the database of Masinloc’s Seagrass and Carbon Stocks! Log in as...</SidebarSubheader>
         <ButtonDiv>
@@ -93,8 +102,10 @@ class BaseSidebar extends Component {
 
         <PayPalDiv>
           <PayPalText>Want to help the initiative?</PayPalText>
-          <PayPalButton>Support us via  &nbsp;<img src={PayPal} /></PayPalButton>
+          <PayPalButton>Support us via  &nbsp;<img src={PayPal} alt="Paypal Logo"/></PayPalButton>
         </PayPalDiv>
+
+        <HamburgerIcon src={Hamburger} alt="Sidebar" onClick={this.props.toggleSidebar}/>
       </SidebarFrame>
     );
   }

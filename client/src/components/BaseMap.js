@@ -7,6 +7,7 @@ import BasePopup from "./BasePopup";
 const LeafletMap = styled(Map)`
   width: 100%;
   height: 98vh;
+  z-index: 1;
 `;
 
 let numMapClicks = 0;
