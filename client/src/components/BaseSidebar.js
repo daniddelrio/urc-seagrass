@@ -4,13 +4,14 @@ import PayPal from "../assets/paypal.svg";
 
 const SidebarFrame = styled.div`
   position: relative;
-  width: 0%;
+  width: ${({isOpen}) => isOpen ? "40%" : "0"};
   height: 88vh;
   background: #474747;
   overflow: hidden;
 
-  padding: 2rem;
+  padding: ${({isOpen}) => isOpen ? "2rem" : "0"};
   z-index: 15;
+  transition: width 0.5s;
 `;
 
 const SidebarTitle = styled.h1`

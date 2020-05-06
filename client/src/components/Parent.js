@@ -11,7 +11,7 @@ class Parent extends Component {
   constructor() {
     super();
     this.state = {
-      isSidebarOpen: false,
+      isSidebarOpen: true,
     };
   }
 
@@ -22,8 +22,8 @@ class Parent extends Component {
   render() {
     return (
       <AppDiv className="App">
-        <BaseMap />
-        <BaseSidebar isOpen={this.state.isSidebarOpen} toggleSidebar={this.toggleSidebar}/>
+        <BaseMap isOpen={this.state.isSidebarOpen} toggleSidebar={this.toggleSidebar}/>
+        <BaseSidebar isOpen={this.state.isSidebarOpen}/>
       </AppDiv>
     );
   }

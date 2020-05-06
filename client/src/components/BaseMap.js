@@ -17,7 +17,8 @@ const HamburgerIcon = styled.img`
   z-index: 5;
 
   bottom: 1.5rem;
-  right: 5.5rem;
+  right: ${({isOpen}) => isOpen ? "27rem" : "1.5rem"};
+  transition: right 0.5s;
 `;
 
 let numMapClicks = 0;
@@ -101,7 +102,7 @@ class BaseMap extends Component {
             </Popup>
           )}
         </LeafletMap>
-        <HamburgerIcon src={Hamburger} alt="Sidebar" onClick={this.props.toggleSidebar}/>
+        <HamburgerIcon src={Hamburger} alt="Sidebar" isOpen={this.props.isOpen} onClick={this.props.toggleSidebar}/>
       </React.Fragment>
     );
   }
