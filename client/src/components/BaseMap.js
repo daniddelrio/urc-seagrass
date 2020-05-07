@@ -4,6 +4,7 @@ import styled from "styled-components";
 import sites from "../data/sites.json";
 import BasePopup from "./BasePopup";
 import Hamburger from "../assets/hamburger.svg";
+import OpenHamburger from "../assets/open_hamburger.svg";
 import MediaQuery from 'react-responsive'
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 
@@ -20,7 +21,7 @@ const HamburgerIcon = styled.img`
   z-index: 5;
 
   bottom: 1.5rem;
-  right: ${({ isOpen, isMobile }) => (isOpen ? "77%" : "1.5rem")};
+  right: ${({ isOpen, isMobile }) => (isOpen ? "78%" : "1.5rem")};
   transition: right 0.5s;
 `;
 
@@ -107,7 +108,7 @@ class BaseMap extends Component {
         </LeafletMap>
         <MediaQuery maxDeviceWidth={MAX_WIDTH}>
           <HamburgerIcon
-            src={Hamburger}
+            src={this.props.isOpen ? OpenHamburger : Hamburger}
             alt="Sidebar"
             isOpen={this.props.isOpen}
             onClick={this.props.toggleSidebar}
