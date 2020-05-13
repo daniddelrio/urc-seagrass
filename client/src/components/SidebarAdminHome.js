@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import { SidebarSubheader } from "./GlobalSidebarComponents";
+import { PAYPAL_WIDTH } from "./GlobalDeviceWidths";
+import { SidebarSubheader, EmptyButton } from "./GlobalSidebarComponents";
+import { useMediaQuery } from 'react-responsive';
 
 const ReviewContributions = styled.div`
   
@@ -41,6 +43,12 @@ const ManageAdmins = styled.div`
 
 `;
 
+const LogoutButton = styled(EmptyButton)`
+  position: absolute;
+  width: ${({ isSmall }) => isSmall ? "80%" : "85%"};
+  bottom: ${({ isSmall }) => isSmall ? "4.3rem" : "5.0rem"};
+`;
+
 class SidebarAdminHome extends Component {
   constructor(props) {
     super(props);
@@ -65,6 +73,7 @@ class SidebarAdminHome extends Component {
         <ManageAdmins>
           <DefaultTitle>Manage Administrators</DefaultTitle>
         </ManageAdmins>
+        <LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>Log out</LogoutButton>
       </React.Fragment>
     );
   }

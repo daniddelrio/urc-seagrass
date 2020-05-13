@@ -4,7 +4,7 @@ import SidebarHome from "./SidebarHome";
 import SidebarAdminLogin from "./SidebarAdminLogin";
 import SidebarAdminHome from "./SidebarAdminHome";
 import PayPal from "../assets/paypal.svg";
-import { MAX_WIDTH } from "./GlobalDeviceWidths";
+import { MAX_WIDTH, PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
 import { SidebarSubheader, ParentButton } from "./GlobalSidebarComponents";
 
@@ -60,8 +60,6 @@ const PayPalButton = styled(ParentButton)`
   justify-content: center;
 `;
 
-const paypalMinWidth = 420;
-
 class BaseSidebar extends Component {
   componentDidMount() {
     window.addEventListener("resize", null);
@@ -92,10 +90,10 @@ class BaseSidebar extends Component {
         <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
         {this.renderContent()}
         <PayPalDiv>
-          <MediaQuery minDeviceWidth={paypalMinWidth}>
+          <MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>
-          <PayPalButton isSmallMobile={window.innerWidth <= paypalMinWidth}>
+          <PayPalButton isSmallMobile={window.innerWidth <= PAYPAL_WIDTH}>
             Support us via &nbsp;
             <img src={PayPal} alt="Paypal Logo" />
           </PayPalButton>
