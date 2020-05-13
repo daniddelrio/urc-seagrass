@@ -11,7 +11,6 @@ import { MAX_WIDTH } from "./GlobalDeviceWidths";
 const LeafletMap = styled(Map)`
   position: relative;
   height: 98vh;
-  width: 100%;
   width: ${({isOpen, isMobile}) => isOpen && isMobile ? "30%" : "100%"};
   z-index: 1;
 `;

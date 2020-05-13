@@ -8,11 +8,9 @@ const SidebarFrame = styled.div`
   position: relative;
   width: ${({ isOpen, isMobile }) =>
     isOpen ? (isMobile ? "80%" : "40%") : "0"};
-  height: 88vh;
   background: #474747;
   overflow: hidden;
 
-  right: 0;
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   z-index: 15;
   transition: width 0.5s;
