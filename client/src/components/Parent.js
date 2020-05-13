@@ -14,7 +14,7 @@ class Parent extends Component {
     this.state = {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
-      activeSidebar: "adminLogin",
+      activeSidebar: "adminHome",
     };
   }
 

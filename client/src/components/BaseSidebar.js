@@ -2,13 +2,11 @@ import React, { Component } from "react";
 import styled from "styled-components";
 import SidebarHome from "./SidebarHome";
 import SidebarAdminLogin from "./SidebarAdminLogin";
+import SidebarAdminHome from "./SidebarAdminHome";
 import PayPal from "../assets/paypal.svg";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
-import {
-  SidebarSubheader,
-  ParentButton,
-} from "./GlobalSidebarComponents";
+import { SidebarSubheader, ParentButton } from "./GlobalSidebarComponents";
 
 const SidebarFrame = styled.div`
   position: relative;
@@ -74,19 +72,17 @@ class BaseSidebar extends Component {
   }
 
   renderContent() {
-    switch(this.props.activeSidebar) {
+    switch (this.props.activeSidebar) {
       case "home":
-        return (
-          <SidebarHome
-            setActiveSidebar={this.props.setActiveSidebar}
-          />
-        );
+        return <SidebarHome setActiveSidebar={this.props.setActiveSidebar} />;
       case "adminLogin":
         return (
-          <SidebarAdminLogin
-            setActiveSidebar={this.props.setActiveSidebar}
-          />
-        )
+          <SidebarAdminLogin setActiveSidebar={this.props.setActiveSidebar} />
+        );
+      case "adminHome":
+        return (
+          <SidebarAdminHome setActiveSidebar={this.props.setActiveSidebar} />
+        );
     }
   }
 
@@ -94,7 +90,7 @@ class BaseSidebar extends Component {
     return (
       <SidebarFrame isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
         <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
-        { this.renderContent() }
+        {this.renderContent()}
         <PayPalDiv>
           <MediaQuery minDeviceWidth={paypalMinWidth}>
             <PayPalText>Want to help the initiative?</PayPalText>

@@ -31,7 +31,7 @@ const SidebarAdminLogin = (props) => (
       </SidebarSubheader>
       <AdminTextField placeholder="Username"/>
       <AdminTextField inputType="password" placeholder="Password" type="password" />
-      <FilledButton onClick={() => this.props.setActiveSidebar("")}>Log in</FilledButton>
+      <FilledButton onClick={() => props.setActiveSidebar("adminHome")}>Log in</FilledButton>
     </ButtonGroup>
   </React.Fragment>
 );
