@@ -2,6 +2,13 @@ import React, { Component } from "react";
 import styled from "styled-components";
 import SidebarHome from "./SidebarHome";
 import SidebarAdminLogin from "./SidebarAdminLogin";
+import PayPal from "../assets/paypal.svg";
+import { MAX_WIDTH } from "./GlobalDeviceWidths";
+import MediaQuery from "react-responsive";
+import {
+  SidebarSubheader,
+  ParentButton,
+} from "./GlobalSidebarComponents";
 
 const SidebarFrame = styled.div`
   position: relative;
@@ -20,6 +27,42 @@ const SidebarTitle = styled.h1`
   line-height: 163.18%;
   color: #ececec;
 `;
+
+const PayPalDiv = styled.div`
+  display: flex;
+  width: 100%;
+  margin-top: 2rem;
+
+  position: absolute;
+  bottom: 2rem;
+  align-items: center;
+`;
+
+const PayPalText = styled(SidebarSubheader)`
+  font-size: 13px;
+  flex: 0.75;
+`;
+
+const ButtonDiv = styled.div`
+  display: flex;
+  width: 100%;
+  margin-top: 2rem;
+`;
+
+const PayPalButton = styled(ParentButton)`
+  padding: 0.2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  background: #ffbc32;
+  color: #63470f;
+  width: ${({ isSmallMobile }) => (isSmallMobile ? "80%" : "auto")};
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const paypalMinWidth = 420;
 
 class BaseSidebar extends Component {
   componentDidMount() {
@@ -52,6 +95,15 @@ class BaseSidebar extends Component {
       <SidebarFrame isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
         <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
         { this.renderContent() }
+        <PayPalDiv>
+          <MediaQuery minDeviceWidth={paypalMinWidth}>
+            <PayPalText>Want to help the initiative?</PayPalText>
+          </MediaQuery>
+          <PayPalButton isSmallMobile={window.innerWidth <= paypalMinWidth}>
+            Support us via &nbsp;
+            <img src={PayPal} alt="Paypal Logo" />
+          </PayPalButton>
+        </PayPalDiv>
       </SidebarFrame>
     );
   }
