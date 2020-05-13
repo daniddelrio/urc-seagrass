@@ -9,7 +9,6 @@ const ButtonGroup = styled.div`
 
 const AdminTextField = styled.input`
   flex: 1;
-  type: ${(type) => type || "text" }
 
   background: #4F4F4F;
   border: 0.7px solid #9A9A9A;
@@ -18,7 +17,7 @@ const AdminTextField = styled.input`
 
   font-size: 13px;
   line-height: 15px;
-  color: #808080;
+  color: ${({ inputType }) => inputType == "password" ? "#D0D0D0" : "#808080"};
 
   padding: 0.6rem;
   margin-bottom: 1rem;
@@ -31,8 +30,8 @@ const SidebarAdminLogin = (props) => (
         Log in as Administrator
       </SidebarSubheader>
       <AdminTextField placeholder="Username"/>
-      <AdminTextField placeholder="Password" type="password" />
-      <FilledButton>Log in</FilledButton>
+      <AdminTextField inputType="password" placeholder="Password" type="password" />
+      <FilledButton onClick={() => this.props.setActiveSidebar("")}>Log in</FilledButton>
     </ButtonGroup>
   </React.Fragment>
 );
