@@ -14,6 +14,7 @@ class Parent extends Component {
     this.state = {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
+      activeSidebar: "adminLogin",
     };
   }
 
@@ -40,6 +41,10 @@ class Parent extends Component {
     this.setState({ isSidebarOpen: !this.state.isSidebarOpen });
   };
 
+  setActiveSidebar = (key) => {
+    this.setState({ activeSidebar: key });
+  }
+
   render() {
     return (
       <AppDiv className="App">
@@ -51,6 +56,8 @@ class Parent extends Component {
         <BaseSidebar 
           isOpen={this.state.isSidebarOpen} 
           isMobile={this.state.isMobile}
+          activeSidebar={this.state.activeSidebar}
+          setActiveSidebar={this.setActiveSidebar}
         />
       </AppDiv>
     );
