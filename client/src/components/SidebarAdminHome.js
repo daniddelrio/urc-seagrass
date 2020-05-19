@@ -7,6 +7,7 @@ import {
   ParentButton,
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
+import ContributionPopup from "./ContributionPopup";
 import Check from "../assets/checkbox.svg";
 
 const ReviewContributions = styled.div`
@@ -53,6 +54,17 @@ const Contribution = styled.label`
     color: #bababa;
     margin-left: 0.8rem;
   }
+`;
+
+const DisabledButton = styled(ParentButton)`
+  background: #474747;
+  border: 0.7px solid #646464;
+  box-sizing: border-box;
+  border-radius: 14px;
+
+  color: #8a8a8a;
+  flex: 0.8;
+  margin-left: ${(props) => props.marginLeft || "0"};
 `;
 
 const ApproveButton = styled(ParentButton)`
@@ -136,6 +148,8 @@ const DefaultTitle = styled.h4`
   font-size: 14px;
   line-height: 173.18%;
   color: #c4c4c4;
+
+  cursor: pointer;
 `;
 
 const ManageAdmins = styled.div``;
@@ -151,52 +165,79 @@ class SidebarAdminHome extends Component {
     super(props);
     this.state = {
       activeSection: "",
+      showModal: "",
       checked: false,
-      data: {
-        10000: {
+      data: [
+        {
+          id: 10000,
           label: "Adjacent Coral Reef Total Seagrass Count",
           toValue: "20.20 Mg C/ha",
           checked: false,
         },
-        20000: {
+        {
+          id: 20000,
           label: "Adjacent Residential Inorganic Carbon Percentage",
           toValue: "11.30%",
           checked: false,
         },
-        30000: {
+        {
+          id: 30000,
           label: "Adjacent Residential",
           fromValue: "Disturbed",
           toValue: "Conserved",
           checked: false,
         },
-        350000: {
+        {
+          id: 40000,
           label: "Adjacent Residential",
           fromValue: "Disturbed",
           toValue: "Conserved",
           checked: false,
         },
-      },
+      ],
     };
   }
 
   setActiveSection = (section) => {
     const currSection = this.state.activeSection == section ? "" : section;
-    this.setState({activeSection: currSection});
+    this.setState({ activeSection: currSection });
   };
 
-  handleCheckboxChange = (event, key) => {
+  setModal = (kind) => {
+    this.setState({ showModal: kind });
+  };
+
+  closeModal = () => {
+    this.setState({ showModal: "" });
+  };
+
+  handleCheckboxChange = (event, index) => {
     this.setState({
       data: {
         ...this.state.data,
-        [key]: {
-          ...this.state.data[key],
+        [index]: {
+          ...this.state.data[index],
           checked: event.target.checked,
         },
       },
     });
+    // this.setState(({data}) => ({
+    //     items: [
+    //         ...data.slice(0,index),
+    //         {
+    //             ...data[index],
+    //             name: 'newName',
+    //         },
+    //         ...data.slice(index+1)
+    //     ]
+    // }));
   };
 
   render() {
+    const noneChecked = Object.values(this.state.data).every(
+      (value) => !value.checked
+    );
+
     return (
       <React.Fragment>
         <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
@@ -207,14 +248,16 @@ class SidebarAdminHome extends Component {
             <ReviewContributionsText>
               Review Contributions&emsp;
             </ReviewContributionsText>
-            <ContributionsNumber>21</ContributionsNumber>
+            <ContributionsNumber>
+              {Object.keys(this.state.data).length}
+            </ContributionsNumber>
           </ReviewContributionsTitle>
           <Dropdown isActive={this.state.activeSection == "contributions"}>
             <ReviewContributions
               isActive={this.state.activeSection == "contributions"}
             >
               {Object.entries(this.state.data).map(([key, value]) => (
-                <Contribution key={key}>
+                <Contribution key={value.id}>
                   <Checkbox
                     checked={value.checked}
                     onChange={(e) => this.handleCheckboxChange(e, key)}
@@ -229,8 +272,18 @@ class SidebarAdminHome extends Component {
               <br />
             </ReviewContributions>
             <ButtonGroup isActive={this.state.activeSection == "contributions"}>
-              <ApproveButton>Approve</ApproveButton>
-              <DenyButton>Deny</DenyButton>
+              {noneChecked ? (
+                <DisabledButton disabled>Approve</DisabledButton>
+              ) : (
+                <ApproveButton>Approve</ApproveButton>
+              )}
+              {noneChecked ? (
+                <DisabledButton marginLeft="0.8rem" disabled>
+                  Deny
+                </DisabledButton>
+              ) : (
+                <DenyButton>Deny</DenyButton>
+              )}
             </ButtonGroup>
           </Dropdown>
         </React.Fragment>
@@ -241,6 +294,13 @@ class SidebarAdminHome extends Component {
         <LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>
           Log out
         </LogoutButton>
+        {this.state.showModal && (
+          <ContributionPopup
+            isApprove={this.state.showModal == "approve"}
+            closeModal={this.closeModal}
+            data={""}
+          />
+        )}
       </React.Fragment>
     );
   }
