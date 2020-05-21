@@ -221,16 +221,6 @@ class SidebarAdminHome extends Component {
         },
       },
     });
-    // this.setState(({data}) => ({
-    //     items: [
-    //         ...data.slice(0,index),
-    //         {
-    //             ...data[index],
-    //             name: 'newName',
-    //         },
-    //         ...data.slice(index+1)
-    //     ]
-    // }));
   };
 
   render() {
@@ -238,8 +228,21 @@ class SidebarAdminHome extends Component {
       (value) => !value.checked
     );
 
+    Object.filter = (obj, predicate) => 
+        Object.keys(obj)
+              .filter( key => predicate(obj[key]) )
+              .reduce( (res, key) => (res[key] = obj[key], res), {} );
+
+    const checkedContribs = Object.filter(this.state.data, data => data.checked); 
+
     return (
       <React.Fragment>
+        <ContributionPopup
+          show={this.state.showModal != ""}
+          isApprove={this.state.showModal == "approve"}
+          closeModal={this.closeModal}
+          data={checkedContribs}
+        />
         <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
         <React.Fragment>
           <ReviewContributionsTitle
@@ -275,14 +278,14 @@ class SidebarAdminHome extends Component {
               {noneChecked ? (
                 <DisabledButton disabled>Approve</DisabledButton>
               ) : (
-                <ApproveButton>Approve</ApproveButton>
+                <ApproveButton onClick={() => this.setModal("approve")}>Approve</ApproveButton>
               )}
               {noneChecked ? (
                 <DisabledButton marginLeft="0.8rem" disabled>
                   Deny
                 </DisabledButton>
               ) : (
-                <DenyButton>Deny</DenyButton>
+                <DenyButton onClick={() => this.setModal("deny")}>Deny</DenyButton>
               )}
             </ButtonGroup>
           </Dropdown>
@@ -294,13 +297,6 @@ class SidebarAdminHome extends Component {
         <LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>
           Log out
         </LogoutButton>
-        {this.state.showModal && (
-          <ContributionPopup
-            isApprove={this.state.showModal == "approve"}
-            closeModal={this.closeModal}
-            data={""}
-          />
-        )}
       </React.Fragment>
     );
   }
