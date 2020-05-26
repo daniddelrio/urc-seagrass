@@ -18,13 +18,20 @@ export const ParentButton = styled.button`
   text-align: center;
 `;
 
-
 export const FilledButton = styled(ParentButton)`
   flex: 1;
   background: #c4c4c4;
   border: 0.7px solid #c4c4c4;
 
   color: #474747;
+`;
+
+export const GrayButton = styled(ParentButton)`
+  background: #585858;
+  border-radius: 12.5px;
+  border: 0.7px solid #585858;
+
+  color: #8D8D8D;
 `;
 
 export const EmptyButton = styled(ParentButton)`

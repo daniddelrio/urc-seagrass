@@ -5,10 +5,12 @@ import {
   SidebarSubheader,
   EmptyButton,
   ParentButton,
+  GrayButton
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
 import Check from "../assets/checkbox.svg";
+import AdminIcon from "../assets/adminIcon.svg";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -144,6 +146,10 @@ const Checkbox = ({ className, checked, ...props }) => (
 
 // ================ END OF CHECKBOX STYLES ================
 
+const DropdownAdmin = styled.div`
+  height: ${(props) => (props.isActive ? "8rem" : "0")};
+`;
+
 const DefaultTitle = styled.h4`
   font-size: 0.88em;
   line-height: 173.18%;
@@ -152,7 +158,33 @@ const DefaultTitle = styled.h4`
   cursor: pointer;
 `;
 
-const ManageAdmins = styled.div``;
+const ManageAdmins = styled.div`
+  height: 85%;
+  overflow-y: auto;
+`;
+
+const Administrator = styled.div`
+  display: flex;
+  margin-bottom: 0.6rem;
+`;
+
+const AdminUsername = styled.div`
+  font-size: 0.8em;
+  color: #BABABA;
+  margin-left: 1rem;
+`;
+
+const ModifyText = styled.div`
+  margin-left: auto;
+  font-size: 0.56em;
+  color: #AF7B7B;
+  border-bottom: 0.7px solid #865D5D;
+`;
+
+const AddAdminButton = styled(GrayButton)`
+  width: 100%;
+  visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
+`;
 
 class SidebarAdminHome extends Component {
   constructor(props) {
@@ -187,6 +219,16 @@ class SidebarAdminHome extends Component {
           fromValue: "Disturbed",
           toValue: "Conserved",
           checked: false,
+        },
+      ],
+      admins: [
+        {
+          id: 10000,
+          username: "JohnDoe51",
+        },
+        {
+          id: 12321,
+          username: "Anonymous",
         },
       ],
     };
@@ -289,9 +331,25 @@ class SidebarAdminHome extends Component {
           </Dropdown>
         </React.Fragment>
         <DefaultTitle>Modify Data on Map</DefaultTitle>
-        <ManageAdmins>
-          <DefaultTitle>Manage Administrators</DefaultTitle>
-        </ManageAdmins>
+        <React.Fragment>
+          <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>Manage Administrators</DefaultTitle>
+          <DropdownAdmin isActive={this.state.activeSection == "manageAdmins"}>
+            <ManageAdmins
+              isActive={this.state.activeSection == "manageAdmins"}
+            >
+              {Object.entries(this.state.admins).map(([key, value]) => (
+                <Administrator key={value.id}>
+                  <img src={AdminIcon} alt="Admin Avatar" />
+                  <AdminUsername>{value.username}</AdminUsername>
+                  <ModifyText>Modify</ModifyText>
+                </Administrator>
+              ))}
+            </ManageAdmins>
+            <AddAdminButton isActive={this.state.activeSection == "manageAdmins"}>
+              + Add New Administrator
+            </AddAdminButton>
+          </DropdownAdmin>
+        </React.Fragment>
       </React.Fragment>
     );
   }
