@@ -21,7 +21,7 @@ const ReviewContributionsTitle = styled.div`
   cursor: pointer;
 `;
 
-const ReviewContributionsText = styled.small`
+const ReviewContributionsText = styled.h4`
   font-size: 14px;
   line-height: 173.18%;
   color: #eecfcf;
@@ -31,7 +31,7 @@ const Dropdown = styled.div`
   height: ${(props) => (props.isActive ? "13rem" : "0")};
 `;
 
-const ContributionsNumber = styled.div`
+const ContributionsNumber = styled(ReviewContributionsText)`
   background: #e76e6e;
   border-radius: 8.5px;
 
@@ -154,11 +154,11 @@ const DefaultTitle = styled.h4`
 
 const ManageAdmins = styled.div``;
 
-const LogoutButton = styled(EmptyButton)`
-  position: absolute;
-  width: ${({ isSmall }) => (isSmall ? "80%" : "85%")};
-  bottom: ${({ isSmall }) => (isSmall ? "4.3rem" : "5.0rem")};
-`;
+// const LogoutButton = styled(EmptyButton)`
+//   position: absolute;
+//   width: ${({ isSmall }) => (isSmall ? "80%" : "85%")};
+//   bottom: ${({ isSmall }) => (isSmall ? "4.3rem" : "5.0rem")};
+// `;
 
 class SidebarAdminHome extends Component {
   constructor(props) {
@@ -196,6 +196,10 @@ class SidebarAdminHome extends Component {
         },
       ],
     };
+  }
+
+  componentDidMount() {
+    this.props.showLoginButton();
   }
 
   setActiveSection = (section) => {
@@ -294,9 +298,9 @@ class SidebarAdminHome extends Component {
         <ManageAdmins>
           <DefaultTitle>Manage Administrators</DefaultTitle>
         </ManageAdmins>
-        <LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>
-          Log out
-        </LogoutButton>
+        {/*<LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>
+                  Log out
+                </LogoutButton>*/}
       </React.Fragment>
     );
   }
