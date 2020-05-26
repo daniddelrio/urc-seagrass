@@ -64,7 +64,7 @@ class BaseSidebar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLoginPresent: false, 
+      isLogoutPresent: false, 
     };
   }
 
@@ -76,8 +76,8 @@ class BaseSidebar extends Component {
     window.removeEventListener("resize", null);
   }
 
-  showLoginButton = () => {
-    this.setState({isLoginPresent: true});
+  showLogoutButton = () => {
+    this.setState({isLogoutPresent: true});
   };
 
   renderContent() {
@@ -90,7 +90,7 @@ class BaseSidebar extends Component {
         );
       case "adminHome":
         return (
-          <SidebarAdminHome setActiveSidebar={this.props.setActiveSidebar} showLoginButton={this.showLoginButton}/>
+          <SidebarAdminHome setActiveSidebar={this.props.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
         );
     }
   }
@@ -104,7 +104,7 @@ class BaseSidebar extends Component {
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
-          {this.state.isLoginPresent && <EmptyButton>
+          {this.state.isLogoutPresent && <EmptyButton>
             Log out
           </EmptyButton>}
           <PayPalButton>
