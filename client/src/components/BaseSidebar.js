@@ -8,16 +8,20 @@ import { MAX_WIDTH, PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
 import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
 
-const SidebarFrame = styled.div`
-  position: relative;
+const ParentDiv = styled.div`
   width: ${({ isOpen, isMobile }) =>
     isOpen ? (isMobile ? "80%" : "40%") : "0"};
+  height: 98vh;
   background: #474747;
-  overflow: hidden;
-
-  padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   z-index: 15;
-  transition: width 0.5s;
+  transition: width 0 .5s;
+  padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
+  overflow: auto;
+`;
+
+const SidebarContent = styled.div`
+  position: relative;
+  height: 80%;
 `;
 
 const SidebarTitle = styled.h1`
@@ -27,23 +31,17 @@ const SidebarTitle = styled.h1`
 `;
 
 const BottomDiv = styled.div`
+  height: 20%;
   display: flex;
   flex-direction: column;
-  width: ${({ isSmall }) => (isSmall ? "80%" : "85%")};
-
-  position: absolute;
-  bottom: ${({ isSmall }) => (isSmall ? "2.0rem" : "2.0rem")};
+  justify-content: flex-end;
 `;
+  // position: absolute;
+  // bottom: ${({ isSmall }) => (isSmall ? "2.0rem" : "2.0rem")};
 
 // const PayPalText = styled(SidebarSubheader)`
 //   font-size: 13px;
 // `;
-
-const ButtonDiv = styled.div`
-  display: flex;
-  width: 100%;
-  margin-top: 2rem;
-`;
 
   // width: ${({ isSmallMobile }) => (isSmallMobile ? "80%" : "auto")};
 const PayPalButton = styled(ParentButton)`
@@ -97,14 +95,16 @@ class BaseSidebar extends Component {
 
   render() {
     return (
-      <SidebarFrame isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
-        <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
-        {this.renderContent()}
+      <ParentDiv isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
+        <SidebarContent>
+          <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
+          {this.renderContent()}
+        </SidebarContent>
         <BottomDiv isSmall={window.innerWidth <= PAYPAL_WIDTH}>
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
-          {this.state.isLogoutPresent && <EmptyButton>
+          {this.state.isLogoutPresent && <EmptyButton noFlex>
             Log out
           </EmptyButton>}
           <PayPalButton>
@@ -112,7 +112,7 @@ class BaseSidebar extends Component {
             <img src={PayPal} alt="Paypal Logo" />
           </PayPalButton>
         </BottomDiv>
-      </SidebarFrame>
+      </ParentDiv>
     );
   }
 }

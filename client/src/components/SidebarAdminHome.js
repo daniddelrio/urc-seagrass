@@ -22,7 +22,7 @@ const ReviewContributionsTitle = styled.div`
 `;
 
 const ReviewContributionsText = styled.h4`
-  font-size: 14px;
+  font-size: 0.88em;
   line-height: 173.18%;
   color: #eecfcf;
 `;
@@ -145,7 +145,7 @@ const Checkbox = ({ className, checked, ...props }) => (
 // ================ END OF CHECKBOX STYLES ================
 
 const DefaultTitle = styled.h4`
-  font-size: 14px;
+  font-size: 0.88em;
   line-height: 173.18%;
   color: #c4c4c4;
 
@@ -153,12 +153,6 @@ const DefaultTitle = styled.h4`
 `;
 
 const ManageAdmins = styled.div``;
-
-// const LogoutButton = styled(EmptyButton)`
-//   position: absolute;
-//   width: ${({ isSmall }) => (isSmall ? "80%" : "85%")};
-//   bottom: ${({ isSmall }) => (isSmall ? "4.3rem" : "5.0rem")};
-// `;
 
 class SidebarAdminHome extends Component {
   constructor(props) {
@@ -298,9 +292,6 @@ class SidebarAdminHome extends Component {
         <ManageAdmins>
           <DefaultTitle>Manage Administrators</DefaultTitle>
         </ManageAdmins>
-        {/*<LogoutButton isSmall={window.innerWidth <= PAYPAL_WIDTH}>
-                  Log out
-                </LogoutButton>*/}
       </React.Fragment>
     );
   }

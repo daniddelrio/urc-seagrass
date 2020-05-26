@@ -28,7 +28,7 @@ export const FilledButton = styled(ParentButton)`
 `;
 
 export const EmptyButton = styled(ParentButton)`
-  flex: 1;
+  flex: ${(props) => props.noFlex ? 0 : 1};
   background: #474747;
   border: 0.7px solid #c4c4c4;
   margin-left: ${(props) => props.marginLeft || 0};
