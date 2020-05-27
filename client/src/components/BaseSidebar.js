@@ -17,6 +17,7 @@ const ParentDiv = styled.div`
   transition: width 0 .5s;
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   overflow: auto;
+  overflow-y: auto;
 `;
 
 const SidebarContent = styled.div`

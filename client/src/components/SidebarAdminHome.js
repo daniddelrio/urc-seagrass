@@ -5,7 +5,9 @@ import {
   SidebarSubheader,
   EmptyButton,
   ParentButton,
-  GrayButton
+  GrayButton,
+  AdminTextField,
+  FilledButton
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
@@ -159,7 +161,7 @@ const DefaultTitle = styled.h4`
 `;
 
 const ManageAdmins = styled.div`
-  height: 85%;
+  max-height: 70%;
   overflow-y: auto;
 `;
 
@@ -170,20 +172,60 @@ const Administrator = styled.div`
 
 const AdminUsername = styled.div`
   font-size: 0.8em;
-  color: #BABABA;
+  color: #bababa;
   margin-left: 1rem;
 `;
 
 const ModifyText = styled.div`
   margin-left: auto;
   font-size: 0.56em;
-  color: #AF7B7B;
-  border-bottom: 0.7px solid #865D5D;
+  color: #af7b7b;
+  border-bottom: 0.7px solid #865d5d;
 `;
 
-const AddAdminButton = styled(GrayButton)`
+const AddAdmin = styled.div`
+  padding: 0.5rem;
+  box-sizing: border-box;
+  background: #585858;
+  border-radius: 12.5px;
+
+  font-weight: 600;
+  font-size: 0.75em;
+  line-height: 0.75em;
+  text-align: center;
+
+  color: #A5A5A5;
+
   width: 100%;
+  max-height: ${(props) => props.isShowing ? "15rem" : "1.7rem"};
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
+
+  transition: max-height 0.4s;
+
+  span {
+    cursor: pointer;
+  }
+`;
+
+const AdminFields = styled.div`
+  opacity: ${(props) => props.isShowing ? "100%" : "0%"};
+  transition: opacity 0.4s;
+
+  padding: 1rem;
+  padding-bottom: 0.1rem;
+`;
+
+const TextField = styled(AdminTextField)`
+  font-size: 1em;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.4rem;
+`;
+
+const SubmitAdminButton = styled(FilledButton)`
+  font-size: 0.9em;
+  min-width: 45%;
+  margin-top: 0.5rem;
 `;
 
 class SidebarAdminHome extends Component {
@@ -192,6 +234,7 @@ class SidebarAdminHome extends Component {
     this.state = {
       activeSection: "",
       showModal: "",
+      isAdminShowing: false,
       checked: false,
       data: [
         {
@@ -230,6 +273,14 @@ class SidebarAdminHome extends Component {
           id: 12321,
           username: "Anonymous",
         },
+        {
+          id: 12321,
+          username: "Anonymous",
+        },
+        {
+          id: 12321,
+          username: "Anonymous",
+        },
       ],
     };
   }
@@ -251,6 +302,10 @@ class SidebarAdminHome extends Component {
     this.setState({ showModal: "" });
   };
 
+  toggleAdmin = () => {
+    this.setState({ isAdminShowing: !this.state.isAdminShowing });
+  };
+
   handleCheckboxChange = (event, index) => {
     this.setState({
       data: {
@@ -268,12 +323,15 @@ class SidebarAdminHome extends Component {
       (value) => !value.checked
     );
 
-    Object.filter = (obj, predicate) => 
-        Object.keys(obj)
-              .filter( key => predicate(obj[key]) )
-              .reduce( (res, key) => (res[key] = obj[key], res), {} );
+    Object.filter = (obj, predicate) =>
+      Object.keys(obj)
+        .filter((key) => predicate(obj[key]))
+        .reduce((res, key) => ((res[key] = obj[key]), res), {});
 
-    const checkedContribs = Object.filter(this.state.data, data => data.checked); 
+    const checkedContribs = Object.filter(
+      this.state.data,
+      (data) => data.checked
+    );
 
     return (
       <React.Fragment>
@@ -318,25 +376,29 @@ class SidebarAdminHome extends Component {
               {noneChecked ? (
                 <DisabledButton disabled>Approve</DisabledButton>
               ) : (
-                <ApproveButton onClick={() => this.setModal("approve")}>Approve</ApproveButton>
+                <ApproveButton onClick={() => this.setModal("approve")}>
+                  Approve
+                </ApproveButton>
               )}
               {noneChecked ? (
                 <DisabledButton marginLeft="0.8rem" disabled>
                   Deny
                 </DisabledButton>
               ) : (
-                <DenyButton onClick={() => this.setModal("deny")}>Deny</DenyButton>
+                <DenyButton onClick={() => this.setModal("deny")}>
+                  Deny
+                </DenyButton>
               )}
             </ButtonGroup>
           </Dropdown>
         </React.Fragment>
         <DefaultTitle>Modify Data on Map</DefaultTitle>
         <React.Fragment>
-          <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>Manage Administrators</DefaultTitle>
+          <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>
+            Manage Administrators
+          </DefaultTitle>
           <DropdownAdmin isActive={this.state.activeSection == "manageAdmins"}>
-            <ManageAdmins
-              isActive={this.state.activeSection == "manageAdmins"}
-            >
+            <ManageAdmins isActive={this.state.activeSection == "manageAdmins"}>
               {Object.entries(this.state.admins).map(([key, value]) => (
                 <Administrator key={value.id}>
                   <img src={AdminIcon} alt="Admin Avatar" />
@@ -345,9 +407,21 @@ class SidebarAdminHome extends Component {
                 </Administrator>
               ))}
             </ManageAdmins>
-            <AddAdminButton isActive={this.state.activeSection == "manageAdmins"}>
-              + Add New Administrator
-            </AddAdminButton>
+            <AddAdmin
+              isActive={this.state.activeSection == "manageAdmins"}
+              isShowing={this.state.isAdminShowing}
+            >
+              <span onClick={this.toggleAdmin}>{this.state.isAdminShowing ? "-" : "+"} Add New Administrator</span>
+              <AdminFields
+              isActive={this.state.activeSection == "manageAdmins"}
+              isShowing={this.state.isAdminShowing}
+              >
+                <TextField placeholder="Username" />
+                <TextField inputType="password" placeholder="Password" type="password"/>
+                <TextField inputType="password" placeholder="Retype Password" type="password"/>
+                <SubmitAdminButton>Add Admin</SubmitAdminButton>
+              </AdminFields>
+            </AddAdmin>
           </DropdownAdmin>
         </React.Fragment>
       </React.Fragment>
