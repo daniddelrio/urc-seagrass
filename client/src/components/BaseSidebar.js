@@ -9,6 +9,8 @@ import MediaQuery from "react-responsive";
 import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
 
 const ParentDiv = styled.div`
+  display: flex;
+  flex-direction: column;
   width: ${({ isOpen, isMobile }) =>
     isOpen ? (isMobile ? "80%" : "40%") : "0"};
   height: 98vh;
@@ -16,13 +18,13 @@ const ParentDiv = styled.div`
   z-index: 15;
   transition: width 0 .5s;
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
+  padding-bottom: ${({ isOpen }) => (isOpen ? "1rem" : "0")};
   overflow: auto;
-  overflow-y: auto;
 `;
 
 const SidebarContent = styled.div`
   position: relative;
-  height: 80%;
+  margin-bottom: 1rem;
 `;
 
 const SidebarTitle = styled.h1`
@@ -32,19 +34,12 @@ const SidebarTitle = styled.h1`
 `;
 
 const BottomDiv = styled.div`
-  height: 20%;
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 `;
-  // position: absolute;
-  // bottom: ${({ isSmall }) => (isSmall ? "2.0rem" : "2.0rem")};
 
-// const PayPalText = styled(SidebarSubheader)`
-//   font-size: 13px;
-// `;
-
-  // width: ${({ isSmallMobile }) => (isSmallMobile ? "80%" : "auto")};
 const PayPalButton = styled(ParentButton)`
   margin-top: 1rem;
   padding: 0.2rem;

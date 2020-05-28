@@ -149,7 +149,9 @@ const Checkbox = ({ className, checked, ...props }) => (
 // ================ END OF CHECKBOX STYLES ================
 
 const DropdownAdmin = styled.div`
-  height: ${(props) => (props.isActive ? "8rem" : "0")};
+  max-height: ${(props) => (props.isActive ? "20rem" : "0")};
+  height: ${(props) => (props.isActive ? "auto" : "0")};
+  visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 `;
 
 const DefaultTitle = styled.h4`
@@ -161,7 +163,7 @@ const DefaultTitle = styled.h4`
 `;
 
 const ManageAdmins = styled.div`
-  max-height: 70%;
+  max-height: 60%;
   overflow-y: auto;
 `;
 
