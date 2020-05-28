@@ -33,6 +33,7 @@ const ReviewContributionsText = styled.h4`
 
 const Dropdown = styled.div`
   height: ${(props) => (props.isActive ? "13rem" : "0")};
+  margin-bottom: ${(props) => (props.isActive ? "0.75rem" : "0")};
 `;
 
 const ContributionsNumber = styled(ReviewContributionsText)`
