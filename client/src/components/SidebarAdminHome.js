@@ -7,7 +7,7 @@ import {
   ParentButton,
   GrayButton,
   AdminTextField,
-  FilledButton
+  FilledButton,
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
@@ -148,8 +148,8 @@ const Checkbox = ({ className, checked, ...props }) => (
 
 // ================ END OF CHECKBOX STYLES ================
 
+  // max-height: ${(props) => (props.isActive ? "20rem" : "0")};
 const DropdownAdmin = styled.div`
-  max-height: ${(props) => (props.isActive ? "20rem" : "0")};
   height: ${(props) => (props.isActive ? "auto" : "0")};
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 `;
@@ -183,10 +183,12 @@ const ModifyText = styled.div`
   font-size: 0.56em;
   color: #af7b7b;
   border-bottom: 0.7px solid #865d5d;
+
+  cursor: pointer;
 `;
 
 const AddAdmin = styled.div`
-  padding: 0.5rem;
+  padding: 0.5rem 0.8rem;
   box-sizing: border-box;
   background: #585858;
   border-radius: 12.5px;
@@ -194,13 +196,13 @@ const AddAdmin = styled.div`
   font-weight: 600;
   font-size: 0.75em;
   line-height: 0.75em;
-  text-align: center;
 
-  color: #A5A5A5;
+  color: #a5a5a5;
 
   width: 100%;
-  max-height: ${(props) => props.isShowing ? "15rem" : "1.7rem"};
+  max-height: ${(props) => (props.isShowing ? "15rem" : "1.7rem")};
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
+  margin-bottom: 1.4rem;
 
   transition: max-height 0.4s;
 
@@ -209,11 +211,16 @@ const AddAdmin = styled.div`
   }
 `;
 
+const ModifyAdmin = styled(AddAdmin)`
+  height: auto;
+  visibility: ${(props) => (props.isShowing ? "visible" : "hidden")};
+`;
+
 const AdminFields = styled.div`
-  opacity: ${(props) => props.isShowing ? "100%" : "0%"};
+  opacity: ${(props) => (props.isShowing ? "100%" : "0%")};
   transition: opacity 0.4s;
 
-  padding: 1rem;
+  padding-top: 1rem;
   padding-bottom: 0.1rem;
 `;
 
@@ -228,6 +235,7 @@ const SubmitAdminButton = styled(FilledButton)`
   font-size: 0.9em;
   min-width: 45%;
   margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
 `;
 
 class SidebarAdminHome extends Component {
@@ -270,18 +278,22 @@ class SidebarAdminHome extends Component {
         {
           id: 10000,
           username: "JohnDoe51",
+          showingModify: false,
         },
         {
           id: 12321,
           username: "Anonymous",
+          showingModify: false,
         },
         {
-          id: 12321,
+          id: 12121,
           username: "Anonymous",
+          showingModify: false,
         },
         {
-          id: 12321,
+          id: 12351,
           username: "Anonymous",
+          showingModify: false,
         },
       ],
     };
@@ -294,6 +306,18 @@ class SidebarAdminHome extends Component {
   setActiveSection = (section) => {
     const currSection = this.state.activeSection == section ? "" : section;
     this.setState({ activeSection: currSection });
+  };
+
+  toggleModify = (index) => {
+    this.setState({
+      admins: {
+        ...this.state.admins,
+        [index]: {
+          ...this.state.admins[index],
+          showingModify: !this.state.admins[index].showingModify,
+        },
+      },
+    });
   };
 
   setModal = (kind) => {
@@ -402,25 +426,64 @@ class SidebarAdminHome extends Component {
           <DropdownAdmin isActive={this.state.activeSection == "manageAdmins"}>
             <ManageAdmins isActive={this.state.activeSection == "manageAdmins"}>
               {Object.entries(this.state.admins).map(([key, value]) => (
-                <Administrator key={value.id}>
-                  <img src={AdminIcon} alt="Admin Avatar" />
-                  <AdminUsername>{value.username}</AdminUsername>
-                  <ModifyText>Modify</ModifyText>
-                </Administrator>
+                <React.Fragment>
+                  <Administrator key={value.id}>
+                    <img src={AdminIcon} alt="Admin Avatar" />
+                    <AdminUsername>{value.username}</AdminUsername>
+                    <ModifyText onClick={() => this.toggleModify(key)}>{value.showingModify ? "Cancel" : "Modify"}</ModifyText>
+                  </Administrator>
+                  {value.showingModify && (
+                    <ModifyAdmin
+                      isShowing={value.showingModify}
+                      key={"addAdmin" + key}
+                    >
+                      <span onClick={() => this.toggleModify(key)}>
+                        Modify {value.username}
+                      </span>
+                      <AdminFields
+                        isActive={value.showingModify}
+                        isShowing={value.showingModify}
+                      >
+                        <TextField placeholder="Username" defaultValue={value.username} />
+                        <TextField
+                          inputType="password"
+                          placeholder="Password"
+                          type="password"
+                        />
+                        <TextField
+                          inputType="password"
+                          placeholder="Retype Password"
+                          type="password"
+                        />
+                        <SubmitAdminButton>Modify Admin</SubmitAdminButton>
+                      </AdminFields>
+                    </ModifyAdmin>
+                  )}
+                </React.Fragment>
               ))}
             </ManageAdmins>
             <AddAdmin
               isActive={this.state.activeSection == "manageAdmins"}
               isShowing={this.state.isAdminShowing}
             >
-              <span onClick={this.toggleAdmin}>{this.state.isAdminShowing ? "-" : "+"} Add New Administrator</span>
+              <span onClick={this.toggleAdmin}>
+                {this.state.isAdminShowing ? "-" : "+"}&emsp;Add New Administrator
+              </span>
               <AdminFields
-              isActive={this.state.activeSection == "manageAdmins"}
-              isShowing={this.state.isAdminShowing}
+                isActive={this.state.activeSection == "manageAdmins"}
+                isShowing={this.state.isAdminShowing}
               >
                 <TextField placeholder="Username" />
-                <TextField inputType="password" placeholder="Password" type="password"/>
-                <TextField inputType="password" placeholder="Retype Password" type="password"/>
+                <TextField
+                  inputType="password"
+                  placeholder="Password"
+                  type="password"
+                />
+                <TextField
+                  inputType="password"
+                  placeholder="Retype Password"
+                  type="password"
+                />
                 <SubmitAdminButton>Add Admin</SubmitAdminButton>
               </AdminFields>
             </AddAdmin>

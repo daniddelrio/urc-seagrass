@@ -17,9 +17,14 @@ const BaseFrame = styled(Modal)`
   }
 `;
 
-const Header = styled.div`
+const Header = styled(Modal.Header)`
   font-size: 1.3em;
   color: ${(props) => (props.isApprove ? "#85B790" : "#EC7E7E")};
+  border-bottom: none;
+
+  .close {
+    color: #8E8E8E;
+  }
 `;
 
 const Contributions = styled.ul`
@@ -68,9 +73,9 @@ const ContributionPopup = (props) => (
     </Modal.Body>
     <ButtonGroup>
       {props.isApprove ? (
-        <ApproveButton>Approve</ApproveButton>
+        <ApproveButton onClick={props.closeModal}>Approve</ApproveButton>
       ) : (
-        <DenyButton>Deny</DenyButton>
+        <DenyButton onClick={props.closeModal}>Deny</DenyButton>
       )}
     </ButtonGroup>
   </BaseFrame>
