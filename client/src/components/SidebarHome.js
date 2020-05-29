@@ -28,7 +28,12 @@ const SidebarHome = (props) => (
       <FilledButton onClick={() => props.setActiveSidebar("adminLogin")}>
         Administrator
       </FilledButton>
-      <EmptyButton marginLeft="0.4rem">Contributor</EmptyButton>
+      <EmptyButton
+        marginLeft="0.4rem"
+        onClick={() => props.setActiveSidebar("contribLogin")}
+      >
+        Contributor
+      </EmptyButton>
     </ButtonDiv>
   </React.Fragment>
 );

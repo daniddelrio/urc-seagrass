@@ -3,6 +3,7 @@ import styled from "styled-components";
 import SidebarHome from "./SidebarHome";
 import SidebarAdminLogin from "./SidebarAdminLogin";
 import SidebarAdminHome from "./SidebarAdminHome";
+import SidebarContribution from "./SidebarContribution";
 import PayPal from "../assets/paypal.svg";
 import { MAX_WIDTH, PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
@@ -59,6 +60,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false, 
+      activeSidebar: "contribHome",
     };
   }
 
@@ -74,17 +76,29 @@ class BaseSidebar extends Component {
     this.setState({isLogoutPresent: true});
   };
 
+  setActiveSidebar = (key) => {
+    this.setState({ activeSidebar: key });
+  }
+
   renderContent() {
-    switch (this.props.activeSidebar) {
+    switch (this.state.activeSidebar) {
       case "home":
-        return <SidebarHome setActiveSidebar={this.props.setActiveSidebar} />;
+        return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
       case "adminLogin":
         return (
-          <SidebarAdminLogin setActiveSidebar={this.props.setActiveSidebar} />
+          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />
         );
       case "adminHome":
         return (
-          <SidebarAdminHome setActiveSidebar={this.props.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
+          <SidebarAdminHome setActiveSidebar={this.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
+        );
+      case "contribLogin":
+        return (
+          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} contributor />
+        );
+      case "contribHome":
+        return (
+          <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
         );
     }
   }

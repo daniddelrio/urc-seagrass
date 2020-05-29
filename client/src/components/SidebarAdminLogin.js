@@ -1,6 +1,10 @@
 import React from "react";
 import styled from "styled-components";
-import { SidebarSubheader, FilledButton, AdminTextField } from "./GlobalSidebarComponents";
+import {
+  SidebarSubheader,
+  FilledButton,
+  AdminTextField,
+} from "./GlobalSidebarComponents";
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -11,11 +15,25 @@ const SidebarAdminLogin = (props) => (
   <React.Fragment>
     <ButtonGroup>
       <SidebarSubheader>
-        Log in as Administrator
+        Log in as{" "}
+        {props.contributor ? "Contributor (Optional)" : "Administrator"}
       </SidebarSubheader>
-      <AdminTextField placeholder="Username"/>
-      <AdminTextField inputType="password" placeholder="Password" type="password" />
-      <FilledButton onClick={() => props.setActiveSidebar("adminHome")}>Log in</FilledButton>
+      <AdminTextField
+        placeholder={props.contributor ? "Display Name" : "Username"}
+      />
+      {!props.contributor && (
+        <AdminTextField
+          inputType="password"
+          placeholder="Password"
+          type="password"
+        />
+      )}
+      <FilledButton
+        onClick={() => props.setActiveSidebar(props.contributor ? "adminHome": "contribHome")}
+        style={{ marginTop: "0.4rem" }}
+      >
+        Log in
+      </FilledButton>
     </ButtonGroup>
   </React.Fragment>
 );
