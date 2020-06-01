@@ -132,7 +132,7 @@ class SidebarContribution extends Component {
           onSubmit={(values, { setSubmitting }) => {
             setSubmitting(false);
             console.log(values);
-            this.props.setActiveSidebar("home");
+            this.props.setActiveSidebar("contribDone");
           }}
         >
           {({

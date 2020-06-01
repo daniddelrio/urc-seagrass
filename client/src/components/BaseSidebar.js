@@ -4,6 +4,7 @@ import SidebarHome from "./SidebarHome";
 import SidebarAdminLogin from "./SidebarAdminLogin";
 import SidebarAdminHome from "./SidebarAdminHome";
 import SidebarContribution from "./SidebarContribution";
+import SidebarContributionDone from "./SidebarContributionDone";
 import PayPal from "../assets/paypal.svg";
 import { MAX_WIDTH, PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
@@ -60,7 +61,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false, 
-      activeSidebar: "contribHome",
+      activeSidebar: "contribDone",
     };
   }
 
@@ -99,6 +100,10 @@ class BaseSidebar extends Component {
       case "contribHome":
         return (
           <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
+        );
+      case "contribDone":
+        return (
+          <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
         );
     }
   }
