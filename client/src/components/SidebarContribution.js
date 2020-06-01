@@ -102,13 +102,13 @@ const CalendarIcon = styled.img`
 const SubmitButton = styled(ParentButton)`
   margin-top: 0.8rem;
 
-  background: #5e8968;
-  border: 0.7px solid #85b790;
+  background: ${({disabled}) => disabled ? "#474747" : "#5e8968"};
+  border: 0.7px solid ${({disabled}) => disabled ? "#646464" : "#85b790"};
   box-sizing: border-box;
   border-radius: 14px;
 
   text-align: center;
-  color: #b4d9bc;
+  color: ${({disabled}) => disabled ? "#8a8a8a" : "#b4d9bc"};
   width: 100%;
 `;
 
@@ -153,18 +153,18 @@ class SidebarContribution extends Component {
                 placeholder="Choose Area"
                 styles={customStyles}
                 options={selectOptions}
-                onChange={setFieldValue}
+                onChange={() => setFieldValue("area")}
                 onBlur={() => setFieldTouched("area")}
                 error={errors.area}
-                touched={touched.area}
               />
-              { touched.area && 
+              { values.area != "" && 
                 <React.Fragment>
                   <RelativeDiv>
                     <TextField
                       placeholder="Date of Measuring"
                       type="date"
                       name="date"
+                      style={touched.date && {background: "#5A5A5A", color: "#ABABAB"}}
                     />
                     <CalendarIcon src={Calendar} />
                   </RelativeDiv>
@@ -175,6 +175,7 @@ class SidebarContribution extends Component {
                     <TextField
                       id="contribField1"
                       name="contribField1"
+                      style={touched.contribField1 && {background: "#5A5A5A", color: "#ABABAB"}}
                       noMarginBottom
                     />
                     <UnitText>Mg C/ha</UnitText>
@@ -190,7 +191,7 @@ class SidebarContribution extends Component {
                     />
                     <UnitText>%</UnitText>
                   </FlexDiv>
-                  <SubmitButton type="submit" disabled={isSubmitting}>
+                  <SubmitButton type="submit" disabled={isSubmitting || !touched.date || !(touched.contribField1 || touched.contribField2)}>
                     Submit Contribution
                   </SubmitButton>
                 </React.Fragment>
