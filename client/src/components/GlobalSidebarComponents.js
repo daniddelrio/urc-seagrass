@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Field } from "formik";
 
 export const SidebarSubheader = styled.h1`
   font-size: 14px;
@@ -43,7 +44,7 @@ export const EmptyButton = styled(ParentButton)`
   color: #c4c4c4;
 `;
 
-export const AdminTextField = styled.input`
+export const AdminTextField = styled(Field)`
   flex: 1;
 
   background: #4F4F4F;
