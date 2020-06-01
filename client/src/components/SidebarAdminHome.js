@@ -13,6 +13,7 @@ import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
 import Check from "../assets/checkbox.svg";
 import AdminIcon from "../assets/adminIcon.svg";
+import { Formik, Form } from "formik";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -441,53 +442,93 @@ class SidebarAdminHome extends Component {
                       <span onClick={() => this.toggleModify(key)}>
                         Modify {value.username}
                       </span>
-                      <AdminFields
-                        isActive={value.showingModify}
-                        isShowing={value.showingModify}
+                      <Formik
+                        initialValues={{
+                          username: value.username,
+                          password1: "",
+                          password2: "",
+                        }}
+                        onSubmit={(values, { setSubmitting }) => {
+                          setSubmitting(false);
+                        }}
                       >
-                        <TextField placeholder="Username" defaultValue={value.username} />
-                        <TextField
-                          inputType="password"
-                          placeholder="Password"
-                          type="password"
-                        />
-                        <TextField
-                          inputType="password"
-                          placeholder="Retype Password"
-                          type="password"
-                        />
-                        <SubmitAdminButton>Modify Admin</SubmitAdminButton>
-                      </AdminFields>
+                        {({ isSubmitting }) => (
+                          <Form>
+                            <AdminFields
+                              isActive={value.showingModify}
+                              isShowing={value.showingModify}
+                            >
+                              <TextField 
+                                name="username"
+                                placeholder="Username" 
+                              />
+                              <TextField
+                                name="password1"
+                                inputType="password"
+                                placeholder="Password"
+                                type="password"
+                              />
+                              <TextField
+                                name="password2"
+                                inputType="password"
+                                placeholder="Retype Password"
+                                type="password"
+                              />
+                              <SubmitAdminButton>Modify Admin</SubmitAdminButton>
+                            </AdminFields>
+                          </Form>
+                        )}
+                      </Formik>
                     </ModifyAdmin>
                   )}
                 </React.Fragment>
               ))}
             </ManageAdmins>
-            <AddAdmin
-              isActive={this.state.activeSection == "manageAdmins"}
-              isShowing={this.state.isAdminShowing}
+            <Formik
+              initialValues={{
+                username: "",
+                password1: "",
+                password2: "",
+              }}
+              onSubmit={(values, { setSubmitting }) => {
+                setSubmitting(false);
+              }}
             >
-              <span onClick={this.toggleAdmin}>
-                {this.state.isAdminShowing ? "-" : "+"}&emsp;Add New Administrator
-              </span>
-              <AdminFields
-                isActive={this.state.activeSection == "manageAdmins"}
-                isShowing={this.state.isAdminShowing}
-              >
-                <TextField placeholder="Username" />
-                <TextField
-                  inputType="password"
-                  placeholder="Password"
-                  type="password"
-                />
-                <TextField
-                  inputType="password"
-                  placeholder="Retype Password"
-                  type="password"
-                />
-                <SubmitAdminButton>Add Admin</SubmitAdminButton>
-              </AdminFields>
-            </AddAdmin>
+              {({ isSubmitting, values }) => (
+                <Form>
+                  <AddAdmin
+                    isActive={this.state.activeSection == "manageAdmins"}
+                    isShowing={this.state.isAdminShowing}
+                  >
+                    <span onClick={this.toggleAdmin}>
+                      {this.state.isAdminShowing ? "-" : "+"}&emsp;Add New Administrator
+                    </span>
+                    <AdminFields
+                      isActive={this.state.activeSection == "manageAdmins"}
+                      isShowing={this.state.isAdminShowing}
+                    >
+                      <TextField 
+                        placeholder="Username" 
+                        name="username"
+                      />
+                      <TextField
+                        inputType="password"
+                        placeholder="Password"
+                        type="password"
+                        name="password1"
+                      />
+                      <TextField
+                        inputType="password"
+                        placeholder="Retype Password"
+                        type="password"
+                        name="password2"
+                      />
+                      <SubmitAdminButton>Add Admin</SubmitAdminButton>
+                    </AdminFields>
+                  </AddAdmin>
+                </Form>
+              )}
+            </Formik>
           </DropdownAdmin>
         </React.Fragment>
       </React.Fragment>

@@ -7,7 +7,7 @@ import {
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form } from "formik";
 
 const selectOptions = [
   { value: "seagrassMeadow", label: "Seagrass Meadow" },
@@ -131,7 +131,6 @@ class SidebarContribution extends Component {
           }}
           onSubmit={(values, { setSubmitting }) => {
             setSubmitting(false);
-            console.log(values);
             this.props.setActiveSidebar("contribDone");
           }}
         >
