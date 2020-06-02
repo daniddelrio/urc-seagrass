@@ -6,11 +6,17 @@ import {
   AdminTextField,
 } from "./GlobalSidebarComponents";
 import { Formik, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 const ButtonGroup = styled.div`
   display: flex;
   flex-direction: column;
 `;
+
+const validationSchema = Yup.object({
+  username: Yup.string().required("No username provided"),
+  password: Yup.string(),
+});
 
 const SidebarAdminLogin = (props) => (
   <React.Fragment>
@@ -28,10 +34,12 @@ const SidebarAdminLogin = (props) => (
           props.contributor ? "contribHome" : "adminHome"
         );
       }}
+      validationSchema={validationSchema}
     >
       {({ isSubmitting }) => (
         <Form>
           <ButtonGroup>
+            <ErrorMessage name="username" />
             <AdminTextField
               placeholder={props.contributor ? "Display Name" : "Username"}
               name="username"

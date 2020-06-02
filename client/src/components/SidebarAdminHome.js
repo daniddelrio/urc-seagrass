@@ -13,7 +13,8 @@ import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
 import Check from "../assets/checkbox.svg";
 import AdminIcon from "../assets/adminIcon.svg";
-import { Formik, Form } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -240,6 +241,19 @@ const SubmitAdminButton = styled(FilledButton)`
   margin-bottom: 0.25rem;
 `;
 
+const validationSchema = Yup.object({
+  username: Yup
+    .string()
+    .required("No username provided"),
+  password1: Yup
+    .string()
+    .required("No password provided"),
+  password2: Yup
+    .string()
+    .oneOf([Yup.ref('password1'), null], "Passwords don't match")
+    .required("Please retype your password"),
+});
+
 class SidebarAdminHome extends Component {
   constructor(props) {
     super(props);
@@ -451,6 +465,7 @@ class SidebarAdminHome extends Component {
                         onSubmit={(values, { setSubmitting }) => {
                           setSubmitting(false);
                         }}
+                        validationSchema={validationSchema}
                       >
                         {({ isSubmitting }) => (
                           <Form>
@@ -458,16 +473,19 @@ class SidebarAdminHome extends Component {
                               isActive={value.showingModify}
                               isShowing={value.showingModify}
                             >
+                              <ErrorMessage name="username" />
                               <TextField 
                                 name="username"
                                 placeholder="Username" 
                               />
+                              <ErrorMessage name="password1" />
                               <TextField
                                 name="password1"
                                 inputType="password"
                                 placeholder="Password"
                                 type="password"
                               />
+                              <ErrorMessage name="password2" />
                               <TextField
                                 name="password2"
                                 inputType="password"
@@ -493,6 +511,7 @@ class SidebarAdminHome extends Component {
               onSubmit={(values, { setSubmitting }) => {
                 setSubmitting(false);
               }}
+              validationSchema={validationSchema}
             >
               {({ isSubmitting, values }) => (
                 <Form>

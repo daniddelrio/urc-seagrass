@@ -7,7 +7,8 @@ import {
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
-import { Formik, Form } from "formik";
+import { Formik, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 const selectOptions = [
   { value: "seagrassMeadow", label: "Seagrass Meadow" },
@@ -33,9 +34,9 @@ const customStyles = {
       ":active": {},
     };
   },
-  control: (styles) => ({
+  control: (styles, state) => ({
     ...styles,
-    background: "#4F4F4F",
+    background: state.hasValue ? "#5A5A5A" : "#4F4F4F",
     fontSize: "13px",
     fontWeight: 600,
     border: "0.7px solid #9A9A9A",
@@ -51,7 +52,7 @@ const customStyles = {
     borderRadius: "4px",
   }),
   singleValue: (provided, state) => ({
-    color: "#808080",
+    color: state.hasValue ? "#ABABAB" : "#808080",
   }),
   indicatorSeparator: () => ({}),
 };
@@ -102,15 +103,34 @@ const CalendarIcon = styled.img`
 const SubmitButton = styled(ParentButton)`
   margin-top: 0.8rem;
 
-  background: ${({disabled}) => disabled ? "#474747" : "#5e8968"};
-  border: 0.7px solid ${({disabled}) => disabled ? "#646464" : "#85b790"};
+  background: ${({ disabled }) => (disabled ? "#474747" : "#5e8968")};
+  border: 0.7px solid ${({ disabled }) => (disabled ? "#646464" : "#85b790")};
   box-sizing: border-box;
   border-radius: 14px;
 
   text-align: center;
-  color: ${({disabled}) => disabled ? "#8a8a8a" : "#b4d9bc"};
+  color: ${({ disabled }) => (disabled ? "#8a8a8a" : "#b4d9bc")};
   width: 100%;
 `;
+
+Yup.addMethod(Yup.object, "atLeastOneOf", function(list) {
+  return this.test({
+    name: 'atLeastOneOf',
+    message: '${path} must have at least one of these keys: ${keys}',
+    exclusive: true,
+    params: { keys: list.join(', ') },
+    test: (value) => value == null || list.some((f) => value[f] !== undefined),
+  })
+});
+
+const validationSchema = Yup.object()
+  .shape({
+    area: Yup.string().required("Please input an area"),
+    date: Yup.string().required("Please input a date"),
+    contribField1: Yup.number(),
+    contribField2: Yup.number(),
+  })
+  .atLeastOneOf(["contribField1", "contribField2"]);
 
 class SidebarContribution extends Component {
   constructor(props) {
@@ -133,6 +153,7 @@ class SidebarContribution extends Component {
             setSubmitting(false);
             this.props.setActiveSidebar("contribDone");
           }}
+          validationSchema={validationSchema}
         >
           {({
             values,
@@ -142,6 +163,7 @@ class SidebarContribution extends Component {
             handleBlur,
             handleSubmit,
             handleReset,
+            setFieldError,
             setFieldValue,
             setFieldTouched,
             isSubmitting,
@@ -152,18 +174,24 @@ class SidebarContribution extends Component {
                 placeholder="Choose Area"
                 styles={customStyles}
                 options={selectOptions}
-                onChange={() => setFieldValue("area")}
+                onChange={(selectedOption) => setFieldValue("area", selectedOption.value)}
                 onBlur={() => setFieldTouched("area")}
-                error={errors.area}
+                error={(error) => setFieldError("area")(error)}
               />
-              { values.area != "" && 
+              {console.log("ERRORS")}
+              {console.log(errors)}
+              {values.area != "" && (
                 <React.Fragment>
                   <RelativeDiv>
                     <TextField
                       placeholder="Date of Measuring"
                       type="date"
                       name="date"
-                      style={touched.date && {background: "#5A5A5A", color: "#ABABAB"}}
+                      style={
+                        values.date && values.date != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
                     />
                     <CalendarIcon src={Calendar} />
                   </RelativeDiv>
@@ -174,7 +202,11 @@ class SidebarContribution extends Component {
                     <TextField
                       id="contribField1"
                       name="contribField1"
-                      style={touched.contribField1 && {background: "#5A5A5A", color: "#ABABAB"}}
+                      style={
+                        values.contribField1 && values.contribField1 != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
                       noMarginBottom
                     />
                     <UnitText>Mg C/ha</UnitText>
@@ -186,15 +218,27 @@ class SidebarContribution extends Component {
                     <TextField
                       id="contribField2"
                       name="contribField2"
+                      style={
+                        values.contribField2 && values.contribField2 != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
                       noMarginBottom
                     />
                     <UnitText>%</UnitText>
                   </FlexDiv>
-                  <SubmitButton type="submit" disabled={isSubmitting || !touched.date || !(touched.contribField1 || touched.contribField2)}>
+                  <SubmitButton
+                    type="submit"
+                    disabled={
+                      isSubmitting ||
+                      !touched.date ||
+                      !(values.contribField1 != "" || values.contribField2 != "")
+                    }
+                  >
                     Submit Contribution
                   </SubmitButton>
                 </React.Fragment>
-              }
+              )}
             </Form>
           )}
         </Formik>
