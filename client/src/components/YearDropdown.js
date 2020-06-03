@@ -132,6 +132,7 @@ const YearDropdown = (props) => (
     styles={customStyles}
     options={selectOptions}
     defaultValue={{ label: "2020", value: "2020" }}
+    onChange={(e) => {props.setYear(e.value)}}
     menuPortalTarget={document.body}
   />
 );

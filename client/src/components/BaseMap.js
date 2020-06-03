@@ -87,7 +87,7 @@ class BaseMap extends Component {
 
     return (
       <React.Fragment>
-        <YearDropdown />
+        <YearDropdown setYear={this.props.setYear} />
         <LeafletMap
           center={[15.52, 119.93]}
           zoom={13}

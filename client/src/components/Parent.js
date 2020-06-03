@@ -14,6 +14,7 @@ class Parent extends Component {
     this.state = {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
+      year: "2020",
     };
   }
 
@@ -24,6 +25,10 @@ class Parent extends Component {
   componentWillUnmount() {
     window.removeEventListener("resize", this.setSidebarOpen);
     window.removeEventListener("resize", this.setMobileState);
+  }
+
+  setYear = (year) => {
+    this.setState({year: year});
   }
 
   setSidebarOpen = () => {
@@ -47,6 +52,8 @@ class Parent extends Component {
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
           toggleSidebar={this.toggleSidebar}
+          year={this.state.year}
+          setYear={this.setYear}
         />
         <BaseSidebar 
           isOpen={this.state.isSidebarOpen} 
