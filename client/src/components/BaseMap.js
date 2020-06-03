@@ -6,13 +6,11 @@ import BasePopup from "./BasePopup";
 import YearDropdown from "./YearDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
-import MediaQuery from 'react-responsive'
-import { MAX_WIDTH } from "./GlobalDeviceWidths";
 
 const LeafletMap = styled(Map)`
   position: relative;
   height: 98vh;
-  width: ${({isOpen, isMobile}) => isOpen && isMobile ? "30%" : "100%"};
+  width: ${({ isOpen, isMobile }) => (isOpen && isMobile ? "30%" : "100%")};
   z-index: 1;
 `;
 
@@ -90,7 +88,12 @@ class BaseMap extends Component {
     return (
       <React.Fragment>
         <YearDropdown />
-        <LeafletMap center={[15.52, 119.93]} zoom={13} isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
+        <LeafletMap
+          center={[15.52, 119.93]}
+          zoom={13}
+          isOpen={this.props.isOpen}
+          isMobile={this.props.isMobile}
+        >
           <TileLayer
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
@@ -107,7 +110,7 @@ class BaseMap extends Component {
             </Popup>
           )}
         </LeafletMap>
-        <MediaQuery maxDeviceWidth={MAX_WIDTH}>
+        {this.props.isMobile && (
           <HamburgerIcon
             src={this.props.isOpen ? OpenHamburger : Hamburger}
             alt="Sidebar"
@@ -115,7 +118,7 @@ class BaseMap extends Component {
             onClick={this.props.toggleSidebar}
             isMobile={this.props.isMobile}
           />
-        </MediaQuery>
+        )}
       </React.Fragment>
     );
   }

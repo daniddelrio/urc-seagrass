@@ -6,7 +6,7 @@ import SidebarAdminHome from "./SidebarAdminHome";
 import SidebarContribution from "./SidebarContribution";
 import SidebarContributionDone from "./SidebarContributionDone";
 import PayPal from "../assets/paypal.svg";
-import { MAX_WIDTH, PAYPAL_WIDTH } from "./GlobalDeviceWidths";
+import { PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
 import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
 
