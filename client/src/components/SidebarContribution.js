@@ -20,20 +20,18 @@ const selectOptions = [
 ];
 
 const customStyles = {
-  option: (provided, state) => {
-    return {
-      ...provided,
-      background: "#5F5F5F",
-      fontSize: "13px",
-      color: "#999999",
-      fontWeight: 600,
-      paddingBottom: "0.3rem",
-      paddingTop: "0.3rem",
-      cursor: "pointer",
+  option: (provided, state) => ({
+    ...provided,
+    background: "#5F5F5F",
+    fontSize: "13px",
+    color: "#999999",
+    fontWeight: 600,
+    paddingBottom: "0.3rem",
+    paddingTop: "0.3rem",
+    cursor: "pointer",
 
-      ":active": {},
-    };
-  },
+    ":active": {},
+  }),
   control: (styles, state) => ({
     ...styles,
     background: state.hasValue ? "#5A5A5A" : "#4F4F4F",

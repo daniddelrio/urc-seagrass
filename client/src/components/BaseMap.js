@@ -3,6 +3,7 @@ import { Map, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import styled from "styled-components";
 import sites from "../data/sites.json";
 import BasePopup from "./BasePopup";
+import YearDropdown from "./YearDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
 import MediaQuery from 'react-responsive'
@@ -88,6 +89,7 @@ class BaseMap extends Component {
 
     return (
       <React.Fragment>
+        <YearDropdown />
         <LeafletMap center={[15.52, 119.93]} zoom={13} isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
           <TileLayer
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
