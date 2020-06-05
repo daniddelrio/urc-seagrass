@@ -18,10 +18,16 @@ const ParentDiv = styled.div`
   height: 98vh;
   background: #474747;
   z-index: 15;
-  transition: width 0 .5s;
+  transition: width 0.5s;
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   padding-bottom: ${({ isOpen }) => (isOpen ? "1rem" : "0")};
   overflow: auto;
+  float: ${({ isMobile }) => isMobile ? "right" : null};
+
+  .sidebar-content {
+    opacity: ${({ isOpen }) => (isOpen ? "100%" : "0%")};
+    transition: 0.5s opacity;
+  }
 `;
 
 const SidebarContent = styled.div`
@@ -111,11 +117,11 @@ class BaseSidebar extends Component {
   render() {
     return (
       <ParentDiv isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
-        <SidebarContent>
+        <SidebarContent className="sidebar-content">
           <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
           {this.renderContent()}
         </SidebarContent>
-        <BottomDiv isSmall={window.innerWidth <= PAYPAL_WIDTH}>
+        <BottomDiv className="sidebar-content" isSmall={window.innerWidth <= PAYPAL_WIDTH}>
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}

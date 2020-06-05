@@ -10,8 +10,10 @@ import OpenHamburger from "../assets/open_hamburger.svg";
 const LeafletMap = styled(Map)`
   position: relative;
   height: 98vh;
-  width: ${({ isOpen, isMobile }) => (isOpen && isMobile ? "30%" : "100%")};
+  width: ${({ isOpen, isMobile }) => (isOpen && isMobile ? "20%" : "100%")};
+  float: ${({ isMobile }) => isMobile ? "left" : null};
   z-index: 1;
+  transition: width 0.5s;
 `;
 
 const HamburgerIcon = styled.img`
@@ -19,7 +21,7 @@ const HamburgerIcon = styled.img`
   z-index: 5;
 
   bottom: 1.5rem;
-  right: ${({ isOpen, isMobile }) => (isOpen ? "78%" : "1.5rem")};
+  right: ${({ isOpen }) => (isOpen ? "83%" : "1.5rem")};
   transition: right 0.5s;
 `;
 

@@ -14,6 +14,7 @@ const SidebarTitle = styled.h1`
 
 const ButtonDiv = styled.div`
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   margin-top: 2rem;
 `;

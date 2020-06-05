@@ -13,9 +13,13 @@ const ButtonGroup = styled.div`
   flex-direction: column;
 `;
 
-const validationSchema = Yup.object({
+const validationSchemaAdmin = Yup.object({
   username: Yup.string().required("No username provided"),
-  password: Yup.string(),
+  password: Yup.string().required("No password provided"),
+});
+
+const validationSchemaContrib = Yup.object({
+  username: Yup.string(),
 });
 
 const SidebarAdminLogin = (props) => (
@@ -34,7 +38,7 @@ const SidebarAdminLogin = (props) => (
           props.contributor ? "contribHome" : "adminHome"
         );
       }}
-      validationSchema={validationSchema}
+      validationSchema={props.contributor ? validationSchemaContrib : validationSchemaAdmin}
     >
       {({ isSubmitting }) => (
         <Form>

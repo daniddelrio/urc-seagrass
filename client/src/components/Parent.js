@@ -47,7 +47,7 @@ class Parent extends Component {
 
   render() {
     return (
-      <AppDiv className="App">
+      <AppDiv className="App" isMobile={this.state.isMobile}>
         <BaseMap
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
