@@ -130,8 +130,8 @@ const validationSchema = Yup.object()
   .shape({
     area: Yup.string().required("Please input an area"),
     date: Yup.string().required("Please input a date"),
-    contribField1: Yup.number(),
-    contribField2: Yup.number(),
+    contribField1: Yup.number().min(0),
+    contribField2: Yup.number().min(0).max(100),
   })
   .atLeastOneOf(["contribField1", "contribField2"]);
 
@@ -195,6 +195,7 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
+                <ErrorMessage name="contribField1" />
                 <LabelField for="contribField1">
                   Total Seagrass Count
                 </LabelField>
@@ -211,6 +212,7 @@ class SidebarContribution extends Component {
                   />
                   <UnitText>Mg C/ha</UnitText>
                 </FlexDiv>
+                <ErrorMessage name="contribField2" />
                 <LabelField for="contribField2">
                   Inorganic Carbon Percentage
                 </LabelField>
