@@ -38,7 +38,9 @@ class BaseMap extends Component {
   }
 
   componentDidMount() {
-    this.setState({ areas: sites });
+    this.setState({
+      areas: sites
+    });
   }
 
   addPopup = (e) => {
@@ -76,6 +78,18 @@ class BaseMap extends Component {
     });
   };
 
+  toggleModify = (index) => {
+    this.setState({
+      admins: {
+        ...this.state.admins,
+        [index]: {
+          ...this.state.admins[index],
+          showingModify: !this.state.admins[index].showingModify,
+        },
+      },
+    });
+  };
+
   render() {
     const style = {
       fillColor: "#C5F9D0",
@@ -103,7 +117,9 @@ class BaseMap extends Component {
           <GeoJSON
             style={style}
             data={areas}
+            key={this.props.year}
             onEachFeature={this.onEachFeature}
+            filter={site => site.properties.year == this.props.year}
             ref={this.geojson}
           />
           {popup.position && (

@@ -5,61 +5,7 @@ import {
   FilledButton,
   AdminTextField,
 } from "./GlobalSidebarComponents";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Dropdown from 'react-bootstrap/Dropdown';
 import Select from "react-select";
-
-const DropdownBase = styled(Dropdown)`
-  position: absolute;
-  top: 1.2rem;
-  left: 3.3rem;
-  z-index: 10;
-`;
-
-const CustomToggle = styled(Dropdown.Toggle)`
-  width: 55px;
-  height: 22px;
-
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 12px;
-  text-align: center;
-
-  color: #F2F2F2;
-
-  background: rgba(92, 92, 92, 0.15);
-  border: none;
-  border-radius: 14.5px;
-
-  &:hover {
-    color: #F2F2F2;
-    background-color: rgba(92, 92, 92, 0.15);
-    border-color: none;
-  }
-`;
-
-const CustomMenu = styled(Dropdown.Menu)`
-  background: rgba(66, 66, 66, 0.15);
-  border-radius: 6px;
-  width: 55px;
-`;
-
-const CustomItem = styled(Dropdown.Item)`
-  color: white;  
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 12px;
-  text-align: center;
-
-  &:hover {
-    color: white;
-    background: rgba(66, 66, 66, 0.15);
-  }
-`;
 
 const selectOptions = [
   { value: "2020", label: "2020" },
@@ -120,19 +66,16 @@ const customStyles = {
     ":hover": {},
   }),
 };
-  /*<DropdownBase>
-    <CustomToggle>2020</CustomToggle>
-    <CustomMenu>
-      <CustomItem>2012</CustomItem>
-    </CustomMenu>
-  </DropdownBase>*/
+
 const YearDropdown = (props) => (
   <Select
     name="mapYear"
     styles={customStyles}
     options={selectOptions}
     defaultValue={{ label: "2020", value: "2020" }}
-    onChange={(e) => {props.setYear(e.value)}}
+    onChange={(e) => {
+      props.setYear(e.value); 
+    }}
     menuPortalTarget={document.body}
   />
 );
