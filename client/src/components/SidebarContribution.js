@@ -55,6 +55,11 @@ const customStyles = {
   indicatorSeparator: () => ({}),
 };
 
+const ContributionFields = styled.div`
+  opacity: ${(props) => props.isShown ? "100%" : 0};
+  transition: 0.5s opacity;
+`;
+
 const LabelField = styled.label`
   font-weight: 600;
   font-size: 0.8em;
@@ -94,8 +99,8 @@ const CalendarIcon = styled.img`
   position: absolute;
   right: 0.7rem;
   top: 0.6rem;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 `;
 
 const SubmitButton = styled(ParentButton)`
@@ -176,67 +181,63 @@ class SidebarContribution extends Component {
                 onBlur={() => setFieldTouched("area")}
                 error={(error) => setFieldError("area")(error)}
               />
-              {console.log("ERRORS")}
-              {console.log(errors)}
-              {values.area != "" && (
-                <React.Fragment>
-                  <RelativeDiv>
-                    <TextField
-                      placeholder="Date of Measuring"
-                      type="date"
-                      name="date"
-                      style={
-                        values.date && values.date != ""
-                          ? { background: "#5A5A5A", color: "#ABABAB" }
-                          : null
-                      }
-                    />
-                    <CalendarIcon src={Calendar} />
-                  </RelativeDiv>
-                  <LabelField for="contribField1">
-                    Total Seagrass Count
-                  </LabelField>
-                  <FlexDiv>
-                    <TextField
-                      id="contribField1"
-                      name="contribField1"
-                      style={
-                        values.contribField1 && values.contribField1 != ""
-                          ? { background: "#5A5A5A", color: "#ABABAB" }
-                          : null
-                      }
-                      noMarginBottom
-                    />
-                    <UnitText>Mg C/ha</UnitText>
-                  </FlexDiv>
-                  <LabelField for="contribField2">
-                    Inorganic Carbon Percentage
-                  </LabelField>
-                  <FlexDiv>
-                    <TextField
-                      id="contribField2"
-                      name="contribField2"
-                      style={
-                        values.contribField2 && values.contribField2 != ""
-                          ? { background: "#5A5A5A", color: "#ABABAB" }
-                          : null
-                      }
-                      noMarginBottom
-                    />
-                    <UnitText>%</UnitText>
-                  </FlexDiv>
-                  <SubmitButton
-                    type="submit"
-                    disabled={
-                      isSubmitting ||
-                      !touched.date ||
-                      !(values.contribField1 != "" || values.contribField2 != "")
+              <ContributionFields isShown={values.area != ""}>
+                <RelativeDiv>
+                  <TextField
+                    placeholder="Date of Measuring"
+                    type="date"
+                    name="date"
+                    style={
+                      values.date && values.date != ""
+                        ? { background: "#5A5A5A", color: "#ABABAB" }
+                        : null
                     }
-                  >
-                    Submit Contribution
-                  </SubmitButton>
-                </React.Fragment>
-              )}
+                  />
+                  <CalendarIcon src={Calendar} />
+                </RelativeDiv>
+                <LabelField for="contribField1">
+                  Total Seagrass Count
+                </LabelField>
+                <FlexDiv>
+                  <TextField
+                    id="contribField1"
+                    name="contribField1"
+                    style={
+                      values.contribField1 && values.contribField1 != ""
+                        ? { background: "#5A5A5A", color: "#ABABAB" }
+                        : null
+                    }
+                    noMarginBottom
+                  />
+                  <UnitText>Mg C/ha</UnitText>
+                </FlexDiv>
+                <LabelField for="contribField2">
+                  Inorganic Carbon Percentage
+                </LabelField>
+                <FlexDiv>
+                  <TextField
+                    id="contribField2"
+                    name="contribField2"
+                    style={
+                      values.contribField2 && values.contribField2 != ""
+                        ? { background: "#5A5A5A", color: "#ABABAB" }
+                        : null
+                    }
+                    noMarginBottom
+                  />
+                  <UnitText>%</UnitText>
+                </FlexDiv>
+                <SubmitButton
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    !touched.date ||
+                    !(values.contribField1 != "" || values.contribField2 != "")
+                  }
+                >
+                  Submit Contribution
+                </SubmitButton>
+              </ContributionFields>
             </Form>
           )}
         </Formik>

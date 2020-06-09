@@ -67,7 +67,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false, 
-      activeSidebar: "home",
+      activeSidebar: "adminHome",
     };
   }
 

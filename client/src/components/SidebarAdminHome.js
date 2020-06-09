@@ -36,6 +36,7 @@ const ReviewContributionsText = styled.h4`
 const Dropdown = styled.div`
   height: ${(props) => (props.isActive ? "13rem" : "0")};
   margin-bottom: ${(props) => (props.isActive ? "0.75rem" : "0")};
+  transition: 0.5s height;
 `;
 
 const ContributionsNumber = styled(ReviewContributionsText)`
@@ -152,8 +153,10 @@ const Checkbox = ({ className, checked, ...props }) => (
 // ================ END OF CHECKBOX STYLES ================
 
   // max-height: ${(props) => (props.isActive ? "20rem" : "0")};
+  // transition: 0.5s max-height;
+  // height: ${(props) => (props.isActive ? "20rem" : "0")};
+  // transition: 0.5s height;
 const DropdownAdmin = styled.div`
-  height: ${(props) => (props.isActive ? "auto" : "0")};
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 `;
 
@@ -169,6 +172,7 @@ const ManageAdmins = styled.div`
   max-height: 60%;
   overflow-y: auto;
 `;
+  // visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 
 const Administrator = styled.div`
   display: flex;
@@ -396,9 +400,7 @@ class SidebarAdminHome extends Component {
             </ContributionsNumber>
           </ReviewContributionsTitle>
           <Dropdown isActive={this.state.activeSection == "contributions"}>
-            <ReviewContributions
-              isActive={this.state.activeSection == "contributions"}
-            >
+            <ReviewContributions>
               {Object.entries(this.state.data).map(([key, value]) => (
                 <Contribution key={value.id}>
                   <Checkbox
@@ -450,7 +452,7 @@ class SidebarAdminHome extends Component {
                   </Administrator>
                   {value.showingModify && (
                     <ModifyAdmin
-                      isShowing={value.showingModify}
+                      isShowing={value.showingModify && this.state.activeSection == "manageAdmins"}
                       key={"addAdmin" + key}
                     >
                       <span onClick={() => this.toggleModify(key)}>
