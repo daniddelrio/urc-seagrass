@@ -8,6 +8,7 @@ import {
   GrayButton,
   AdminTextField,
   FilledButton,
+  CustomErrorMessage
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
@@ -195,6 +196,7 @@ const ModifyText = styled.div`
 `;
 
 const AddAdmin = styled.div`
+  overflow-y: auto;
   padding: 0.5rem 0.8rem;
   box-sizing: border-box;
   background: #585858;
@@ -246,17 +248,24 @@ const SubmitAdminButton = styled(FilledButton)`
 `;
 
 const validationSchema = Yup.object({
-  username: Yup
-    .string()
+  username: Yup.string()
     .required("No username provided"),
-  password1: Yup
-    .string()
-    .required("No password provided"),
-  password2: Yup
-    .string()
-    .oneOf([Yup.ref('password1'), null], "Passwords don't match")
-    .required("Please retype your password"),
+  password1: Yup.string()
+    .required("No password provided")
+    .min(8, "Password must have at least 8 characters")
+    .max(128, "Password must have at most 128 characters"),
+  password2: Yup.string().when("password1", {
+    is: val => val && val.length > 0,
+    then: Yup.string()
+      .oneOf([Yup.ref("password1")], "Your passwords do not match")
+      .required("Please retype your password")
+    }),
 });
+
+const AdminErrorMessage = styled(CustomErrorMessage)`
+  font-size: 1em;
+  margin-bottom: 0.4rem;
+`;
 
 class SidebarAdminHome extends Component {
   constructor(props) {
@@ -469,31 +478,43 @@ class SidebarAdminHome extends Component {
                         }}
                         validationSchema={validationSchema}
                       >
-                        {({ isSubmitting }) => (
+                        {({ isSubmitting, errors, touched }) => (
                           <Form>
                             <AdminFields
                               isActive={value.showingModify}
                               isShowing={value.showingModify}
                             >
-                              <ErrorMessage name="username" />
                               <TextField 
                                 name="username"
                                 placeholder="Username" 
                               />
-                              <ErrorMessage name="password1" />
                               <TextField
                                 name="password1"
                                 inputType="password"
                                 placeholder="Password"
                                 type="password"
                               />
-                              <ErrorMessage name="password2" />
                               <TextField
                                 name="password2"
                                 inputType="password"
                                 placeholder="Retype Password"
                                 type="password"
                               />
+                              {errors.username && touched.username && (
+                                <AdminErrorMessage>
+                                  <span>Error: {errors.username}</span>
+                                </AdminErrorMessage>
+                              )}
+                              {errors.password1 && touched.password1 && (
+                                <AdminErrorMessage>
+                                  <span>Error: {errors.password1}</span>
+                                </AdminErrorMessage>
+                              )}
+                              {errors.password2 && touched.password2 && (
+                                <AdminErrorMessage>
+                                  <span>Error: {errors.password2}</span>
+                                </AdminErrorMessage>
+                              )}
                               <SubmitAdminButton>Modify Admin</SubmitAdminButton>
                             </AdminFields>
                           </Form>
@@ -515,7 +536,7 @@ class SidebarAdminHome extends Component {
               }}
               validationSchema={validationSchema}
             >
-              {({ isSubmitting, values }) => (
+              {({ isSubmitting, values, errors, touched }) => (
                 <Form>
                   <AddAdmin
                     isActive={this.state.activeSection == "manageAdmins"}
@@ -544,6 +565,21 @@ class SidebarAdminHome extends Component {
                         type="password"
                         name="password2"
                       />
+                      {errors.username && touched.username && (
+                        <AdminErrorMessage>
+                          <span>Error: {errors.username}</span>
+                        </AdminErrorMessage>
+                      )}
+                      {errors.password1 && touched.password1 && (
+                        <AdminErrorMessage>
+                          <span>Error: {errors.password1}</span>
+                        </AdminErrorMessage>
+                      )}
+                      {errors.password2 && touched.password2 && (
+                        <AdminErrorMessage>
+                          <span>Error: {errors.password2}</span>
+                        </AdminErrorMessage>
+                      )}
                       <SubmitAdminButton>Add Admin</SubmitAdminButton>
                     </AdminFields>
                   </AddAdmin>

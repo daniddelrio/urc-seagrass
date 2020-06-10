@@ -4,10 +4,11 @@ import {
   SidebarSubheader,
   AdminTextField,
   ParentButton,
+  CustomErrorMessage
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
-import { Formik, Form, ErrorMessage } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
 
 const selectOptions = [
@@ -116,24 +117,42 @@ const SubmitButton = styled(ParentButton)`
   width: 100%;
 `;
 
-Yup.addMethod(Yup.object, "atLeastOneOf", function(list) {
-  return this.test({
-    name: 'atLeastOneOf',
-    message: '${path} must have at least one of these keys: ${keys}',
-    exclusive: true,
-    params: { keys: list.join(', ') },
-    test: (value) => value == null || list.some((f) => value[f] !== undefined),
-  })
-});
-
 const validationSchema = Yup.object()
   .shape({
-    area: Yup.string().required("Please input an area"),
-    date: Yup.string().required("Please input a date"),
-    contribField1: Yup.number().min(0),
-    contribField2: Yup.number().min(0).max(100),
-  })
-  .atLeastOneOf(["contribField1", "contribField2"]);
+    area: Yup.string()
+      .required("Please input an area")
+      .oneOf(selectOptions.map(option => option.value)),
+    date: Yup.date()
+      .required("Please input a date")
+      .max(new Date(), "Measuring date must be before today's date"),
+    contribField1: Yup.number()
+      .typeError('Total count must be a number')
+      .min(0)
+      .when("contribField2", {
+        is: val => !val,
+        then: Yup.number()
+          .typeError('Total count must be a number')
+          .min(0)
+          .required("Please fill in at least one field")
+        }),
+    contribField2: Yup.number()
+      .typeError('Percentage must be a number')
+      .min(0, "Percentage must be at least 0%")
+      .max(100, "Percentage must be at most 100%")
+      .when("contribField1", {
+        is: val => !val,
+        then: Yup.number()
+          .typeError('Percentage must be a number')
+          .min(0, "Percentage must be at least 0%")
+          .max(100, "Percentage must be at most 100%")
+          .required("Please fill in at least one field")
+        }),
+  }, [['area'], ['contribField1', 'contribField2']]);
+
+const AdminErrorMessage = styled(CustomErrorMessage)`
+  font-size: 13px;
+  margin-bottom: 0.4rem;
+`;
 
 class SidebarContribution extends Component {
   constructor(props) {
@@ -195,7 +214,6 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                <ErrorMessage name="contribField1" />
                 <LabelField for="contribField1">
                   Total Seagrass Count
                 </LabelField>
@@ -212,7 +230,6 @@ class SidebarContribution extends Component {
                   />
                   <UnitText>Mg C/ha</UnitText>
                 </FlexDiv>
-                <ErrorMessage name="contribField2" />
                 <LabelField for="contribField2">
                   Inorganic Carbon Percentage
                 </LabelField>
@@ -229,6 +246,26 @@ class SidebarContribution extends Component {
                   />
                   <UnitText>%</UnitText>
                 </FlexDiv>
+                {!values.area && errors.area && touched.area && (
+                  <AdminErrorMessage>
+                    <span>Error: {errors.area}</span>
+                  </AdminErrorMessage>
+                )}
+                {errors.date && touched.date && (
+                  <AdminErrorMessage>
+                    <span>Error: {errors.date}</span>
+                  </AdminErrorMessage>
+                )}
+                {errors.contribField1 && touched.contribField1 && (
+                  <AdminErrorMessage>
+                    <span>Error: {errors.contribField1}</span>
+                  </AdminErrorMessage>
+                )}
+                {errors.contribField2 && touched.contribField2 && (
+                  <AdminErrorMessage>
+                    <span>Error: {errors.contribField2}</span>
+                  </AdminErrorMessage>
+                )}
                 <SubmitButton
                   type="submit"
                   disabled={

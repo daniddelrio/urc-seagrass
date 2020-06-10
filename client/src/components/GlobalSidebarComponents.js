@@ -59,3 +59,20 @@ export const AdminTextField = styled(Field)`
   padding: 0.6rem;
   margin-bottom: 1rem;
 `;
+
+export const CustomErrorMessage = styled.div`
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 1rem;
+  background: #ac7474;
+  border: 1px solid #e76e6e;
+  box-sizing: border-box;
+  border-radius: 4px;
+
+  font-family: Open Sans;
+  font-size: 0.75em;
+  line-height: 14px;
+  display: flex;
+  align-items: center;
+
+  color: #ffd3d3;
+`;
