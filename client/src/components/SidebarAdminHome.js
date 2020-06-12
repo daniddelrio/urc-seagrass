@@ -196,7 +196,7 @@ const ModifyText = styled.div`
 `;
 
 const AddAdmin = styled.div`
-  overflow-y: auto;
+  overflow-y: ${(props) => (props.isShowing ? "auto" : "none")};
   padding: 0.5rem 0.8rem;
   box-sizing: border-box;
   background: #585858;
