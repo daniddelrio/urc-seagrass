@@ -1,4 +1,4 @@
-const Contribution = require('../models/Contribution');
+const Contribution = require('../models/contribution');
 
 createContribution = (req, res) => {
     const body = req.body;
@@ -53,8 +53,12 @@ updateContribution = async (req, res) => {
         contrib.date = body.date
         contrib.seagrassCount = body.seagrassCount
         contrib.carbonPercentage = body.carbonPercentage
-        if(body.isApproved) {
+        if(body.isApproved != null) {
             body.hasStatus = true
+
+            if(body.isApproved) {
+
+            }
         }
         contrib.isApproved = body.isApproved
         contrib
@@ -100,10 +104,11 @@ getContributionById = async (req, res) => {
         if (!contrib) {
             return res
                 .status(404)
-                .json({ success: false, error: `Site contrib not found` })
+                .json({ success: false, error: `Contribution not found` })
         }
         return res.status(200).json({ success: true, data: contrib })
     }).catch(err => console.log(err))
+}
 
 getContributionsByStatus = async (req, res) => {
     await Contribution.find({ 
@@ -118,10 +123,11 @@ getContributionsByStatus = async (req, res) => {
         if (!contrib) {
             return res
                 .status(404)
-                .json({ success: false, error: `Site contrib not found` })
+                .json({ success: false, error: `Contribution not found` })
         }
         return res.status(200).json({ success: true, data: contrib })
     }).catch(err => console.log(err))
+}
 
 getContributions = async (req, res) => {
     await Contribution.find({}, (err, contrib) => {
@@ -131,7 +137,7 @@ getContributions = async (req, res) => {
         if (!contrib.length) {
             return res
                 .status(404)
-                .json({ success: false, error: `Movie not found` })
+                .json({ success: false, error: `Contribution not found` })
         }
         return res.status(200).json({ success: true, data: contrib })
     }).catch(err => console.log(err))

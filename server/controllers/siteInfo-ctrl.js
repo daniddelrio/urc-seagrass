@@ -100,6 +100,7 @@ getSiteDataById = async (req, res) => {
         }
         return res.status(200).json({ success: true, data: data })
     }).catch(err => console.log(err))
+}
 
 getSiteDataByYear = async (req, res) => {
     await SiteData.find({ year: req.params.year }, (err, data) => {

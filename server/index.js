@@ -18,6 +18,11 @@ var distDir = __dirname + "/dist/";
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 var db;
 
+const adminRouter = require('./routes/admin-router')
+const contribRouter = require('./routes/contrib-router')
+const siteInfoRouter = require('./routes/siteInfo-router')
+const modificationRouter = require('./routes/modification-router')
+
 app.use(cors({origin: '*'}));
 
 //Connect to the database before starting the application server.
@@ -45,8 +50,13 @@ function handleError(res, reason, message, code) {
     res.status(code || 500).json({"error": message});
   }
 
-  app.get("/api/test", function(req, res) {
-    console.log('API sucessfully connected');
-  });
+app.get("/api/test", function(req, res) {
+  console.log('API sucessfully connected');
+});
+
+app.use('/api', adminRouter)
+app.use('/api', contribRouter)
+app.use('/api', siteInfoRouter)
+app.use('/api', modificationRouter)
 
   
