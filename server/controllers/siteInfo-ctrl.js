@@ -102,7 +102,7 @@ getSiteDataById = async (req, res) => {
     }).catch(err => console.log(err))
 
 getSiteDataByYear = async (req, res) => {
-    await SiteData.findOne({ year: req.params.year }, (err, data) => {
+    await SiteData.find({ year: req.params.year }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
         }
