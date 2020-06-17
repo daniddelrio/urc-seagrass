@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
+const { dbUrl } = require('../config')
 
 mongoose
-    .connect('mongodb+srv://urc-user:ComPSaTIsL0v3%21@urc-seagrass-db-qvkjr.mongodb.net/test?authSource=admin', { useNewUrlParser: true })
+    .connect(dbUrl, { useNewUrlParser: true })
     .catch(e => {
         console.error('Connection error', e.message)
     })
