@@ -104,7 +104,7 @@ class BasePopup extends Component {
     const { properties } = this.props;
 
     return (
-      <div>
+      <React.Fragment>
         <PopupImage />
         <AreaInfo>
           <AreaHeader>
@@ -124,7 +124,7 @@ class BasePopup extends Component {
           <br />
           <ModifyButton disabled>Modify Data</ModifyButton>
         </AreaInfo>
-      </div>
+      </React.Fragment>
     );
   }
 }

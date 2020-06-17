@@ -1,12 +1,12 @@
-import React from 'react';
-import BaseMap from "./components/BaseMap";
+import React from "react";
+import Parent from "./components/Parent";
 
 function App() {
-  return (
-    <div className="App">
-      <BaseMap />
-    </div>
-  );
+	return (
+		<div className="App">
+			<Parent />
+		</div>
+	);
 }
 
 export default App;
