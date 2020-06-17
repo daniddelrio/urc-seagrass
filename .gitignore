@@ -18,6 +18,8 @@ client/psd
 client/thumb
 client/sketch
 
+.env
+
 ### nodejs ###
 server/node_modules
 

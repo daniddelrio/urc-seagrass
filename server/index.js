@@ -3,6 +3,7 @@ var bodyParser = require("body-parser");
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 var cors = require('cors');
+const { dbUrl, port} = require('./config')
 
 var app = express();
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
@@ -17,7 +18,6 @@ var distDir = __dirname + "/dist/";
 
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 const db = require('./db')
-const apiPort = 8000
 
 const adminRouter = require('./routes/admin-router')
 const contribRouter = require('./routes/contrib-router')
@@ -27,7 +27,7 @@ const modificationRouter = require('./routes/modification-router')
 app.use(cors({origin: '*'}));
 
 //Connect to the database before starting the application server.
-// mongodb.MongoClient.connect(process.env.MONGODB_URI || "mongodb+srv://urc-user:ComPSaTIsL0v3%21@urc-seagrass-db-qvkjr.mongodb.net/test?authSource=admin", function (err, client) {
+// mongodb.MongoClient.connect(dbUrl, function (err, client) {
 //   if (err) {
 //     console.log(err);
 //     process.exit(1);
@@ -47,7 +47,7 @@ app.use(cors({origin: '*'}));
 
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
-app.listen(apiPort, () => console.log(`Server running on port ${apiPort}`))
+app.listen(port, () => console.log(`Server running on port ${port}`))
 
 // Generic error handler used by all endpoints.
 function handleError(res, reason, message, code) {
