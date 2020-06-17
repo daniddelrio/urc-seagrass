@@ -14,7 +14,8 @@ const SiteData = new Schema({
     // site: [
     //     { type: Schema.Types.ObjectId, ref: 'siteGeoJSON' }
     // ],
-    site: { type: Schema.Types.ObjectId, required: true },
+    // site: { type: Schema.Types.ObjectId, required: true },
+    siteCode: { type: String, required: true },
     year: { type: Number, required: true },
     status: { type: String },
     seagrassCount: { type: Number },
