@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { ParentButton } from "./GlobalSidebarComponents";
 import Modal from 'react-bootstrap/Modal';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import api from "../services/contrib-services";
 
 const BaseFrame = styled(Modal)`
   font-family: Open Sans;
@@ -56,6 +57,18 @@ const DenyButton = styled(ParentButton)`
   color: #e38787;
 `;
 
+const handleClick = async (props) => {
+  props.closeModal();
+  await props.data.map(contrib => {
+    api.updateContribution(contrib.id, {
+      ...contrib,
+      isApproved = props.isApproved;
+    });
+  });
+
+  props.updateData(props.data.filter(contrib => !contrib.checked));
+};
+
 const ContributionPopup = (props) => (
   <BaseFrame show={props.show} onHide={props.closeModal} className="special-modal-content">
     <Header isApprove={props.isApprove} closeButton>{`Are you sure to ${
@@ -73,9 +86,9 @@ const ContributionPopup = (props) => (
     </Modal.Body>
     <ButtonGroup>
       {props.isApprove ? (
-        <ApproveButton onClick={props.closeModal}>Approve</ApproveButton>
+        <ApproveButton onClick={handleClick}>Approve</ApproveButton>
       ) : (
-        <DenyButton onClick={props.closeModal}>Deny</DenyButton>
+        <DenyButton onClick={handleClick}>Deny</DenyButton>
       )}
     </ButtonGroup>
   </BaseFrame>

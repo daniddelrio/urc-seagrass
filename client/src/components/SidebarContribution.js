@@ -10,6 +10,7 @@ import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import api from "../services/contrib-services";
 
 const selectOptions = [
   { value: "seagrassMeadow", label: "Seagrass Meadow" },
@@ -125,21 +126,21 @@ const validationSchema = Yup.object()
     date: Yup.date()
       .required("Please input a date")
       .max(new Date(), "Measuring date must be before today's date"),
-    contribField1: Yup.number()
+    seagrassCount: Yup.number()
       .typeError('Total count must be a number')
       .min(0)
-      .when("contribField2", {
+      .when("carbonPercentage", {
         is: val => !val,
         then: Yup.number()
           .typeError('Total count must be a number')
           .min(0)
           .required("Please fill in at least one field")
         }),
-    contribField2: Yup.number()
+    carbonPercentage: Yup.number()
       .typeError('Percentage must be a number')
       .min(0, "Percentage must be at least 0%")
       .max(100, "Percentage must be at most 100%")
-      .when("contribField1", {
+      .when("seagrassCount", {
         is: val => !val,
         then: Yup.number()
           .typeError('Percentage must be a number')
@@ -147,7 +148,7 @@ const validationSchema = Yup.object()
           .max(100, "Percentage must be at most 100%")
           .required("Please fill in at least one field")
         }),
-  }, [['area'], ['contribField1', 'contribField2']]);
+  }, [['area'], ['seagrassCount', 'carbonPercentage']]);
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
@@ -168,12 +169,14 @@ class SidebarContribution extends Component {
           initialValues={{
             area: "",
             date: "",
-            contribField1: "",
-            contribField2: "",
+            seagrassCount: "",
+            carbonPercentage: "",
           }}
-          onSubmit={(values, { setSubmitting }) => {
+          onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
-            this.props.setActiveSidebar("contribDone");
+            await createContribution(values).then(contrib => {
+              this.props.setActiveSidebar("contribDone");
+            });
           }}
           validationSchema={validationSchema}
         >
@@ -214,15 +217,15 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                <LabelField for="contribField1">
+                <LabelField for="seagrassCount">
                   Total Seagrass Count
                 </LabelField>
                 <FlexDiv>
                   <TextField
-                    id="contribField1"
-                    name="contribField1"
+                    id="seagrassCount"
+                    name="seagrassCount"
                     style={
-                      values.contribField1 && values.contribField1 != ""
+                      values.seagrassCount && values.seagrassCount != ""
                         ? { background: "#5A5A5A", color: "#ABABAB" }
                         : null
                     }
@@ -230,15 +233,15 @@ class SidebarContribution extends Component {
                   />
                   <UnitText>Mg C/ha</UnitText>
                 </FlexDiv>
-                <LabelField for="contribField2">
+                <LabelField for="carbonPercentage">
                   Inorganic Carbon Percentage
                 </LabelField>
                 <FlexDiv>
                   <TextField
-                    id="contribField2"
-                    name="contribField2"
+                    id="carbonPercentage"
+                    name="carbonPercentage"
                     style={
-                      values.contribField2 && values.contribField2 != ""
+                      values.carbonPercentage && values.carbonPercentage != ""
                         ? { background: "#5A5A5A", color: "#ABABAB" }
                         : null
                     }
@@ -256,14 +259,14 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {errors.contribField1 && touched.contribField1 && (
+                {errors.seagrassCount && touched.seagrassCount && (
                   <AdminErrorMessage>
-                    <span>Error: {errors.contribField1}</span>
+                    <span>Error: {errors.seagrassCount}</span>
                   </AdminErrorMessage>
                 )}
-                {errors.contribField2 && touched.contribField2 && (
+                {errors.carbonPercentage && touched.carbonPercentage && (
                   <AdminErrorMessage>
-                    <span>Error: {errors.contribField2}</span>
+                    <span>Error: {errors.carbonPercentage}</span>
                   </AdminErrorMessage>
                 )}
                 <SubmitButton
@@ -271,7 +274,7 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !(values.contribField1 != "" || values.contribField2 != "")
+                    !(values.seagrassCount != "" || values.carbonPercentage != "")
                   }
                 >
                   Submit Contribution

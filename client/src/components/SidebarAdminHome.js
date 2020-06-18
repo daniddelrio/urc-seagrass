@@ -17,6 +17,7 @@ import AdminIcon from "../assets/adminIcon.svg";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import api from '../services/admin-services';
+import contribApi from "../services/contrib-services";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -276,34 +277,35 @@ class SidebarAdminHome extends Component {
       showModal: "",
       isAdminShowing: false,
       checked: false,
-      data: [
-        {
-          id: 10000,
-          label: "Adjacent Coral Reef Total Seagrass Count",
-          toValue: "20.20 Mg C/ha",
-          checked: false,
-        },
-        {
-          id: 20000,
-          label: "Adjacent Residential Inorganic Carbon Percentage",
-          toValue: "11.30%",
-          checked: false,
-        },
-        {
-          id: 30000,
-          label: "Adjacent Residential",
-          fromValue: "Disturbed",
-          toValue: "Conserved",
-          checked: false,
-        },
-        {
-          id: 40000,
-          label: "Adjacent Residential",
-          fromValue: "Disturbed",
-          toValue: "Conserved",
-          checked: false,
-        },
-      ],
+      data: [],
+      // data: [
+      //   {
+      //     id: 10000,
+      //     label: "Adjacent Coral Reef Total Seagrass Count",
+      //     toValue: "20.20 Mg C/ha",
+      //     checked: false,
+      //   },
+      //   {
+      //     id: 20000,
+      //     label: "Adjacent Residential Inorganic Carbon Percentage",
+      //     toValue: "11.30%",
+      //     checked: false,
+      //   },
+      //   {
+      //     id: 30000,
+      //     label: "Adjacent Residential",
+      //     fromValue: "Disturbed",
+      //     toValue: "Conserved",
+      //     checked: false,
+      //   },
+      //   {
+      //     id: 40000,
+      //     label: "Adjacent Residential",
+      //     fromValue: "Disturbed",
+      //     toValue: "Conserved",
+      //     checked: false,
+      //   },
+      // ],
       admins: [],
       // admins: [
       //   {
@@ -330,7 +332,7 @@ class SidebarAdminHome extends Component {
     };
   }
 
-  async componentDidMount = () => {
+  componentDidMount = async () => {
     this.props.showLoginButton();
 
     await api.getAllAdmins().then(admins => {
@@ -338,6 +340,15 @@ class SidebarAdminHome extends Component {
         admins: admins.map(admin => ({
           ...admin,
           showingModify: false
+        }))
+      });
+    });
+
+    await contribApi.getContributionsByStatus("nostatus").then(contributions => {
+      this.setState({
+        data: contributions.map(contrib => ({
+          ...contrib,
+          checked: false
         }))
       });
     });
@@ -384,6 +395,10 @@ class SidebarAdminHome extends Component {
     });
   };
 
+  updateData = (data) => {
+    this.setState({ data: data })
+  }
+
   render() {
     const noneChecked = Object.values(this.state.data).every(
       (value) => !value.checked
@@ -406,6 +421,7 @@ class SidebarAdminHome extends Component {
           isApprove={this.state.showModal == "approve"}
           closeModal={this.closeModal}
           data={checkedContribs}
+          updateData={this.updateData}
         />
         <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
         <React.Fragment>
@@ -484,9 +500,16 @@ class SidebarAdminHome extends Component {
                           password1: "",
                           password2: "",
                         }}
-                        onSubmit={(values, { setSubmitting }) => {
+                        onSubmit={async (values, { setSubmitting }) => {
                           setSubmitting(false);
-                          await updateAdmin(value.username, values);
+                          await updateAdmin(value.username, values).then(admin => {
+                            this.setState({
+                              admins: {
+                                ...this.state.admins,
+                                [key]: admin,
+                              },
+                            });
+                          });
                         }}
                         validationSchema={validationSchema}
                       >
@@ -543,9 +566,16 @@ class SidebarAdminHome extends Component {
                 password1: "",
                 password2: "",
               }}
-              onSubmit={(values, { setSubmitting }) => {
+              onSubmit={async (values, { setSubmitting }) => {
                 setSubmitting(false);
-                await insertAdmin(values);
+                await insertAdmin(values).then(admin => {
+                  this.setState({
+                    admins: {
+                      ...this.state.admins,
+                      admin
+                    },
+                  });
+                });
               }}
               validationSchema={validationSchema}
             >

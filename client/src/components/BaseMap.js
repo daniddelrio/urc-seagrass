@@ -38,7 +38,7 @@ class BaseMap extends Component {
     };
   }
 
-  async componentDidMount = () => {
+  componentDidMount = async () => {
     await api.getAllData().then(data => {
       this.setState({
         areas: data
