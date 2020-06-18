@@ -6,6 +6,7 @@ import BasePopup from "./BasePopup";
 import YearDropdown from "./YearDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
+import api from "../services/sitedata-services";
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -37,10 +38,15 @@ class BaseMap extends Component {
     };
   }
 
-  componentDidMount() {
-    this.setState({
-      areas: sites
+  async componentDidMount = () => {
+    await api.getAllData().then(data => {
+      this.setState({
+        areas: data
+      });
     });
+    // this.setState({
+    //   areas: sites
+    // });
   }
 
   addPopup = (e) => {
