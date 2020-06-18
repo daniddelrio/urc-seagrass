@@ -8,7 +8,7 @@ export const deleteAdmin = username => api.delete(`/admin/${username}`)
 export const getAdminByUsername = username => api.get(`/admin/${username}`)
 
 const adminApis = {
-    insertAdmin,
+    createAdmin,
     getAllAdmins,
     updateAdmin,
     deleteAdmin,

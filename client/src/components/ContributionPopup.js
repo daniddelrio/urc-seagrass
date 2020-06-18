@@ -62,7 +62,7 @@ const handleClick = async (props) => {
   await props.data.map(contrib => {
     api.updateContribution(contrib.id, {
       ...contrib,
-      isApproved = props.isApproved;
+      isApproved: props.isApproved,
     });
   });
 

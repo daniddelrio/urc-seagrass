@@ -6,10 +6,10 @@ export const getAllData = () => api.get(`/sitedata`)
 export const updateData = (id, payload) => api.put(`/sitedata/${id}`, payload)
 export const deleteData = id => api.delete(`/sitedata/${id}`)
 export const getDataById = id => api.get(`/sitedata/${id}`)
-export const getDataByYear = id => api.get(`/sitedata/${year}`)
+export const getDataByYear = year => api.get(`/sitedata/${year}`)
 
 const siteDataApis = {
-    insertData,
+    createData,
     getAllData,
     updateData,
     deleteData,

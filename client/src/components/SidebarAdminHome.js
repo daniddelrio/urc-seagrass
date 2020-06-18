@@ -502,7 +502,7 @@ class SidebarAdminHome extends Component {
                         }}
                         onSubmit={async (values, { setSubmitting }) => {
                           setSubmitting(false);
-                          await updateAdmin(value.username, values).then(admin => {
+                          await api.updateAdmin(value.username, values).then(admin => {
                             this.setState({
                               admins: {
                                 ...this.state.admins,
@@ -568,7 +568,7 @@ class SidebarAdminHome extends Component {
               }}
               onSubmit={async (values, { setSubmitting }) => {
                 setSubmitting(false);
-                await insertAdmin(values).then(admin => {
+                await api.createAdmin(values).then(admin => {
                   this.setState({
                     admins: {
                       ...this.state.admins,

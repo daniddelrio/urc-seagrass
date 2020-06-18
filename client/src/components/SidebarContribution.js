@@ -174,7 +174,7 @@ class SidebarContribution extends Component {
           }}
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
-            await createContribution(values).then(contrib => {
+            await api.createContribution(values).then(contrib => {
               this.props.setActiveSidebar("contribDone");
             });
           }}
