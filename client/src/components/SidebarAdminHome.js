@@ -16,6 +16,7 @@ import Check from "../assets/checkbox.svg";
 import AdminIcon from "../assets/adminIcon.svg";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import api from '../services/admin-services';
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -303,33 +304,43 @@ class SidebarAdminHome extends Component {
           checked: false,
         },
       ],
-      admins: [
-        {
-          id: 10000,
-          username: "JohnDoe51",
-          showingModify: false,
-        },
-        {
-          id: 12321,
-          username: "Anonymous",
-          showingModify: false,
-        },
-        {
-          id: 12121,
-          username: "Anonymous",
-          showingModify: false,
-        },
-        {
-          id: 12351,
-          username: "Anonymous",
-          showingModify: false,
-        },
-      ],
+      admins: [],
+      // admins: [
+      //   {
+      //     id: 10000,
+      //     username: "JohnDoe51",
+      //     showingModify: false,
+      //   },
+      //   {
+      //     id: 12321,
+      //     username: "Anonymous",
+      //     showingModify: false,
+      //   },
+      //   {
+      //     id: 12121,
+      //     username: "Anonymous",
+      //     showingModify: false,
+      //   },
+      //   {
+      //     id: 12351,
+      //     username: "Anonymous",
+      //     showingModify: false,
+      //   },
+      // ],
     };
   }
 
-  componentDidMount() {
+  async componentDidMount = () => {
     this.props.showLoginButton();
+
+    await api.getAllAdmins().then(admins => {
+      this.setState({
+        admins: admins.map(admin => ({
+          ...admin,
+          showingModify: false
+        }))
+      });
+    });
   }
 
   setActiveSection = (section) => {
@@ -446,15 +457,15 @@ class SidebarAdminHome extends Component {
           </Dropdown>
         </React.Fragment>
         <DefaultTitle>Modify Data on Map</DefaultTitle>
-        <React.Fragment>
+        <React.Fragment key>
           <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>
             Manage Administrators
           </DefaultTitle>
           <DropdownAdmin isActive={this.state.activeSection == "manageAdmins"}>
             <ManageAdmins isActive={this.state.activeSection == "manageAdmins"}>
               {Object.entries(this.state.admins).map(([key, value]) => (
-                <React.Fragment>
-                  <Administrator key={value.id}>
+                <React.Fragment key={value._id}>
+                  <Administrator key={value._id}>
                     <img src={AdminIcon} alt="Admin Avatar" />
                     <AdminUsername>{value.username}</AdminUsername>
                     <ModifyText onClick={() => this.toggleModify(key)}>{value.showingModify ? "Cancel" : "Modify"}</ModifyText>
@@ -475,6 +486,7 @@ class SidebarAdminHome extends Component {
                         }}
                         onSubmit={(values, { setSubmitting }) => {
                           setSubmitting(false);
+                          await updateAdmin(value.username, values);
                         }}
                         validationSchema={validationSchema}
                       >
@@ -533,6 +545,7 @@ class SidebarAdminHome extends Component {
               }}
               onSubmit={(values, { setSubmitting }) => {
                 setSubmitting(false);
+                await insertAdmin(values);
               }}
               validationSchema={validationSchema}
             >
