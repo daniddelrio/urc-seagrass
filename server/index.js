@@ -23,6 +23,7 @@ const adminRouter = require('./routes/admin-router')
 const contribRouter = require('./routes/contrib-router')
 const siteInfoRouter = require('./routes/siteInfo-router')
 const modificationRouter = require('./routes/modification-router')
+const siteCoordRouter = require('./routes/siteCoord-router')
 
 app.use(cors({origin: '*'}));
 
@@ -59,5 +60,6 @@ app.use('/api', adminRouter)
 app.use('/api', contribRouter)
 app.use('/api', siteInfoRouter)
 app.use('/api', modificationRouter)
+app.use('/api', siteCoordRouter)
 
   

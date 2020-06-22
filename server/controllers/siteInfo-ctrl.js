@@ -125,7 +125,7 @@ getAllSiteData = async (req, res) => {
         if (!data.length) {
             return res
                 .status(404)
-                .json({ success: false, error: `Movie not found` })
+                .json({ success: false, error: `Site data not found` })
         }
         return res.status(200).json({ success: true, data: data })
     }).catch(err => console.log(err))
