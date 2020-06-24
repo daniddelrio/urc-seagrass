@@ -67,7 +67,7 @@ const customStyles = {
   }),
 };
 
-const YearDropdown = (props) => (
+const YearDropdown = React.memo((props) => (
   <Select
     name="mapYear"
     styles={customStyles}
@@ -78,6 +78,6 @@ const YearDropdown = (props) => (
     }}
     menuPortalTarget={document.body}
   />
-);
+));
 
 export default YearDropdown;

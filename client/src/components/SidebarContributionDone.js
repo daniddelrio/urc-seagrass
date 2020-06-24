@@ -20,7 +20,7 @@ const NewContribButton = styled(ParentButton)`
   margin-bottom: 1rem;
 `;
 
-const SidebarContributionDone = (props) => (
+const SidebarContributionDone = React.memo((props) => (
   <React.Fragment>
     <SidebarSubheader>
       Thanks for contributing to the database! Our administrators will review
@@ -36,6 +36,6 @@ const SidebarContributionDone = (props) => (
       Log Out
     </EmptyButton>
   </React.Fragment>
-);
+));
 
 export default SidebarContributionDone;

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import styled from "styled-components";
 
 const StatusBoxColors = {
@@ -99,7 +99,7 @@ const ModifyButton = styled.button`
 //   -webkit-filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
 // `;
 
-class BasePopup extends Component {
+class BasePopup extends PureComponent {
   render() {
     const { properties } = this.props;
 

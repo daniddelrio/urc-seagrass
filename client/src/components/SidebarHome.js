@@ -19,7 +19,7 @@ const ButtonDiv = styled.div`
   margin-top: 2rem;
 `;
 
-const SidebarHome = (props) => (
+const SidebarHome = React.memo((props) => (
   <React.Fragment>
     <SidebarSubheader>
       Welcome to the database of Masinloc’s Seagrass and Carbon Stocks! Log in
@@ -37,6 +37,6 @@ const SidebarHome = (props) => (
       </EmptyButton>
     </ButtonDiv>
   </React.Fragment>
-);
+));
 
 export default SidebarHome;
