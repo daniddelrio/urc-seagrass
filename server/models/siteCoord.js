@@ -18,7 +18,7 @@ const SiteCoords = new Schema({
                 "MultiPolygon",
             ],
         },
-        coordinates: [Number],
+        coordinates: [mongoose.Mixed],
     },
 });
 
