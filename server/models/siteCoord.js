@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const SiteCoords = new Schema({
-    type: { type: String },
+    type: { type: String, default: "Feature" },
     properties: {
         siteCode: String,
         areaName: String,
@@ -18,8 +18,9 @@ const SiteCoords = new Schema({
                 "MultiLineString",
                 "MultiPolygon",
             ],
+            required: true
         },
-        coordinates: [mongoose.Mixed],
+        coordinates: { type: [mongoose.Mixed], required: true},
     },
 });
 

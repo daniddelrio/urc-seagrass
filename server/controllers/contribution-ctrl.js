@@ -43,7 +43,7 @@ updateContribution = async (req, res) => {
         })
     }
 
-    Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
+    await Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
         if (err) {
             return res.status(404).json({
                 err,
@@ -55,12 +55,8 @@ updateContribution = async (req, res) => {
         contrib.carbonPercentage = body.carbonPercentage
         if(body.isApproved != null) {
             body.hasStatus = true
-
-            if(body.isApproved) {
-
-            }
+            contrib.isApproved = body.isApproved
         }
-        contrib.isApproved = body.isApproved
         contrib
             .save()
             .then(() => {
