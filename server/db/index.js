@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const { dbUrl } = require('../config')
 
 mongoose
-    .connect(dbUrl, { useNewUrlParser: true })
+    .connect(dbUrl, { useNewUrlParser: true , useFindAndModify: false })
     .catch(e => {
         console.error('Connection error', e.message)
     })

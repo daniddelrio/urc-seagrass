@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const SiteCoords = new Schema({
+    type: { type: String },
     properties: {
         siteCode: String,
         areaName: String,

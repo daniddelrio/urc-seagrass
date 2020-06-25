@@ -50,7 +50,7 @@ updateCoords = async (req, res) => {
                 message: 'Site coordinates not found',
             })
         }
-        coords.properties = body.propeties
+        coords.properties = body.properties
         coords.geometry = body.geometry
         coords
             .save()

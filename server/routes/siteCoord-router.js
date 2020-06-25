@@ -9,6 +9,6 @@ router.put('/coords/:id', SiteCoordCtrl.updateCoords)
 router.delete('/coords/:id', SiteCoordCtrl.deleteCoords)
 router.get('/coords/:id', SiteCoordCtrl.getSiteCoordsById)
 router.get('/coords', SiteCoordCtrl.getAllSiteCoords)
-router.get('/coords/:code', SiteCoordCtrl.getSiteCoordsByCode)
+router.get('/coords/site/:code', SiteCoordCtrl.getSiteCoordsByCode)
 
 module.exports = router;

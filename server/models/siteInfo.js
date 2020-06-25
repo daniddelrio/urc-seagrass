@@ -2,19 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Modification = require('./modification')
 
-// const SiteGeoJSON = new Schema({
-//     name: { type: String, required: true },
-//     time: { type: [String], required: true },
-//     rating: { type: Number, required: true },
-// });
-
-// module.exports = mongoose.model('siteGeoJSON', SiteGeoJSON);
-
 const SiteData = new Schema({
-    // site: [
-    //     { type: Schema.Types.ObjectId, ref: 'siteGeoJSON' }
-    // ],
-    // site: { type: Schema.Types.ObjectId, required: true },
     siteCode: { type: String, required: true },
     year: { type: Number, required: true },
     status: { type: String },
@@ -24,59 +12,55 @@ const SiteData = new Schema({
 }, { timestamps: true }, );
 
 // If a site is modified, create a Modification in order to log
-SiteData.post('save', function(next) {
-    var siteData = this;
-
-    const isModifiedAtAll = false;
+SiteData.post('findOneAndUpdate', function(result) {
+    let isModifiedAtAll = false;
     const changes = [];
-    if (siteData.isModified('seagrassCount')) {
+    if (this._update["$set"].status) {
     	isModifiedAtAll = true;
-    	changes.append({
-    		field: 'seagrassCount',
-    		newValue: this.seagrassCount
+    	changes.push({
+    		field: 'status',
+    		newValue: this._update["$set"].status
     	});
     } 
-    if (siteData.isModified('carbonPercentage')) {
+    if (this._update["$set"].seagrassCount) {
+        isModifiedAtAll = true;
+        changes.push({
+            field: 'seagrassCount',
+            newValue: this._update["$set"].seagrassCount
+        });
+    } 
+    if (this._update["$set"].carbonPercentage) {
     	isModifiedAtAll = true;
-    	changes.append({
+    	changes.push({
     		field: 'carbonPercentage',
-    		newValue: this.carbonPercentage
+    		newValue: this._update["$set"].carbonPercentage
     	});
     }
 
     // only submit a modification if a field was modified
-    if(!isModifiedAtAll) {
-    	return next();
+    if(isModifiedAtAll) {
+
+        const modificationBody = {
+        	siteInfo: this._id,
+        	changes: changes,
+        };
+
+        const modification = new Modification(modificationBody)
+
+    	if (!modification) {
+            console.log("A modification couldn't be created!")
+    	}
+
+    	modification
+    	    .save()
+    	    .then(() => {
+    	        console.log("A modification was added!")
+    	    })
+    	    .catch(error => {
+    	        console.log("A modification was not added!")
+                console.log(error)
+    	    })
     }
-
-    const modificationBody = {
-    	siteInfo: this._id,
-    	changes: changes,
-    };
-
-    const modification = new Modification(modificationBody)
-
-	if (!modification) {
-	    return res.status(400).json({ success: false, error: err })
-	}
-
-	modification
-	    .save()
-	    .then(() => {
-	        return res.status(201).json({
-	            success: true,
-	            id: modification._id,
-	            message: 'A modification was added!',
-	        })
-	    })
-	    .catch(error => {
-	        return res.status(400).json({
-	            error,
-	            message: 'A modification was not added!',
-	        })
-	    })
-
-	next();
 });
 
 module.exports = mongoose.model('siteData', SiteData);

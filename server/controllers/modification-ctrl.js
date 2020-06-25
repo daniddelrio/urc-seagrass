@@ -29,7 +29,24 @@ getModifications = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
+// deleteModifications = async (req, res) => {
+//     await Modification.deleteMany({}, (err, data) => {
+//         if (err) {
+//             return res.status(400).json({ success: false, error: err });
+//         }
+
+//         if (!data) {
+//             return res
+//                 .status(404)
+//                 .json({ success: false, error: `Modifications not found` });
+//         }
+
+//         return res.status(200).json({ success: true, data: data });
+//     }).catch((err) => console.log(err));
+// };
+
 module.exports = {
     getModificationById,
     getModifications,
+    // deleteModifications,
 }

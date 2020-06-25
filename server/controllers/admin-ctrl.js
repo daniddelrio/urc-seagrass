@@ -44,7 +44,7 @@ updateAdmin = async (req, res) => {
     }
 
     Admin.findOne({ username: req.params.username }, (err, admin) => {
-        if (err) {
+        if (err || !admin) {
             return res.status(404).json({
                 err,
                 message: 'Admin not found!',
