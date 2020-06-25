@@ -4,7 +4,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "CR",
+        "siteCode": "CR",
         "areaName": "Adjacent Coral Reef"
       },
       "geometry": {
@@ -534,7 +534,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "MF",
+        "siteCode": "MF",
         "areaName": "Adjacent Mangrove Forest"
       },
       "geometry": {
@@ -660,7 +660,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "AC",
+        "siteCode": "AC",
         "areaName": "Adjacent Aquaculture"
       },
       "geometry": {
@@ -894,7 +894,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "RA",
+        "siteCode": "RA",
         "areaName": "Adjacent Residential Area"
       },
       "geometry": {
@@ -1328,7 +1328,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "CP",
+        "siteCode": "CP",
         "areaName": "Adjacent Coal Power Plant"
       },
       "geometry": {
@@ -1662,7 +1662,7 @@
     {
       "type": "Feature",
       "properties": {
-        "site_code": "CP",
+        "siteCode": "CP",
         "areaName": "Adjacent Coal Power Plant"
       },
       "geometry": {
