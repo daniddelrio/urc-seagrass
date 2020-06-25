@@ -4,7 +4,7 @@ const ModificationCtrl = require('../controllers/modification-ctrl')
 
 const router = express.Router()
 
-router.get('/modification/:id', ModificationCtrl.getModificationById)
+router.get('/modifications/:siteCode/:year', ModificationCtrl.getModificationsBySite)
 router.get('/modifications', ModificationCtrl.getModifications)
 // router.delete('/modifications', ModificationCtrl.deleteModifications)
 

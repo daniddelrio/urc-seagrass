@@ -41,7 +41,8 @@ SiteData.post('findOneAndUpdate', function(result) {
     if(isModifiedAtAll) {
 
         const modificationBody = {
-        	siteInfo: this._id,
+            siteCode: result.siteCode,
+            year: result.year,
         	changes: changes,
         };
 

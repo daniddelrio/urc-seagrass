@@ -1,17 +1,17 @@
 const Modification = require('../models/modification');
 
-getModificationById = async (req, res) => {
-    await Modification.findOne({ _id: req.params.id }, (err, modification) => {
+getModificationsBySite = async (req, res) => {
+    await Modification.findOne({ siteCode: req.params.siteCode, year: req.params.year }, (err, modifications) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
         }
 
-        if (!modification) {
+        if (!modifications) {
             return res
                 .status(404)
-                .json({ success: false, error: `Modification not found` })
+                .json({ success: false, error: `Modifications not found` })
         }
-        return res.status(200).json({ success: true, data: modification })
+        return res.status(200).json({ success: true, data: modifications })
     }).catch(err => console.log(err))
 }
 
@@ -46,7 +46,7 @@ getModifications = async (req, res) => {
 // };
 
 module.exports = {
-    getModificationById,
+    getModificationsBySite,
     getModifications,
     // deleteModifications,
 }
