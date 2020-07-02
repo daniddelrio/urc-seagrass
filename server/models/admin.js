@@ -6,6 +6,7 @@ SALT_WORK_FACTOR = 10;
 const Admin = new Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    isMaster: { type: Boolean, default: false }
 });
 
 Admin.pre('save', function(next) {

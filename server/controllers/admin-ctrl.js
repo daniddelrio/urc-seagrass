@@ -92,6 +92,7 @@ updateAdmin = async (req, res) => {
         }
         admin.username = body.username;
         admin.password = body.password;
+        admin.isMaster = body.isMaster;
         admin
             .save()
             .then(() => {
