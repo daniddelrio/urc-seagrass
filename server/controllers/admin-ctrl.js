@@ -27,7 +27,7 @@ signIn = (req, res) => {
                         });
 
                         // return the information including token as JSON
-                        res.json({ success: true, token: "Bearer " + token, expiresIn: expires });
+                        res.json({ success: true, token: "JWT " + token, expiresIn: expires });
                     } else {
                         res.status(401).send({
                             success: false,
