@@ -4,6 +4,7 @@ const AdminCtrl = require('../controllers/admin-ctrl')
 
 const router = express.Router()
 
+router.post('/login', AdminCtrl.signIn)
 router.post('/admin', AdminCtrl.createAdmin)
 router.put('/admin/:username', AdminCtrl.updateAdmin)
 router.delete('/admin/:username', AdminCtrl.deleteAdmin)

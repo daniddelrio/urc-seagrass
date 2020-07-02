@@ -1,23 +1,36 @@
-var express = require("express");
-var bodyParser = require("body-parser");
-var mongodb = require("mongodb");
-var ObjectID = mongodb.ObjectID;
-var cors = require('cors');
-const { dbUrl, port} = require('./config')
+const createError = require('http-errors');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require('cors');
+const passport = require('passport');
+// const session = require("express-session");
+// const MongoStore = require("connect-mongo")(session);
+const MongoStore = require("connect-mongo");
+
+const { dbUrl, port, jwtSecret } = require('./config');
 
 var app = express();
+
+// Create a database variable outside of the database connection callback to reuse the connection pool in your app.
+const db = require('./db')
+
+require('./passport')(passport);
+app.use(passport.initialize());
+
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
 app.use(express.json());       // to support JSON-encoded bodies
-app.use(express.urlencoded()); // to support URL-encoded bodies
+app.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
 
 var distDir = __dirname + "/dist/";
- app.use(express.static(distDir));
+app.use(express.static(distDir));
 
-// Create a database variable outside of the database connection callback to reuse the connection pool in your app.
-const db = require('./db')
+app.use(cors({origin: '*'}));
+db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+
+// Pass the global passport object into the configuration function
 
 const adminRouter = require('./routes/admin-router')
 const contribRouter = require('./routes/contrib-router')
@@ -25,28 +38,11 @@ const siteInfoRouter = require('./routes/siteInfo-router')
 const modificationRouter = require('./routes/modification-router')
 const siteCoordRouter = require('./routes/siteCoord-router')
 
-app.use(cors({origin: '*'}));
-
-//Connect to the database before starting the application server.
-// mongodb.MongoClient.connect(dbUrl, function (err, client) {
-//   if (err) {
-//     console.log(err);
-//     process.exit(1);
-//   }
-
-//   // Save database object from the callback for reuse.
-//   db = client.db();
-//   console.log("Connected to mongodb successfully!");
-
-//   // Initialize the app.
-//   var server = app.listen(process.env.PORT || 4200, function () {
-//     var port = server.address().port;
-//     console.log("App now running on port", port);
-//   });
-
-// });
-
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+app.use('/api', adminRouter)
+app.use('/api', contribRouter)
+app.use('/api', siteInfoRouter)
+app.use('/api', modificationRouter)
+app.use('/api', siteCoordRouter)
 
 app.listen(port, () => console.log(`Server running on port ${port}`))
 
@@ -56,10 +52,44 @@ function handleError(res, reason, message, code) {
     res.status(code || 500).json({"error": message});
   }
 
-app.use('/api', adminRouter)
-app.use('/api', contribRouter)
-app.use('/api', siteInfoRouter)
-app.use('/api', modificationRouter)
-app.use('/api', siteCoordRouter)
+// app.use(
+//     session({
+//         secret: jwtSecret,
+//         resave: false,
+//         saveUninitialized: true,
+//         store: new MongoStore({ mongooseConnection: db })
+//     })
+// );
 
+
+// app.use('/api', adminRouter)
+// app.use('/api', contribRouter)
+// app.use('/api', siteInfoRouter)
+// app.use('/api', modificationRouter)
+// app.use('/api', siteCoordRouter)
+
+// catch 404 and forward to error handler
+// app.use((req, res, next) =>{
+//   next(createError(404));
+// });
+ 
+// error handler
+// app.use((err, req, res, next) =>{
+//   // set locals, only providing error in development
+//   res.locals.message = err.message;
+//   res.locals.error = req.app.get('env') === 'development' ? err : {};
+ 
+//   // render the error page
+//   res.status(err.status || 500);
+//   res.render('error');
+// });
+ 
+// app.use((req, res, next) =>{
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+ 
+// app.use(passportManager.initialize());
+// app.use(passportManager.session());
   
