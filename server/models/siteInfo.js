@@ -1,20 +1,22 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Modification = require('./modification')
+const dataFields = require('../dataFields')
+
+const dataFieldsWithSchema = dataFields.reduce((obj, item) => (obj[item.value] = { type: Number }, obj), {})
 
 const SiteData = new Schema({
     siteCode: { type: String, required: true },
     year: { type: Number, required: true },
     status: { type: String },
-    seagrassCount: { type: Number },
-    carbonPercentage: { type: Number },
-
+    ...dataFieldsWithSchema
 }, { timestamps: true }, );
 
 // If a site is modified, create a Modification in order to log
 SiteData.post('findOneAndUpdate', function(result) {
     let isModifiedAtAll = false;
     const changes = [];
+
     if (this._update["$set"].status) {
     	isModifiedAtAll = true;
     	changes.push({
@@ -22,20 +24,16 @@ SiteData.post('findOneAndUpdate', function(result) {
     		newValue: this._update["$set"].status
     	});
     } 
-    if (this._update["$set"].seagrassCount) {
-        isModifiedAtAll = true;
-        changes.push({
-            field: 'seagrassCount',
-            newValue: this._update["$set"].seagrassCount
-        });
-    } 
-    if (this._update["$set"].carbonPercentage) {
-    	isModifiedAtAll = true;
-    	changes.push({
-    		field: 'carbonPercentage',
-    		newValue: this._update["$set"].carbonPercentage
-    	});
-    }
+
+    dataFields.forEach(field => {
+        if (this._update["$set"][field.value]) {
+            isModifiedAtAll = true;
+            changes.push({
+                field: field.value,
+                newValue: this._update["$set"][field.value]
+            });
+        } 
+    })
 
     // only submit a modification if a field was modified
     if(isModifiedAtAll) {

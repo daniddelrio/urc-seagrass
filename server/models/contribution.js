@@ -2,14 +2,16 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const SiteData = require('./siteInfo')
 const SiteCoord = require('./siteCoord')
+const dataFields = require('../dataFields')
+
+const dataFieldsWithSchema = dataFields.reduce((obj, item) => (obj[item.value] = { type: Number }, obj), {})
 
 const Contribution = new Schema({
     site: { type: String },
     coordinates: [mongoose.Mixed],
     contributor: { type: String },
     date: { type: Date, required: true },
-    seagrassCount: { type: Number },
-    carbonPercentage: { type: Number },
+    ...dataFieldsWithSchema,
     hasStatus: { type: Boolean, default: false },
     isApproved: { type: Boolean },
 }, { timestamps: true }, );
@@ -39,12 +41,11 @@ Contribution.post('save', function(doc, next) {
                 if (err) {
                     console.log("Data not found")
                 }
-                if(contribution.seagrassCount) {
-                    data.seagrassCount = contribution.seagrassCount
-                }
-                if(contribution.carbonPercentage) {
-                    data.carbonPercentage = contribution.carbonPercentage
-                }
+                dataFields.forEach(field => {
+                    if(contribution[field.value]) {
+                        data[field.value] = contribution[field.value]
+                    }
+                })
                 data
                     .save()
                     .then(() => {

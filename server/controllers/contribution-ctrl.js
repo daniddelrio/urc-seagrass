@@ -1,4 +1,5 @@
 const Contribution = require('../models/contribution');
+const dataFields = require('../dataFields')
 
 createContribution = (req, res) => {
     const body = req.body;
@@ -51,8 +52,9 @@ updateContribution = async (req, res) => {
             })
         }
         contrib.date = body.date
-        contrib.seagrassCount = body.seagrassCount
-        contrib.carbonPercentage = body.carbonPercentage
+        dataFields.forEach(field => {
+            contrib[field.value] = body[field.value]
+        })
         if(body.isApproved != null) {
             body.hasStatus = true
             contrib.isApproved = body.isApproved
