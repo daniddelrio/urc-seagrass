@@ -32,36 +32,68 @@ Contribution.post('save', function(doc, next) {
     if (this.wasNew) return next();
 
     if(contribution.isApproved != null) {
+        const dataFieldsObj = dataFields.reduce((obj, item) => ({...obj, ...(contribution[item.value] !== undefined && {
+            [item.value]: contribution[item.value]
+        })}), {});
+
     	const site = contribution.site
     	const year = new Date(contribution.date).getFullYear()
         const coordinates = contribution.coordinates
 
         if(site) {
             SiteData.findOne({ siteCode: site, year: year }, (err, data) => {
-                if (err) {
-                    console.log("Data not found")
-                }
-                dataFields.forEach(field => {
-                    if(contribution[field.value]) {
-                        data[field.value] = contribution[field.value]
+                if (err || data == null) {
+                    console.log("Site data not found. Creating a new record.")
+
+                    const dataBody = {
+                        siteCode: site,
+                        year: year,
+                        // status is lacking
+                        ...dataFieldsObj
                     }
-                })
-                data
-                    .save()
-                    .then(() => {
-                        console.log("Site updated")
+
+                    const siteData = new SiteData(dataBody)
+
+                    if (!siteData) {
+                        console.log("New site data not created")
+                    }
+
+                    siteData
+                        .save()
+                        .then(() => {
+                            console.log("New site data was created!")
+                        })
+                        .catch(error => {
+                            console.log("New site data was not created!")
+                        })
+                }
+                else {
+                    dataFields.forEach(field => {
+                        if(contribution[field.value]) {
+                            data[field.value] = contribution[field.value]
+                        }
                     })
-                    .catch(error => {
-                        console.log("Site not updated")
-                    })
+                    data
+                        .save()
+                        .then(() => {
+                            console.log("Site updated")
+                        })
+                        .catch(error => {
+                            console.log("Site not updated")
+                        })
+                }
             })
         }
         else if(coordinates) {
+            const newSiteName = `${contribution.contributor !== undefined ? "Anonymous" : contribution.contributor} ${contribution.date} ${contribution.coordinates[0]}`
             const siteCoordBody = {
                 type: "Feature",
+                properties: {
+                    siteCode: newSiteName
+                },
                 geometry: {
-                    type: coordinates.length == 1 ? "Point" : "Polygon" ,
-                    coordinates: coordinates.length == 1 ? coordinates : [coordinates],
+                    type: coordinates.length > 1 ? "Point" : "Polygon" ,
+                    coordinates: coordinates.length > 1 ? coordinates : [coordinates],
                 },
             };
 
@@ -75,6 +107,28 @@ Contribution.post('save', function(doc, next) {
                 .save()
                 .then(() => {
                     console.log("A new site was created!")
+
+                    const dataBody = {
+                        siteCode: newSiteName,
+                        year: year,
+                        // status is lacking
+                        ...dataFieldsObj
+                    }
+
+                    const siteData = new SiteData(dataBody)
+
+                    if (!siteData) {
+                        console.log("New site data not created")
+                    }
+
+                    siteData
+                        .save()
+                        .then(() => {
+                            console.log("New site data was created!")
+                        })
+                        .catch(error => {
+                            console.log("New site data was not created!")
+                        })
                 })
                 .catch(error => {
                     console.log("A new site was not created!")

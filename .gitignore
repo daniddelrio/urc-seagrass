@@ -22,5 +22,6 @@ client/sketch
 
 ### nodejs ###
 server/node_modules
+server/.DS_*
 
 # End of https://www.gitignore.io/api/react
