@@ -1,0 +1,10 @@
+[
+	{
+	  "value": "seagrassCount",
+	  "label": "Total Seagrass Count"
+	},
+	{
+	  "value": "carbonPercentage",
+	  "label": "Inorganic Carbon Percentage"
+	}
+]
