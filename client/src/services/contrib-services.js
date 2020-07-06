@@ -2,17 +2,17 @@ import axios from 'axios';
 import { api } from "./";
 
 export const createContribution = payload => api.post(`/contribution`, payload)
-export const getContributions = () => api.get(`/contributions`)
 export const updateContribution = (id, payload) => api.put(`/contribution/${id}`, payload)
 export const deleteContribution = id => api.delete(`/contribution/${id}`)
+export const getContributions = () => api.get(`/contribution`)
 export const getContributionById = id => api.get(`/contribution/${id}`)
-export const getContributionByStatus = status => api.get(`/contribution/${status}`)
+export const getContributionByStatus = status => api.get(`/contribution/status/${status}`)
 
 const contributionApis = {
     createContribution,
-    getContributions,
     updateContribution,
     deleteContribution,
+    getContributions,
     getContributionById,
     getContributionByStatus,
 }

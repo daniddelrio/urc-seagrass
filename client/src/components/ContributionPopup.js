@@ -1,8 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import { ParentButton } from "./GlobalSidebarComponents";
+import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from 'react-bootstrap/Modal';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import api from "../services/contrib-services";
 
 const BaseFrame = styled(Modal)`
