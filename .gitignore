@@ -2,6 +2,7 @@
 # Edit at https://www.gitignore.io/?templates=react
 
 ### react ###
+client/**/.DS_*
 client/.DS_*
 client/*.log
 client/logs
@@ -17,7 +18,10 @@ client/psd
 client/thumb
 client/sketch
 
+.env
+
 ### nodejs ###
 server/node_modules
+server/.DS_*
 
 # End of https://www.gitignore.io/api/react
