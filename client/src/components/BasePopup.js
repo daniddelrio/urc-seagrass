@@ -109,9 +109,11 @@ class BasePopup extends PureComponent {
         <AreaInfo>
           <AreaHeader>
             <AreaName>{properties.areaName}</AreaName>
-            <StatusBox status={properties.status}>
-              {properties.status}
-            </StatusBox>
+            {properties.status && (
+              <StatusBox status={properties.status}>
+                {properties.status}
+              </StatusBox>
+            )}
           </AreaHeader>
           <InfoStat>
             Total Seagrass Count: <strong>{properties.seagrassCount}</strong>

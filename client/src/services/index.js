@@ -1,7 +1,8 @@
 import axios from 'axios';
-const dotenv = require('dotenv');
-dotenv.config();
+
+// axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+// axios.defaults.headers.post['Content-Type'] ='application/x-www-form-urlencoded';
 
 export const api = axios.create({
-    baseURL: `${process.env.BASE_URL}/api`,
+    baseURL: `${process.env.REACT_APP_BASE_URL}/api`,
 });

@@ -6,13 +6,14 @@ import BasePopup from "./BasePopup";
 import YearDropdown from "./YearDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
-import api from "../services/sitedata-services";
+import coordsApi from "../services/siteCoord-services";
+import dataApi from "../services/sitedata-services";
 
 const LeafletMap = styled(Map)`
   position: relative;
   height: 98vh;
   width: ${({ isOpen, isMobile }) => (isOpen && isMobile ? "20%" : "100%")};
-  float: ${({ isMobile }) => isMobile ? "left" : null};
+  float: ${({ isMobile }) => (isMobile ? "left" : null)};
   z-index: 1;
   transition: width 0.5s;
 `;
@@ -35,19 +36,46 @@ class BaseMap extends Component {
     this.state = {
       areas: {},
       popup: {},
+      isLoading: false,
     };
   }
 
   componentDidMount = async () => {
-    await api.getAllData().then(data => {
-      this.setState({
-        areas: data
+    this.setState({ isLoading: true });
+    await coordsApi.getAllCoords().then((coords) => {
+      const newCoords = this.changeSiteKey(coords.data.coords);
+      dataApi.getAllData().then((res) => {
+        const finalData = this.processSiteData(newCoords, res.data.data);
+        this.setState({
+          areas: finalData,
+          isLoading: false,
+        });
       });
     });
-    // this.setState({
-    //   areas: sites
-    // });
-  }
+  };
+
+  // Make the site code the key in the object
+  changeSiteKey = (coords) => {
+    const newSites = {};
+    coords.forEach((site) => {
+      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
+    });
+    return newSites;
+  };
+
+  processSiteData = (newCoords, data) => {
+    let finalData = [];
+    data.forEach((siteData) => {
+      finalData.push({
+        ...newCoords[siteData.siteCode],
+        properties: {
+          ...siteData,
+        },
+      });
+    });
+    // finalData = finalData.filter(site => site.geometry.type == "Polygon")
+    return finalData;
+  };
 
   addPopup = (e) => {
     this.setState({
@@ -120,14 +148,16 @@ class BaseMap extends Component {
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          <GeoJSON
-            style={style}
-            data={areas}
-            key={this.props.year}
-            onEachFeature={this.onEachFeature}
-            filter={site => site.properties.year == this.props.year}
-            ref={this.geojson}
-          />
+          {Object.keys(this.state.areas).length !== 0 && (
+            <GeoJSON
+              style={style}
+              data={areas}
+              key={this.props.year}
+              onEachFeature={this.onEachFeature}
+              filter={(site) => site.properties.year == this.props.year}
+              ref={this.geojson}
+            />
+          )}
           {popup.position && (
             <Popup key={`popup-${popup.key}`} position={popup.position}>
               <BasePopup properties={popup.properties} />
