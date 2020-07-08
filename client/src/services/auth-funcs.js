@@ -51,7 +51,7 @@ export const isTokenExpired = () => {
 
 export const logout = (callback) => {
 	setUser({});
-	if (callback) {
-		callback();
-	}
+	// if (callback) {
+	// 	callback();
+	// }
 };

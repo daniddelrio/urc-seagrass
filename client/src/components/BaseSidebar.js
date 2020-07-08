@@ -9,6 +9,7 @@ import PayPal from "../assets/paypal.svg";
 import { PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
 import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
+import { logout, isLoggedIn } from "../services/auth-funcs";
 
 const ParentDiv = styled.div`
   display: flex;
@@ -67,7 +68,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false, 
-      activeSidebar: "home",
+      activeSidebar: isLoggedIn ? "adminHome" : "home",
     };
   }
 
@@ -87,7 +88,36 @@ class BaseSidebar extends Component {
     this.setState({ activeSidebar: key });
   }
 
+  handleLogout = () => {
+    logout();
+    this.setActiveSidebar("home");
+  }
+
   renderContent() {
+    // const activeSidebar = this.state.activeSidebar;
+    // if(activeSidebar == "home")
+    //   return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
+    // if(activeSidebar == "adminLogin")
+    //   return (
+    //     <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />
+    //   );
+    // if(activeSidebar == "adminHome")
+    //   return (
+    //     <SidebarAdminHome setActiveSidebar={this.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
+    //   );
+    // if(activeSidebar == "contribLogin")
+    //   return (
+    //     <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} contributor />
+    //   );
+    // if(activeSidebar == "contribHome")
+    //   return (
+    //     <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
+    //   );
+    // if(activeSidebar == "contribDone")
+    //   return (
+    //     <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
+    //   );
+
     switch (this.state.activeSidebar) {
       case "home":
         return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
@@ -125,7 +155,7 @@ class BaseSidebar extends Component {
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
-          {this.state.isLogoutPresent && <EmptyButton noFlex>
+          {this.state.isLogoutPresent && <EmptyButton onClick={this.handleLogout} noFlex>
             Log out
           </EmptyButton>}
           <PayPalButton>

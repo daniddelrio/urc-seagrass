@@ -48,19 +48,21 @@ class SidebarAdminLogin extends Component {
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
 
-            const loginResult = await handleLogin(
-              values.username,
-              values.password
-            );
-            if (loginResult) {
-              console.log("Success!");
-              this.props.setActiveSidebar(
-                this.props.contributor ? "contribHome" : "adminHome"
+            if(!this.props.contributor) {
+              const loginResult = await handleLogin(
+                values.username,
+                values.password
               );
-            } else {
-              this.setState({
-                loginError: true,
-              });
+              if (loginResult) {
+                console.log("Success!");
+                this.props.setActiveSidebar(
+                  this.props.contributor ? "contribHome" : "adminHome"
+                );
+              } else {
+                this.setState({
+                  loginError: true,
+                });
+              }
             }
           }}
           validationSchema={
