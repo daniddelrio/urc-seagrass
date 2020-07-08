@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import styled from "styled-components";
+import dataFields from "../dataFields";
 
 const StatusBoxColors = {
   DISTURBED: {
@@ -13,14 +14,6 @@ const StatusBoxColors = {
     font: "#0A8324",
   },
 };
-
-// const BaseFrame = styled.div`
-//   width: 221px;
-//   height: 230px;
-//   background-color: #f9f9f9;
-
-//   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-// `;
 
 const PopupImage = styled.div`
   height: 106px;
@@ -86,19 +79,6 @@ const ModifyButton = styled.button`
   color: #aeaeae;
 `;
 
-// const BoxArrow = styled.div`
-//   width: 0;
-//   height: 0;
-//   border-left: 10px solid transparent;
-//   border-right: 10px solid transparent;
-//   border-top: 20px solid #f9f9f9;
-//   margin: 0 auto;
-//   margin-top: 2px;
-
-//   filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
-//   -webkit-filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.1));
-// `;
-
 class BasePopup extends PureComponent {
   render() {
     const { properties } = this.props;
@@ -115,15 +95,17 @@ class BasePopup extends PureComponent {
               </StatusBox>
             )}
           </AreaHeader>
-          <InfoStat>
-            Total Seagrass Count: <strong>{properties.seagrassCount}</strong>
-          </InfoStat>
-          <br />
-          <InfoStat>
-            Inorganic Carbon Percentage:{" "}
-            <strong>{properties.percentage}</strong>
-          </InfoStat>
-          <br />
+          {dataFields.map(
+            (field) =>
+              properties[field.value] && (
+                <React.Fragment>
+                  <InfoStat>
+                    {field.label}: <strong>{properties[field.value]}</strong>
+                  </InfoStat>
+                  <br />
+                </React.Fragment>
+              )
+          )}
           <ModifyButton disabled>Modify Data</ModifyButton>
         </AreaInfo>
       </React.Fragment>
