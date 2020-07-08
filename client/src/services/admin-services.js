@@ -10,6 +10,7 @@ export const getAllAdmins = () => api.get(`/admin`);
 export const getAdminByUsername = (username) => api.get(`/admin/${username}`);
 
 const adminApis = {
+	login,
 	createAdmin,
 	getAllAdmins,
 	updateAdmin,
