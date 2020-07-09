@@ -8,7 +8,11 @@ import SidebarContributionDone from "./SidebarContributionDone";
 import PayPal from "../assets/paypal.svg";
 import { PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
-import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
+import {
+  SidebarSubheader,
+  ParentButton,
+  EmptyButton,
+} from "./GlobalSidebarComponents";
 import { logout, isLoggedIn } from "../services/auth-funcs";
 
 const ParentDiv = styled.div`
@@ -23,7 +27,7 @@ const ParentDiv = styled.div`
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   padding-bottom: ${({ isOpen }) => (isOpen ? "1rem" : "0")};
   overflow: auto;
-  float: ${({ isMobile }) => isMobile ? "right" : null};
+  float: ${({ isMobile }) => (isMobile ? "right" : null)};
 
   .sidebar-content {
     opacity: ${({ isOpen }) => (isOpen ? "100%" : "0%")};
@@ -67,7 +71,7 @@ class BaseSidebar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLogoutPresent: false, 
+      isLogoutPresent: false,
       activeSidebar: isLoggedIn ? "adminHome" : "home",
     };
   }
@@ -81,62 +85,41 @@ class BaseSidebar extends Component {
   }
 
   showLogoutButton = () => {
-    this.setState({isLogoutPresent: true});
+    this.setState({ isLogoutPresent: true });
   };
 
   setActiveSidebar = (key) => {
     this.setState({ activeSidebar: key });
-  }
+  };
 
   handleLogout = () => {
     logout();
     this.setActiveSidebar("home");
-  }
+  };
 
   renderContent() {
-    // const activeSidebar = this.state.activeSidebar;
-    // if(activeSidebar == "home")
-    //   return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
-    // if(activeSidebar == "adminLogin")
-    //   return (
-    //     <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />
-    //   );
-    // if(activeSidebar == "adminHome")
-    //   return (
-    //     <SidebarAdminHome setActiveSidebar={this.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
-    //   );
-    // if(activeSidebar == "contribLogin")
-    //   return (
-    //     <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} contributor />
-    //   );
-    // if(activeSidebar == "contribHome")
-    //   return (
-    //     <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
-    //   );
-    // if(activeSidebar == "contribDone")
-    //   return (
-    //     <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
-    //   );
-
     switch (this.state.activeSidebar) {
       case "home":
         return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
       case "adminLogin":
-        return (
-          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />
-        );
+        return <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />;
       case "adminHome":
         return (
-          <SidebarAdminHome setActiveSidebar={this.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
+          <SidebarAdminHome
+            areas={this.props.areas}
+            setActiveSidebar={this.setActiveSidebar}
+            showLoginButton={this.showLogoutButton}
+          />
         );
       case "contribLogin":
         return (
-          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} contributor />
+          <SidebarAdminLogin
+            setActiveSidebar={this.setActiveSidebar}
+            contributor
+          />
         );
       case "contribHome":
-        return (
-          <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
-        );
+        return <SidebarContribution setActiveSidebar={this.setActiveSidebar} />;
       case "contribDone":
         return (
           <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
@@ -151,13 +134,18 @@ class BaseSidebar extends Component {
           <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
           {this.renderContent()}
         </SidebarContent>
-        <BottomDiv className="sidebar-content" isSmall={window.innerWidth <= PAYPAL_WIDTH}>
+        <BottomDiv
+          className="sidebar-content"
+          isSmall={window.innerWidth <= PAYPAL_WIDTH}
+        >
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
-          {this.state.isLogoutPresent && <EmptyButton onClick={this.handleLogout} noFlex>
-            Log out
-          </EmptyButton>}
+          {this.state.isLogoutPresent && (
+            <EmptyButton onClick={this.handleLogout} noFlex>
+              Log out
+            </EmptyButton>
+          )}
           <PayPalButton>
             Support us via &nbsp;
             <img src={PayPal} alt="Paypal Logo" />

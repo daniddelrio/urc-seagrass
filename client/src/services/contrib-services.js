@@ -6,7 +6,7 @@ export const updateContribution = (id, payload) => api.put(`/contribution/${id}`
 export const deleteContribution = id => api.delete(`/contribution/${id}`)
 export const getContributions = () => api.get(`/contribution`)
 export const getContributionById = id => api.get(`/contribution/${id}`)
-export const getContributionByStatus = status => api.get(`/contribution/status/${status}`)
+export const getContributionsByStatus = status => api.get(`/contribution/status/${status}`)
 
 const contributionApis = {
     createContribution,
@@ -14,7 +14,7 @@ const contributionApis = {
     deleteContribution,
     getContributions,
     getContributionById,
-    getContributionByStatus,
+    getContributionsByStatus,
 }
 
 export default contributionApis

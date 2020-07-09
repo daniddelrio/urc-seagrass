@@ -56,7 +56,6 @@ class Parent extends Component {
         },
       });
     });
-    // finalData = finalData.filter(site => site.geometry.type == "Polygon")
     return finalData;
   };
 
