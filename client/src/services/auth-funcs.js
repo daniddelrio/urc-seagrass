@@ -27,7 +27,7 @@ export const handleLogin = async (username, password) => {
 
 	if (user && user.data) {
 		setUser(user.data);
-		api.defaults.headers.common["Authorization"] = `JWT ${getUser().token}`;
+		api.defaults.headers.common["Authorization"] = `${getUser().token}`;
 		return true;
 	}
 
