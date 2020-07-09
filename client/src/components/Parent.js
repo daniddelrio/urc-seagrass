@@ -3,6 +3,8 @@ import BaseMap from "./BaseMap";
 import BaseSidebar from "./BaseSidebar";
 import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
+import coordsApi from "../services/siteCoord-services";
+import dataApi from "../services/sitedata-services";
 
 const AppDiv = styled.div`
   display: flex;
@@ -15,13 +17,49 @@ class Parent extends Component {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
       year: "2020",
+      areas: {},
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     window.addEventListener("resize", this.setSidebarOpen);
     window.addEventListener("resize", this.setMobileState);
+
+    await coordsApi.getAllCoords().then((coords) => {
+      const newCoords = this.changeSiteKey(coords.data.coords);
+      dataApi.getAllData().then((res) => {
+        const finalData = this.processSiteData(newCoords, res.data.data);
+        this.setState({
+          areas: finalData,
+          isLoading: false,
+        });
+      });
+    });
   }
+
+  // Make the site code the key in the object
+  changeSiteKey = (coords) => {
+    const newSites = {};
+    coords.forEach((site) => {
+      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
+    });
+    return newSites;
+  };
+
+  processSiteData = (newCoords, data) => {
+    let finalData = [];
+    data.forEach((siteData) => {
+      finalData.push({
+        ...newCoords[siteData.siteCode],
+        properties: {
+          ...siteData,
+        },
+      });
+    });
+    // finalData = finalData.filter(site => site.geometry.type == "Polygon")
+    return finalData;
+  };
+
   componentWillUnmount() {
     window.removeEventListener("resize", this.setSidebarOpen);
     window.removeEventListener("resize", this.setMobileState);
@@ -54,10 +92,12 @@ class Parent extends Component {
           toggleSidebar={this.toggleSidebar}
           year={this.state.year}
           setYear={this.setYear}
+          areas={this.state.areas}
         />
         <BaseSidebar 
           isOpen={this.state.isSidebarOpen} 
           isMobile={this.state.isMobile}
+          areas={this.state.areas}
         />
       </AppDiv>
     );

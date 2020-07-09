@@ -34,48 +34,10 @@ class BaseMap extends Component {
     super(props);
     this.geojson = React.createRef();
     this.state = {
-      areas: {},
       popup: {},
       isLoading: false,
     };
   }
-
-  componentDidMount = async () => {
-    this.setState({ isLoading: true });
-    await coordsApi.getAllCoords().then((coords) => {
-      const newCoords = this.changeSiteKey(coords.data.coords);
-      dataApi.getAllData().then((res) => {
-        const finalData = this.processSiteData(newCoords, res.data.data);
-        this.setState({
-          areas: finalData,
-          isLoading: false,
-        });
-      });
-    });
-  };
-
-  // Make the site code the key in the object
-  changeSiteKey = (coords) => {
-    const newSites = {};
-    coords.forEach((site) => {
-      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
-    });
-    return newSites;
-  };
-
-  processSiteData = (newCoords, data) => {
-    let finalData = [];
-    data.forEach((siteData) => {
-      finalData.push({
-        ...newCoords[siteData.siteCode],
-        properties: {
-          ...siteData,
-        },
-      });
-    });
-    // finalData = finalData.filter(site => site.geometry.type == "Polygon")
-    return finalData;
-  };
 
   addPopup = (e) => {
     this.setState({
@@ -133,7 +95,7 @@ class BaseMap extends Component {
       fillOpacity: 0.7,
     };
 
-    const { areas, popup } = this.state;
+    const { popup } = this.state;
 
     return (
       <React.Fragment>
@@ -148,10 +110,10 @@ class BaseMap extends Component {
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          {Object.keys(this.state.areas).length !== 0 && (
+          {Object.keys(this.props.areas).length !== 0 && (
             <GeoJSON
               style={style}
-              data={areas}
+              data={this.props.areas}
               key={this.props.year}
               onEachFeature={this.onEachFeature}
               filter={(site) => site.properties.year == this.props.year}
