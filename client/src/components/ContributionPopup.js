@@ -58,15 +58,16 @@ const DenyButton = styled(ParentButton)`
 `;
 
 const handleClick = async (props) => {
-  props.closeModal();
-  await props.data.map(contrib => {
-    api.updateContribution(contrib.id, {
+  const updatedData = await Object.values(props.data).map(contrib => {
+    api.updateContribution(contrib._id, {
       ...contrib,
-      isApproved: props.isApproved,
+      isApproved: props.isApprove,
     });
   });
 
-  props.updateData(props.data.filter(contrib => !contrib.checked));
+  if(updatedData) {
+    window.location.reload();
+  }
 };
 
 const ContributionPopup = (props) => (
@@ -78,17 +79,16 @@ const ContributionPopup = (props) => (
       <Contributions>
         {Object.entries(props.data).map(([key, value]) => (
           <li>
-            Change {value.label} {value.fromValue && "from " + value.fromValue} to{" "}
-            {value.toValue}
+            {props.summarizeContrib(value)}
           </li>
         ))}
       </Contributions>
     </Modal.Body>
     <ButtonGroup>
       {props.isApprove ? (
-        <ApproveButton onClick={handleClick}>Approve</ApproveButton>
+        <ApproveButton onClick={() => {handleClick(props)}}>Approve</ApproveButton>
       ) : (
-        <DenyButton onClick={handleClick}>Deny</DenyButton>
+        <DenyButton onClick={() => {handleClick(props)}}>Deny</DenyButton>
       )}
     </ButtonGroup>
   </BaseFrame>

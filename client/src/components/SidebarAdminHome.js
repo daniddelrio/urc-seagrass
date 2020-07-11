@@ -309,10 +309,10 @@ class SidebarAdminHome extends Component {
     });
   };
 
-  filterDataByYear = (code, date) =>
+  filterDataByYear = (code, year) =>
     this.props.areas.filter(
       (area) =>
-        area.properties.year == new Date(date).getFullYear() &&
+        area.properties.year == year  &&
         area.properties.siteCode == code
     );
 
@@ -322,10 +322,10 @@ class SidebarAdminHome extends Component {
    */
   summarizeContrib = (contrib) => {
     if (contrib && Object.keys(this.props.areas).length > 0) {
-      console.log(contrib.site + " " + contrib.date);
+      const year = new Date(contrib.date).getFullYear();
       let filteredDataByYearAndCode = this.filterDataByYear(
         contrib.site,
-        contrib.date
+        year
       );
       // console.log(filteredDataByYearAndCode)
       // console.log(contrib)
@@ -337,7 +337,7 @@ class SidebarAdminHome extends Component {
           (field) => `${field.label} - ${contrib[field.value]}`
         );
         return (
-          `Add ${contrib.site || "New Area"}: ` + toBeDisplayedFields.join("; ")
+          `Add ${year} ${contrib.site || "New Area"}: ` + toBeDisplayedFields.join("; ")
         );
       } else {
         let toBeDisplayedFields = dataFields.filter(
@@ -350,7 +350,7 @@ class SidebarAdminHome extends Component {
             `${field.label} from ${filteredDataByYearAndCode[field.value] ||
               "_"} to ${contrib[field.value]}`
         );
-        return `Change ${contrib.site}: ` + toBeDisplayedFields.join("; ");
+        return `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ");
       }
     }
     return "";
@@ -424,6 +424,7 @@ class SidebarAdminHome extends Component {
           closeModal={this.closeModal}
           data={checkedContribs}
           updateData={this.updateData}
+          summarizeContrib={this.summarizeContrib}
         />
         <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
         <React.Fragment>
