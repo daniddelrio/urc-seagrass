@@ -73,6 +73,7 @@ class BaseSidebar extends Component {
     this.state = {
       isLogoutPresent: false,
       activeSidebar: isLoggedIn() ? "adminHome" : "home",
+      contribName: "",
     };
   }
 
@@ -92,8 +93,16 @@ class BaseSidebar extends Component {
     this.setState({ activeSidebar: key });
   };
 
-  handleLogout = () => {
-    logout();
+  setContribName = (name) => {
+    this.setState({ contribName: name });
+  };
+
+  handleLogout = (isContributor) => {
+    if (isContributor) {
+      this.setContribName("");
+    } else {
+      logout();
+    }
     this.setActiveSidebar("home");
   };
 
@@ -115,14 +124,23 @@ class BaseSidebar extends Component {
         return (
           <SidebarAdminLogin
             setActiveSidebar={this.setActiveSidebar}
+            setContribName={this.setContribName}
             contributor
           />
         );
       case "contribHome":
-        return <SidebarContribution setActiveSidebar={this.setActiveSidebar} />;
+        return (
+          <SidebarContribution
+            setActiveSidebar={this.setActiveSidebar}
+            contribName={this.state.contribName}
+          />
+        );
       case "contribDone":
         return (
-          <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
+          <SidebarContributionDone
+            setActiveSidebar={this.setActiveSidebar}
+            contribName={this.state.contribName}
+          />
         );
     }
   }

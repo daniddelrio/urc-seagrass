@@ -54,15 +54,16 @@ class SidebarAdminLogin extends Component {
                 values.password
               );
               if (loginResult) {
-                console.log("Success!");
-                this.props.setActiveSidebar(
-                  this.props.contributor ? "contribHome" : "adminHome"
-                );
+                this.props.setActiveSidebar("adminHome");
               } else {
                 this.setState({
                   loginError: true,
                 });
               }
+            }
+            else {
+              this.props.setContribName(values.username);
+              this.props.setActiveSidebar("contribHome");
             }
           }}
           validationSchema={
