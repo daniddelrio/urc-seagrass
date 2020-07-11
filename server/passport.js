@@ -4,10 +4,16 @@ const { jwtSecret } = require("./config");
 const JwtStrategy = require('passport-jwt').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 
+const cookieExtractor = function(req) {
+    if (req && req.cookies) return req.cookies['jwt'];
+    return ExtractJwt.fromAuthHeaderWithScheme("jwt");
+};
+
 // At a minimum, you must pass the `jwtFromRequest` and `secretOrKey` properties
 const options = {
+  // jwtFromRequest: cookieExtractor,
   jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme("jwt"),
-  // jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  // jwtFromRequest: cookieExtractor ? cookieExtractor : ExtractJwt.fromAuthHeaderWithScheme("jwt"),
   secretOrKey: jwtSecret,
 };
 

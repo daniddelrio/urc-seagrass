@@ -26,8 +26,9 @@ signIn = (req, res) => {
                             expiresIn: expires,
                         });
 
+                        // res.cookie('jwt',token);
                         // return the information including token as JSON
-                        res.json({ success: true, token: "JWT " + token, expiresIn: expires });
+                        res.json({ success: true, token: token, expiresIn: expires, isMaster: admin.isMaster });
                     } else {
                         res.status(401).send({
                             success: false,
@@ -37,7 +38,7 @@ signIn = (req, res) => {
                 });
             }
         }
-    );
+    ).select('+password');
 };
 
 createAdmin = (req, res) => {
@@ -92,7 +93,7 @@ updateAdmin = async (req, res) => {
         }
         admin.username = body.username;
         admin.password = body.password;
-        admin.isMaster = body.isMaster;
+        if(body.isMaster) admin.isMaster = body.isMaster;
         admin
             .save()
             .then(() => {

@@ -27,7 +27,7 @@ export const handleLogin = async (username, password) => {
 
 	if (user && user.data) {
 		setUser(user.data);
-		api.defaults.headers.common["Authorization"] = `${getUser().token}`;
+		api.defaults.headers.common["Authorization"] = "JWT " + `${getUser().token}`;
 		return true;
 	}
 
@@ -37,13 +37,13 @@ export const handleLogin = async (username, password) => {
 export const isLoggedIn = () => {
 	const user = getUser();
 
-	return !!user.token;
+	return !!user.token && !isTokenExpired();
 };
 
 export const isTokenExpired = () => {
 	const user = getUser();
 	const decodedToken = jwt.decode(user.token);
-
+	if(decodedToken == null) return true;
 	const expiryDate = new Date(decodedToken.exp * 1000);
 
 	return expiryDate && Date.now() > expiryDate;
