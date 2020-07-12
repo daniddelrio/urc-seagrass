@@ -72,9 +72,9 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false,
-      activeSidebar: "contribHome",
-      // activeSidebar: isLoggedIn() ? "adminHome" : "home",
+      activeSidebar: isLoggedIn() ? "adminHome" : "home",
       contribName: "",
+      logoutButtonText: "",
     };
   }
 
@@ -86,8 +86,8 @@ class BaseSidebar extends Component {
     window.removeEventListener("resize", null);
   }
 
-  showLogoutButton = () => {
-    this.setState({ isLogoutPresent: true });
+  showLogoutButton = (text) => {
+    this.setState({ isLogoutPresent: true, logoutButtonText: text });
   };
 
   setActiveSidebar = (key) => {
@@ -112,18 +112,22 @@ class BaseSidebar extends Component {
       case "home":
         return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
       case "adminLogin":
-        return <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />;
+        return <SidebarAdminLogin 
+          setActiveSidebar={this.setActiveSidebar} 
+          showLogoutButton={this.showLogoutButton}
+        />;
       case "adminHome":
         return (
           <SidebarAdminHome
             areas={this.props.areas}
             setActiveSidebar={this.setActiveSidebar}
-            showLoginButton={this.showLogoutButton}
+            showLogoutButton={this.showLogoutButton}
           />
         );
       case "contribLogin":
         return (
           <SidebarAdminLogin
+            showLogoutButton={this.showLogoutButton}
             setActiveSidebar={this.setActiveSidebar}
             setContribName={this.setContribName}
             contributor
@@ -147,6 +151,7 @@ class BaseSidebar extends Component {
           <SidebarContributionDone
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}
+            setContribName={this.setContribName}
           />
         );
     }
@@ -168,7 +173,7 @@ class BaseSidebar extends Component {
           </MediaQuery>*/}
           {this.state.isLogoutPresent && (
             <EmptyButton onClick={this.handleLogout} noFlex>
-              Log out
+              {this.state.logoutButtonText}
             </EmptyButton>
           )}
           <PayPalButton>

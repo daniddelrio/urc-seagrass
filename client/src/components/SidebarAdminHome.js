@@ -284,7 +284,7 @@ class SidebarAdminHome extends Component {
   }
 
   componentDidMount = async () => {
-    this.props.showLoginButton();
+    this.props.showLogoutButton("Log out");
 
     await api.getAllAdmins().then((res) => {
       const admins = res.data.data;

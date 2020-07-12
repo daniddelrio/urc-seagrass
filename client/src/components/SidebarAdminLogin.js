@@ -33,6 +33,10 @@ class SidebarAdminLogin extends Component {
     };
   }
 
+  componentDidMount() {
+    this.props.showLogoutButton("Back to home");
+  }
+
   render() {
     return (
       <React.Fragment>

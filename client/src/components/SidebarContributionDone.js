@@ -20,6 +20,11 @@ const NewContribButton = styled(ParentButton)`
   margin-bottom: 1rem;
 `;
 
+const handleClick = (props) => {
+  props.setActiveSidebar("home");
+  props.setContribHome("");
+};
+
 const SidebarContributionDone = React.memo((props) => (
   <React.Fragment>
     <SidebarSubheader>
