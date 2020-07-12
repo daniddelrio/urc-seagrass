@@ -1,10 +1,12 @@
 [
 	{
 	  "value": "seagrassCount",
-	  "label": "Total Seagrass Count"
+	  "label": "Total Seagrass Count",
+	  "unit": "Mg C/ha"
 	},
 	{
 	  "value": "carbonPercentage",
-	  "label": "Inorganic Carbon Percentage"
+	  "label": "Inorganic Carbon Percentage",
+	  "unit": "%"
 	}
 ]
