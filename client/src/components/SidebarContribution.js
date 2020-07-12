@@ -14,12 +14,12 @@ import api from "../services/contrib-services";
 import dataFields from "../dataFields";
 
 const selectOptions = [
-  { value: "seagrassMeadow", label: "Seagrass Meadow" },
-  { value: "adjacentPowerPlant", label: "Adjacent Power Plant" },
-  { value: "adjacentResidential", label: "Adjacent Residential" },
-  { value: "adjacentCoralReef", label: "Adjacent Coral Reef" },
-  { value: "adjacentMangrove", label: "Adjacent Mangrove" },
-  { value: "adjacentAquaculture", label: "Adjacent Aquaculture" },
+  { value: "SM", label: "Seagrass Meadow" },
+  { value: "CP", label: "Adjacent Coal Power Plant" },
+  { value: "RA", label: "Adjacent Residential Area" },
+  { value: "CR", label: "Adjacent Coral Reef" },
+  { value: "MF", label: "Adjacent Mangrove Forest" },
+  { value: "AC", label: "Adjacent Aquaculture" },
   { value: "newCoordinates", label: "+ New Coordinates" },
 ];
 
