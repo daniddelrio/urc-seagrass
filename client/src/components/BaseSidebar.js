@@ -72,6 +72,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false,
+      // activeSidebar: "contribHome",
       activeSidebar: isLoggedIn() ? "adminHome" : "home",
       contribName: "",
       logoutButtonText: "",

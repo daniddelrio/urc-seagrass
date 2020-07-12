@@ -62,6 +62,9 @@ const customStyles = {
 const ContributionFields = styled.div`
   opacity: ${(props) => (props.isShown ? "100%" : 0)};
   transition: 0.5s opacity;
+
+  max-height: 60vh;
+  overflow-y: auto;
 `;
 
 const LabelField = styled.label`
@@ -120,6 +123,15 @@ const SubmitButton = styled(ParentButton)`
   width: 100%;
 `;
 
+// Produces all pairs of an array
+const pairsOfArray = array => (
+    array.reduce((acc, val, i1) => [
+      ...acc,
+      ...new Array(array.length - 1 - i1).fill(0)
+        .map((v, i2) => ([array[i1], array[i1 + 1 + i2]]))
+    ], [])
+  )
+
 const dataValidationFields = (fields) => {
   return fields.reduce(
     (obj, item) => ({
@@ -132,7 +144,7 @@ const dataValidationFields = (fields) => {
               .filter((field) => field.value != item.value)
               .map((field) => field.value),
             {
-              is: (val) => !val,
+              is: (...args) => args.every(obj => !obj),
               then: Yup.number()
                 .typeError(`${item.label} must be a number`)
                 .min(0)
@@ -154,13 +166,17 @@ const validationSchema = Yup.object().shape(
       .required("Please input a date")
       .max(new Date(), "Measuring date must be before today's date"),
   },
-  [["area"], dataFields.map((field) => field.value)]
+  // If the fields are: seagrassCount, carbonPercentage, phosphates
+  // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
+  // [["area"], ["seagrassCount", "carbonPercentage"], ["avoidedCarbonEmissions", "carbonPercentage"], ["seagrassCount", "avoidedCarbonEmissions"], ["seagrassCount", "nitrates"], ["carbonPercentage", "nitrates"], ["avoidedCarbonEmissions", "nitrates"]]
+  [["area"]].concat(pairsOfArray(dataFields.map(field => field.value)))
 );
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
   margin-bottom: 0.4rem;
 `;
+
 
 class SidebarContribution extends Component {
   constructor(props) {
@@ -177,6 +193,16 @@ class SidebarContribution extends Component {
   }
 
   render() {
+    const dataFieldsObj = (values) => dataFields.reduce(
+      (obj, item) => ({
+        ...obj,
+        ...(values[item.value] !== "" && {
+          [item.value]: values[item.value],
+        }),
+      }),
+      {}
+    );
+
     return (
       <React.Fragment>
         <SidebarSubheader>Welcome, Pedro!</SidebarSubheader>
@@ -184,8 +210,7 @@ class SidebarContribution extends Component {
           initialValues={{
             area: null,
             date: "",
-            seagrassCount: "",
-            carbonPercentage: "",
+            ...dataFieldsObj(dataFields.map(field => ({[field.value] : null})))
           }}
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
@@ -194,15 +219,6 @@ class SidebarContribution extends Component {
                 error: "Please choose coordinates by clicking on the map",
               });
             } else {
-              const dataFieldsObj = dataFields.reduce(
-                (obj, item) => ({
-                  ...obj,
-                  ...(values[item.value] !== "" && {
-                    [item.value]: values[item.value],
-                  }),
-                }),
-                {}
-              );
               const { date } = values;
               const body = {
                 ...(values.area == "newCoordinates"
@@ -216,7 +232,7 @@ class SidebarContribution extends Component {
                 ...(this.props.contribName && {
                   contributor: this.props.contribName,
                 }),
-                ...dataFieldsObj,
+                ...dataFieldsObj(values),
                 date,
               };
               await api.createContribution(body).then((contrib) => {
@@ -250,13 +266,6 @@ class SidebarContribution extends Component {
                 name="area"
                 placeholder="Choose Area"
                 styles={customStyles}
-                // value={
-                //   values.area ||
-                //   (this.props.latLng &&
-                //     this.selectOptions(this.props.latLng).filter(
-                //       (option) => option.hasCoords
-                //     ))
-                // }
                 options={selectOptions}
                 onChange={(selectedOption) => {
                   if (selectedOption.value == "newCoordinates") {
@@ -331,8 +340,7 @@ class SidebarContribution extends Component {
                     isSubmitting ||
                     !touched.date ||
                     !(
-                      values.seagrassCount != "" ||
-                      values.carbonPercentage != ""
+                      dataFields.some(field => !!values[field.value])
                     )
                   }
                 >

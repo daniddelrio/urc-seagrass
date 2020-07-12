@@ -8,5 +8,20 @@
 	  "value": "carbonPercentage",
 	  "label": "Inorganic Carbon Percentage",
 	  "unit": "%"
+	},
+	{
+	  "value": "avoidedCarbonEmissions",
+	  "label": "Avoided Carbon Emissions",
+	  "unit": "Mg C/ha"
+	},
+	{
+	  "value": "nitrates",
+	  "label": "Total Nitrates",
+	  "unit": "Mg C/ha"
+	},
+	{
+	  "value": "phosphates",
+	  "label": "Phosphates",
+	  "unit": "Mg C/ha"
 	}
 ]
