@@ -17,6 +17,7 @@ class Parent extends Component {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
       isChoosingCoords: false,
+      isModifyingData: false,
       year: "2020",
       latLng: null,
       areas: {},
@@ -92,6 +93,10 @@ class Parent extends Component {
     this.setState({ isChoosingCoords: flag });
   };
 
+  toggleModifyingData = () => {
+    this.setState({ isModifyingData: !this.state.isModifyingData });
+  };
+
   render() {
     return (
       <AppDiv className="App" isMobile={this.state.isMobile}>
@@ -99,7 +104,9 @@ class Parent extends Component {
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
           isChoosingCoords={this.state.isChoosingCoords}
+          isModifyingData={this.state.isModifyingData}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
+          toggleModifyingData={this.toggleModifyingData}
           toggleSidebar={this.toggleSidebar}
           year={this.state.year}
           setYear={this.setYear}
@@ -111,8 +118,10 @@ class Parent extends Component {
           isMobile={this.state.isMobile}
           areas={this.state.areas}
           toggleSidebar={this.toggleSidebar}
+          toggleModifyingData={this.toggleModifyingData}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
           isChoosingCoords={this.state.isChoosingCoords}
+          isModifyingData={this.state.isModifyingData}
           setLatLng={this.setLatLng}
           latLng={this.state.latLng}
         />

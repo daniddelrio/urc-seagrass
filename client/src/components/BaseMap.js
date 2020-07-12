@@ -16,7 +16,8 @@ const LeafletMap = styled(Map)`
   float: ${({ isMobile }) => (isMobile ? "left" : null)};
   z-index: 1;
   transition: width 0.5s;
-  cursor: ${({ isChoosingCoords }) => isChoosingCoords ? "crosshair" : "default"}
+  cursor: ${({ isChoosingCoords }) =>
+    isChoosingCoords ? "crosshair" : "default"};
 `;
 
 const HamburgerIcon = styled.img`
@@ -28,7 +29,7 @@ const HamburgerIcon = styled.img`
   transition: right 0.5s;
 `;
 
-const CoordinatesReminder = styled.div`
+const ReminderMessage = styled.div`
   z-index: 999;
   position: absolute;
   bottom: 1.5rem;
@@ -44,7 +45,7 @@ const CoordinatesReminder = styled.div`
   line-height: 12px;
   text-align: center;
 
-  color: #BB5F0A;
+  color: #bb5f0a;
 `;
 
 let numMapClicks = 0;
@@ -109,8 +110,8 @@ class BaseMap extends Component {
   handleClick = (e) => {
     this.props.setLatLng(e.latlng);
     this.props.toggleChoosingSidebar(false);
-    if(this.props.isMobile) this.props.toggleSidebar();
-  }
+    if (this.props.isMobile) this.props.toggleSidebar();
+  };
 
   render() {
     const style = {
@@ -132,7 +133,9 @@ class BaseMap extends Component {
           isOpen={this.props.isOpen}
           isMobile={this.props.isMobile}
           isChoosingCoords={this.props.isChoosingCoords}
-          onClick={(e) => {if(this.props.isChoosingCoords) this.handleClick(e)}}
+          onClick={(e) => {
+            if (this.props.isChoosingCoords) this.handleClick(e);
+          }}
         >
           <TileLayer
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
@@ -150,7 +153,7 @@ class BaseMap extends Component {
           )}
           {popup.position && (
             <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup properties={popup.properties} />
+              <BasePopup isModifyingData={this.props.isModifyingData} properties={popup.properties} />
             </Popup>
           )}
         </LeafletMap>
@@ -163,9 +166,16 @@ class BaseMap extends Component {
             isMobile={this.props.isMobile}
           />
         )}
-        {(this.props.isMobile ? !this.props.isOpen : true) && this.props.isChoosingCoords && (
-          <CoordinatesReminder>You are currently choosing coordinates</CoordinatesReminder>
-        )}
+        {(this.props.isMobile ? !this.props.isOpen : true) &&
+          (this.props.isChoosingCoords || this.props.isModifyingData) && (
+            <ReminderMessage>{`You are currently ${
+              this.props.isChoosingCoords
+                ? "choosing coordinates"
+                : this.props.isModifyingData
+                ? "modifying data"
+                : "not on any mode"
+            }`}</ReminderMessage>
+          )}
       </React.Fragment>
     );
   }

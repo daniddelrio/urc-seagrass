@@ -294,12 +294,10 @@ class SidebarAdminHome extends Component {
           showingModify: false,
         })),
       });
-      console.log(this.state.admins);
     });
 
     await contribApi.getContributionsByStatus("nostatus").then((res) => {
       const contributions = res.data.data;
-      // console.log(contributions);
       this.setState({
         data: contributions.map((contrib) => ({
           ...contrib,
@@ -327,8 +325,6 @@ class SidebarAdminHome extends Component {
         contrib.site,
         year
       );
-      // console.log(filteredDataByYearAndCode)
-      // console.log(contrib)
       if (filteredDataByYearAndCode.length == 0) {
         let toBeDisplayedFields = dataFields.filter(
           (field) => contrib[field.value]
@@ -396,6 +392,10 @@ class SidebarAdminHome extends Component {
       },
     });
   };
+
+  handleModifyClick = () => {
+    this.props.toggleModifyingData();
+  }
 
   updateData = (data) => {
     this.setState({ data: data });
@@ -472,7 +472,9 @@ class SidebarAdminHome extends Component {
             </ButtonGroup>
           </Dropdown>
         </React.Fragment>
-        <DefaultTitle>Modify Data on Map</DefaultTitle>
+
+        <DefaultTitle onClick={this.handleModifyClick}>{`${this.props.isModifyingData ? "Stop Modifying" : "Modify"} Data on Map`}</DefaultTitle>
+
         {getUser().isMaster && (
           <React.Fragment>
             <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>

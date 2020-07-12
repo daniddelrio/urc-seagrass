@@ -168,7 +168,6 @@ const validationSchema = Yup.object().shape(
   },
   // If the fields are: seagrassCount, carbonPercentage, phosphates
   // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
-  // [["area"], ["seagrassCount", "carbonPercentage"], ["avoidedCarbonEmissions", "carbonPercentage"], ["seagrassCount", "avoidedCarbonEmissions"], ["seagrassCount", "nitrates"], ["carbonPercentage", "nitrates"], ["avoidedCarbonEmissions", "nitrates"]]
   [["area"]].concat(pairsOfArray(dataFields.map(field => field.value)))
 );
 

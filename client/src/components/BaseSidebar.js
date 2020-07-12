@@ -121,8 +121,11 @@ class BaseSidebar extends Component {
         return (
           <SidebarAdminHome
             areas={this.props.areas}
+            isMobile={this.props.isMobile}
             setActiveSidebar={this.setActiveSidebar}
             showLogoutButton={this.showLogoutButton}
+            toggleModifyingData={this.props.toggleModifyingData}
+            isModifyingData={this.props.isModifyingData}
           />
         );
       case "contribLogin":
