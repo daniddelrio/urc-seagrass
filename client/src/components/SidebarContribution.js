@@ -4,13 +4,14 @@ import {
   SidebarSubheader,
   AdminTextField,
   ParentButton,
-  CustomErrorMessage
+  CustomErrorMessage,
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import api from "../services/contrib-services";
+import dataFields from "../dataFields";
 
 const selectOptions = [
   { value: "seagrassMeadow", label: "Seagrass Meadow" },
@@ -19,14 +20,15 @@ const selectOptions = [
   { value: "adjacentCoralReef", label: "Adjacent Coral Reef" },
   { value: "adjacentMangrove", label: "Adjacent Mangrove" },
   { value: "adjacentAquaculture", label: "Adjacent Aquaculture" },
+  { value: "newCoordinates", label: "+ New Coordinates" },
 ];
 
 const customStyles = {
-  option: (provided, state) => ({
+  option: (provided, { data }) => ({
     ...provided,
-    background: "#5F5F5F",
+    background: data.value === "newCoordinates" ? "#585858" : "#5F5F5F",
     fontSize: "13px",
-    color: "#999999",
+    color: data.value === "newCoordinates" ? "#C8A55F" : "#999999",
     fontWeight: 600,
     paddingBottom: "0.3rem",
     paddingTop: "0.3rem",
@@ -58,7 +60,7 @@ const customStyles = {
 };
 
 const ContributionFields = styled.div`
-  opacity: ${(props) => props.isShown ? "100%" : 0};
+  opacity: ${(props) => (props.isShown ? "100%" : 0)};
   transition: 0.5s opacity;
 `;
 
@@ -118,37 +120,42 @@ const SubmitButton = styled(ParentButton)`
   width: 100%;
 `;
 
-const validationSchema = Yup.object()
-  .shape({
-    area: Yup.string()
-      .required("Please input an area")
-      .oneOf(selectOptions.map(option => option.value)),
+const dataValidationFields = (fields) => {
+  return fields.reduce(
+    (obj, item) => ({
+      ...obj,
+      ...{
+        [item.value]: Yup.number()
+          .typeError(`${item.label} must be a number`)
+          .when(
+            dataFields
+              .filter((field) => field.value != item.value)
+              .map((field) => field.value),
+            {
+              is: (val) => !val,
+              then: Yup.number()
+                .typeError(`${item.label} must be a number`)
+                .min(0)
+                .required("Please fill in at least one field"),
+            }
+          ),
+      },
+    }),
+    {}
+  );
+};
+
+const validationSchema = Yup.object().shape(
+  {
+    ...dataValidationFields(dataFields),
+    area: Yup.mixed().required("Please input an area"),
+    coordinates: Yup.mixed(),
     date: Yup.date()
       .required("Please input a date")
       .max(new Date(), "Measuring date must be before today's date"),
-    seagrassCount: Yup.number()
-      .typeError('Total count must be a number')
-      .min(0)
-      .when("carbonPercentage", {
-        is: val => !val,
-        then: Yup.number()
-          .typeError('Total count must be a number')
-          .min(0)
-          .required("Please fill in at least one field")
-        }),
-    carbonPercentage: Yup.number()
-      .typeError('Percentage must be a number')
-      .min(0, "Percentage must be at least 0%")
-      .max(100, "Percentage must be at most 100%")
-      .when("seagrassCount", {
-        is: val => !val,
-        then: Yup.number()
-          .typeError('Percentage must be a number')
-          .min(0, "Percentage must be at least 0%")
-          .max(100, "Percentage must be at most 100%")
-          .required("Please fill in at least one field")
-        }),
-  }, [['area'], ['seagrassCount', 'carbonPercentage']]);
+  },
+  [["area"], dataFields.map((field) => field.value)]
+);
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
@@ -158,7 +165,15 @@ const AdminErrorMessage = styled(CustomErrorMessage)`
 class SidebarContribution extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      error: null,
+    };
+  }
+
+  componentDidUpdate(prevProps,prevstate){
+    if(this.props.latLng !== prevProps.latLng && this.props.latLng){
+       this.setState({error: null})
+    }
   }
 
   render() {
@@ -167,16 +182,48 @@ class SidebarContribution extends Component {
         <SidebarSubheader>Welcome, Pedro!</SidebarSubheader>
         <Formik
           initialValues={{
-            area: "",
+            area: null,
             date: "",
             seagrassCount: "",
             carbonPercentage: "",
           }}
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
-            await api.createContribution(values).then(contrib => {
-              this.props.setActiveSidebar("contribDone");
-            });
+            if (values.area == "newCoordinates" && !this.props.latLng) {
+              this.setState({
+                error: "Please choose coordinates by clicking on the map",
+              });
+            } else {
+              const dataFieldsObj = dataFields.reduce(
+                (obj, item) => ({
+                  ...obj,
+                  ...(values[item.value] !== "" && {
+                    [item.value]: values[item.value],
+                  }),
+                }),
+                {}
+              );
+              const { date } = values;
+              const body = {
+                ...(values.area == "newCoordinates"
+                  ? {
+                      coordinates: [
+                        this.props.latLng.lat,
+                        this.props.latLng.lng,
+                      ],
+                    }
+                  : { site: values.area }),
+                ...(this.props.contribName && {
+                  contributor: this.props.contribName,
+                }),
+                ...dataFieldsObj,
+                date,
+              };
+              await api.createContribution(body).then((contrib) => {
+                this.props.setActiveSidebar("contribDone");
+                this.props.setLatLng(null);
+              });
+            }
           }}
           validationSchema={validationSchema}
         >
@@ -194,16 +241,40 @@ class SidebarContribution extends Component {
             isSubmitting,
           }) => (
             <Form>
+              {this.state.error && !this.props.latLng && (
+                <AdminErrorMessage key={!!this.props.latLng}>
+                  <span>Error: {this.state.error}</span>
+                </AdminErrorMessage>
+              )}
               <Select
                 name="area"
                 placeholder="Choose Area"
                 styles={customStyles}
+                // value={
+                //   values.area ||
+                //   (this.props.latLng &&
+                //     this.selectOptions(this.props.latLng).filter(
+                //       (option) => option.hasCoords
+                //     ))
+                // }
                 options={selectOptions}
-                onChange={(selectedOption) => setFieldValue("area", selectedOption.value)}
+                onChange={(selectedOption) => {
+                  if (selectedOption.value == "newCoordinates") {
+                    if (this.props.isMobile) this.props.toggleSidebar();
+                    this.props.toggleChoosingSidebar(true);
+                  } else {
+                    this.props.toggleChoosingSidebar(false);
+                    this.props.setLatLng(null);
+                  }
+                  setFieldValue("area", selectedOption.value);
+                }}
                 onBlur={() => setFieldTouched("area")}
                 error={(error) => setFieldError("area")(error)}
               />
-              <ContributionFields isShown={values.area != ""}>
+              <ContributionFields isShown={values.area || this.props.latLng}>
+                {this.props.latLng && (
+                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${this.props.latLng.lng}`}</LabelField>
+                )}
                 <RelativeDiv>
                   <TextField
                     placeholder="Date of Measuring"
@@ -217,38 +288,24 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                <LabelField for="seagrassCount">
-                  Total Seagrass Count
-                </LabelField>
-                <FlexDiv>
-                  <TextField
-                    id="seagrassCount"
-                    name="seagrassCount"
-                    style={
-                      values.seagrassCount && values.seagrassCount != ""
-                        ? { background: "#5A5A5A", color: "#ABABAB" }
-                        : null
-                    }
-                    noMarginBottom
-                  />
-                  <UnitText>Mg C/ha</UnitText>
-                </FlexDiv>
-                <LabelField for="carbonPercentage">
-                  Inorganic Carbon Percentage
-                </LabelField>
-                <FlexDiv>
-                  <TextField
-                    id="carbonPercentage"
-                    name="carbonPercentage"
-                    style={
-                      values.carbonPercentage && values.carbonPercentage != ""
-                        ? { background: "#5A5A5A", color: "#ABABAB" }
-                        : null
-                    }
-                    noMarginBottom
-                  />
-                  <UnitText>%</UnitText>
-                </FlexDiv>
+                {dataFields.map((field) => (
+                  <React.Fragment key={"contribField" + field.value}>
+                    <LabelField for="seagrassCount">{field.label}</LabelField>
+                    <FlexDiv>
+                      <TextField
+                        id={field.value}
+                        name={field.value}
+                        style={
+                          values[field.value] && values[field.value] != ""
+                            ? { background: "#5A5A5A", color: "#ABABAB" }
+                            : null
+                        }
+                        noMarginBottom
+                      />
+                      <UnitText>{field.unit}</UnitText>
+                    </FlexDiv>
+                  </React.Fragment>
+                ))}
                 {!values.area && errors.area && touched.area && (
                   <AdminErrorMessage>
                     <span>Error: {errors.area}</span>
@@ -259,22 +316,24 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {errors.seagrassCount && touched.seagrassCount && (
-                  <AdminErrorMessage>
-                    <span>Error: {errors.seagrassCount}</span>
-                  </AdminErrorMessage>
-                )}
-                {errors.carbonPercentage && touched.carbonPercentage && (
-                  <AdminErrorMessage>
-                    <span>Error: {errors.carbonPercentage}</span>
-                  </AdminErrorMessage>
+                {dataFields.map(
+                  (field) =>
+                    errors[field.value] &&
+                    touched[field.value] && (
+                      <AdminErrorMessage>
+                        <span>Error: {errors[field.value]}</span>
+                      </AdminErrorMessage>
+                    )
                 )}
                 <SubmitButton
                   type="submit"
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !(values.seagrassCount != "" || values.carbonPercentage != "")
+                    !(
+                      values.seagrassCount != "" ||
+                      values.carbonPercentage != ""
+                    )
                   }
                 >
                   Submit Contribution

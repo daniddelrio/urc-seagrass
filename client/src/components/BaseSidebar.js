@@ -72,7 +72,8 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false,
-      activeSidebar: isLoggedIn() ? "adminHome" : "home",
+      activeSidebar: "contribHome",
+      // activeSidebar: isLoggedIn() ? "adminHome" : "home",
       contribName: "",
     };
   }
@@ -133,6 +134,12 @@ class BaseSidebar extends Component {
           <SidebarContribution
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}
+            toggleSidebar={this.props.toggleSidebar}
+            isMobile={this.props.isMobile}
+            toggleChoosingSidebar={this.props.toggleChoosingSidebar}
+            isChoosingCoords={this.state.isChoosingCoords}
+            setLatLng={this.props.setLatLng}
+            latLng={this.props.latLng}
           />
         );
       case "contribDone":

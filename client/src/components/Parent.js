@@ -16,7 +16,9 @@ class Parent extends Component {
     this.state = {
       isSidebarOpen: window.innerWidth >= MAX_WIDTH,
       isMobile: window.innerWidth < MAX_WIDTH,
+      isChoosingCoords: false,
       year: "2020",
+      latLng: null,
       areas: {},
     };
   }
@@ -59,6 +61,10 @@ class Parent extends Component {
     return finalData;
   };
 
+  setLatLng = (latlng) => {
+    this.setState({latLng: latlng})
+  }
+
   componentWillUnmount() {
     window.removeEventListener("resize", this.setSidebarOpen);
     window.removeEventListener("resize", this.setMobileState);
@@ -82,21 +88,33 @@ class Parent extends Component {
     this.setState({ isSidebarOpen: !this.state.isSidebarOpen });
   };
 
+  toggleChoosingSidebar = (flag) => {
+    this.setState({ isChoosingCoords: flag });
+  };
+
   render() {
     return (
       <AppDiv className="App" isMobile={this.state.isMobile}>
         <BaseMap
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
+          isChoosingCoords={this.state.isChoosingCoords}
+          toggleChoosingSidebar={this.toggleChoosingSidebar}
           toggleSidebar={this.toggleSidebar}
           year={this.state.year}
           setYear={this.setYear}
           areas={this.state.areas}
+          setLatLng={this.setLatLng}
         />
         <BaseSidebar 
           isOpen={this.state.isSidebarOpen} 
           isMobile={this.state.isMobile}
           areas={this.state.areas}
+          toggleSidebar={this.toggleSidebar}
+          toggleChoosingSidebar={this.toggleChoosingSidebar}
+          isChoosingCoords={this.state.isChoosingCoords}
+          setLatLng={this.setLatLng}
+          latLng={this.state.latLng}
         />
       </AppDiv>
     );

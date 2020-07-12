@@ -16,6 +16,7 @@ const LeafletMap = styled(Map)`
   float: ${({ isMobile }) => (isMobile ? "left" : null)};
   z-index: 1;
   transition: width 0.5s;
+  cursor: ${({ isChoosingCoords }) => isChoosingCoords ? "crosshair" : "default"}
 `;
 
 const HamburgerIcon = styled.img`
@@ -25,6 +26,25 @@ const HamburgerIcon = styled.img`
   bottom: 1.5rem;
   right: ${({ isOpen }) => (isOpen ? "83%" : "1.5rem")};
   transition: right 0.5s;
+`;
+
+const CoordinatesReminder = styled.div`
+  z-index: 999;
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1rem;
+
+  padding: 0.2rem 1rem;
+  background: rgba(255, 175, 7, 0.37);
+  border-radius: 14.5px;
+
+  font-family: Roboto;
+  font-style: normal;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+
+  color: #BB5F0A;
 `;
 
 let numMapClicks = 0;
@@ -86,6 +106,12 @@ class BaseMap extends Component {
     });
   };
 
+  handleClick = (e) => {
+    this.props.setLatLng(e.latlng);
+    this.props.toggleChoosingSidebar(false);
+    if(this.props.isMobile) this.props.toggleSidebar();
+  }
+
   render() {
     const style = {
       fillColor: "#C5F9D0",
@@ -105,6 +131,8 @@ class BaseMap extends Component {
           zoom={13}
           isOpen={this.props.isOpen}
           isMobile={this.props.isMobile}
+          isChoosingCoords={this.props.isChoosingCoords}
+          onClick={(e) => {if(this.props.isChoosingCoords) this.handleClick(e)}}
         >
           <TileLayer
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
@@ -134,6 +162,9 @@ class BaseMap extends Component {
             onClick={this.props.toggleSidebar}
             isMobile={this.props.isMobile}
           />
+        )}
+        {(this.props.isMobile ? !this.props.isOpen : true) && this.props.isChoosingCoords && (
+          <CoordinatesReminder>You are currently choosing coordinates</CoordinatesReminder>
         )}
       </React.Fragment>
     );
