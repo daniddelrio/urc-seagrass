@@ -67,6 +67,7 @@ class BaseMap extends Component {
         key: numMapClicks++,
         position: e.latlng,
         properties: e.target.feature.properties,
+        ...e.target.feature.geometry.type == "Point" && {coordinates: e.target.feature.geometry.coordinates}
       },
     });
   };
@@ -155,7 +156,7 @@ class BaseMap extends Component {
           )}
           {popup.position && (
             <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup isModifyingData={this.props.isModifyingData} properties={popup.properties} />
+              <BasePopup isModifyingData={this.props.isModifyingData} properties={{...popup.properties, coordinates: popup.coordinates}} />
             </Popup>
           )}
         </LeafletMap>

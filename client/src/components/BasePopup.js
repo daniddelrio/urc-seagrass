@@ -125,13 +125,14 @@ class BasePopup extends Component {
 
   render() {
     const { properties, isModifyingData } = this.props;
+    console.log(properties)
 
     return (
       <React.Fragment>
         <PopupImage />
         <AreaInfo>
           <AreaHeader>
-            <AreaName>{properties.areaName}</AreaName>
+            <AreaName>{properties.areaName || properties.coordinates.reverse().map(coord => coord.toFixed(4)).join(", ")} | {properties.year}</AreaName>
             {properties.status && (
               <StatusBox status={properties.status}>
                 {properties.status}
