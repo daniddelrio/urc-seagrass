@@ -72,7 +72,7 @@ class BaseSidebar extends Component {
     super(props);
     this.state = {
       isLogoutPresent: false,
-      // activeSidebar: "contribHome",
+      // activeSidebar: "contribDone",
       activeSidebar: isLoggedIn() ? "adminHome" : "home",
       contribName: "",
       logoutButtonText: "",
@@ -106,6 +106,7 @@ class BaseSidebar extends Component {
       logout();
     }
     this.setActiveSidebar("home");
+    this.setState({ isLogoutPresent: false });
   };
 
   renderContent() {
@@ -113,10 +114,12 @@ class BaseSidebar extends Component {
       case "home":
         return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
       case "adminLogin":
-        return <SidebarAdminLogin 
-          setActiveSidebar={this.setActiveSidebar} 
-          showLogoutButton={this.showLogoutButton}
-        />;
+        return (
+          <SidebarAdminLogin
+            setActiveSidebar={this.setActiveSidebar}
+            showLogoutButton={this.showLogoutButton}
+          />
+        );
       case "adminHome":
         return (
           <SidebarAdminHome
@@ -140,6 +143,7 @@ class BaseSidebar extends Component {
       case "contribHome":
         return (
           <SidebarContribution
+            showLogoutButton={this.showLogoutButton}
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}
             toggleSidebar={this.props.toggleSidebar}
@@ -156,6 +160,7 @@ class BaseSidebar extends Component {
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}
             setContribName={this.setContribName}
+            handleLogout={this.handleLogout}
           />
         );
     }
@@ -176,7 +181,15 @@ class BaseSidebar extends Component {
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
           {this.state.isLogoutPresent && (
-            <EmptyButton onClick={this.handleLogout} noFlex>
+            <EmptyButton
+              onClick={() =>
+                this.handleLogout(
+                  this.props.activeSidebar == "contribHome" ||
+                    this.props.activeSidebar == "contribDone"
+                )
+              }
+              noFlex
+            >
               {this.state.logoutButtonText}
             </EmptyButton>
           )}

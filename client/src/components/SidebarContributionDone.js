@@ -36,7 +36,7 @@ const SidebarContributionDone = React.memo((props) => (
     </NewContribButton>
     <EmptyButton
       style={{ width: "100%" }}
-      onClick={() => props.setActiveSidebar("home")}
+      onClick={() => props.handleLogout(true)}
     >
       Log Out
     </EmptyButton>

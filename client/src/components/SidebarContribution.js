@@ -63,7 +63,7 @@ const ContributionFields = styled.div`
   opacity: ${(props) => (props.isShown ? "100%" : 0)};
   transition: 0.5s opacity;
 
-  max-height: 60vh;
+  max-height: 50vh;
   overflow-y: auto;
 `;
 
@@ -183,6 +183,10 @@ class SidebarContribution extends Component {
     this.state = {
       error: null,
     };
+  }
+
+  componentDidMount() {
+    this.props.showLogoutButton("Log out");
   }
 
   componentDidUpdate(prevProps,prevstate){
