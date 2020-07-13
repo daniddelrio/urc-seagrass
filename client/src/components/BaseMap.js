@@ -8,6 +8,7 @@ import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
+import L from 'leaflet';
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -147,6 +148,7 @@ class BaseMap extends Component {
               data={this.props.areas}
               key={this.props.year}
               onEachFeature={this.onEachFeature}
+              pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
               filter={(site) => site.properties.year == this.props.year}
               ref={this.geojson}
             />

@@ -32,6 +32,7 @@ class Parent extends Component {
       const newCoords = this.changeSiteKey(coords.data.coords);
       dataApi.getAllData().then((res) => {
         const finalData = this.processSiteData(newCoords, res.data.data);
+        console.log(finalData);
         this.setState({
           areas: finalData,
           isLoading: false,

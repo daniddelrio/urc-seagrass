@@ -227,8 +227,8 @@ class SidebarContribution extends Component {
                 ...(values.area == "newCoordinates"
                   ? {
                       coordinates: [
-                        this.props.latLng.lat,
                         this.props.latLng.lng,
+                        this.props.latLng.lat,
                       ],
                     }
                   : { site: values.area }),
