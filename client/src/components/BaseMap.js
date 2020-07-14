@@ -6,14 +6,19 @@ import BasePopup from "./BasePopup";
 import YearDropdown from "./YearDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
+import coordsApi from "../services/siteCoord-services";
+import dataApi from "../services/sitedata-services";
+import L from 'leaflet';
 
 const LeafletMap = styled(Map)`
   position: relative;
   height: 98vh;
   width: ${({ isOpen, isMobile }) => (isOpen && isMobile ? "20%" : "100%")};
-  float: ${({ isMobile }) => isMobile ? "left" : null};
+  float: ${({ isMobile }) => (isMobile ? "left" : null)};
   z-index: 1;
   transition: width 0.5s;
+  cursor: ${({ isChoosingCoords }) =>
+    isChoosingCoords ? "crosshair" : "default"};
 `;
 
 const HamburgerIcon = styled.img`
@@ -25,6 +30,25 @@ const HamburgerIcon = styled.img`
   transition: right 0.5s;
 `;
 
+const ReminderMessage = styled.div`
+  z-index: 999;
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1rem;
+
+  padding: 0.2rem 1rem;
+  background: rgba(255, 175, 7, 0.37);
+  border-radius: 14.5px;
+
+  font-family: Roboto;
+  font-style: normal;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+
+  color: #bb5f0a;
+`;
+
 let numMapClicks = 0;
 
 class BaseMap extends Component {
@@ -32,15 +56,9 @@ class BaseMap extends Component {
     super(props);
     this.geojson = React.createRef();
     this.state = {
-      areas: {},
       popup: {},
+      isLoading: false,
     };
-  }
-
-  componentDidMount() {
-    this.setState({
-      areas: sites
-    });
   }
 
   addPopup = (e) => {
@@ -49,6 +67,7 @@ class BaseMap extends Component {
         key: numMapClicks++,
         position: e.latlng,
         properties: e.target.feature.properties,
+        ...e.target.feature.geometry.type == "Point" && {coordinates: e.target.feature.geometry.coordinates}
       },
     });
   };
@@ -90,6 +109,12 @@ class BaseMap extends Component {
     });
   };
 
+  handleClick = (e) => {
+    this.props.setLatLng(e.latlng);
+    this.props.toggleChoosingSidebar(false);
+    if (this.props.isMobile) this.props.toggleSidebar();
+  };
+
   render() {
     const style = {
       fillColor: "#C5F9D0",
@@ -99,7 +124,7 @@ class BaseMap extends Component {
       fillOpacity: 0.7,
     };
 
-    const { areas, popup } = this.state;
+    const { popup } = this.state;
 
     return (
       <React.Fragment>
@@ -109,22 +134,29 @@ class BaseMap extends Component {
           zoom={13}
           isOpen={this.props.isOpen}
           isMobile={this.props.isMobile}
+          isChoosingCoords={this.props.isChoosingCoords}
+          onClick={(e) => {
+            if (this.props.isChoosingCoords) this.handleClick(e);
+          }}
         >
           <TileLayer
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          <GeoJSON
-            style={style}
-            data={areas}
-            key={this.props.year}
-            onEachFeature={this.onEachFeature}
-            filter={site => site.properties.year == this.props.year}
-            ref={this.geojson}
-          />
+          {Object.keys(this.props.areas).length !== 0 && (
+            <GeoJSON
+              style={style}
+              data={this.props.areas}
+              key={this.props.year}
+              onEachFeature={this.onEachFeature}
+              pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
+              filter={(site) => site.properties.year == this.props.year}
+              ref={this.geojson}
+            />
+          )}
           {popup.position && (
             <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup properties={popup.properties} />
+              <BasePopup isModifyingData={this.props.isModifyingData} properties={{...popup.properties, coordinates: popup.coordinates}} />
             </Popup>
           )}
         </LeafletMap>
@@ -137,6 +169,16 @@ class BaseMap extends Component {
             isMobile={this.props.isMobile}
           />
         )}
+        {(this.props.isMobile ? !this.props.isOpen : true) &&
+          (this.props.isChoosingCoords || this.props.isModifyingData) && (
+            <ReminderMessage>{`You are currently ${
+              this.props.isChoosingCoords
+                ? "choosing coordinates"
+                : this.props.isModifyingData
+                ? "modifying data"
+                : "not on any mode"
+            }`}</ReminderMessage>
+          )}
       </React.Fragment>
     );
   }

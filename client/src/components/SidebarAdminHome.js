@@ -8,7 +8,7 @@ import {
   GrayButton,
   AdminTextField,
   FilledButton,
-  CustomErrorMessage
+  CustomErrorMessage,
 } from "./GlobalSidebarComponents";
 import { useMediaQuery } from "react-responsive";
 import ContributionPopup from "./ContributionPopup";
@@ -16,6 +16,10 @@ import Check from "../assets/checkbox.svg";
 import AdminIcon from "../assets/adminIcon.svg";
 import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import api from "../services/admin-services";
+import contribApi from "../services/contrib-services";
+import { getUser } from "../services/auth-funcs";
+import dataFields from "../dataFields";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -153,10 +157,10 @@ const Checkbox = ({ className, checked, ...props }) => (
 
 // ================ END OF CHECKBOX STYLES ================
 
-  // max-height: ${(props) => (props.isActive ? "20rem" : "0")};
-  // transition: 0.5s max-height;
-  // height: ${(props) => (props.isActive ? "20rem" : "0")};
-  // transition: 0.5s height;
+// max-height: ${(props) => (props.isActive ? "20rem" : "0")};
+// transition: 0.5s max-height;
+// height: ${(props) => (props.isActive ? "20rem" : "0")};
+// transition: 0.5s height;
 const DropdownAdmin = styled.div`
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 `;
@@ -173,7 +177,7 @@ const ManageAdmins = styled.div`
   max-height: 60%;
   overflow-y: auto;
 `;
-  // visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
+// visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
 
 const Administrator = styled.div`
   display: flex;
@@ -248,18 +252,17 @@ const SubmitAdminButton = styled(FilledButton)`
 `;
 
 const validationSchema = Yup.object({
-  username: Yup.string()
-    .required("No username provided"),
+  username: Yup.string().required("No username provided"),
   password1: Yup.string()
     .required("No password provided")
     .min(8, "Password must have at least 8 characters")
     .max(128, "Password must have at most 128 characters"),
   password2: Yup.string().when("password1", {
-    is: val => val && val.length > 0,
+    is: (val) => val && val.length > 0,
     then: Yup.string()
       .oneOf([Yup.ref("password1")], "Your passwords do not match")
-      .required("Please retype your password")
-    }),
+      .required("Please retype your password"),
+  }),
 });
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
@@ -275,62 +278,79 @@ class SidebarAdminHome extends Component {
       showModal: "",
       isAdminShowing: false,
       checked: false,
-      data: [
-        {
-          id: 10000,
-          label: "Adjacent Coral Reef Total Seagrass Count",
-          toValue: "20.20 Mg C/ha",
-          checked: false,
-        },
-        {
-          id: 20000,
-          label: "Adjacent Residential Inorganic Carbon Percentage",
-          toValue: "11.30%",
-          checked: false,
-        },
-        {
-          id: 30000,
-          label: "Adjacent Residential",
-          fromValue: "Disturbed",
-          toValue: "Conserved",
-          checked: false,
-        },
-        {
-          id: 40000,
-          label: "Adjacent Residential",
-          fromValue: "Disturbed",
-          toValue: "Conserved",
-          checked: false,
-        },
-      ],
-      admins: [
-        {
-          id: 10000,
-          username: "JohnDoe51",
-          showingModify: false,
-        },
-        {
-          id: 12321,
-          username: "Anonymous",
-          showingModify: false,
-        },
-        {
-          id: 12121,
-          username: "Anonymous",
-          showingModify: false,
-        },
-        {
-          id: 12351,
-          username: "Anonymous",
-          showingModify: false,
-        },
-      ],
+      data: [],
+      admins: [],
     };
   }
 
-  componentDidMount() {
-    this.props.showLoginButton();
-  }
+  componentDidMount = async () => {
+    this.props.showLogoutButton("Log out");
+
+    await api.getAllAdmins().then((res) => {
+      const admins = res.data.data;
+      this.setState({
+        admins: admins.map((admin) => ({
+          ...admin,
+          showingModify: false,
+        })),
+      });
+    });
+
+    await contribApi.getContributionsByStatus("nostatus").then((res) => {
+      const contributions = res.data.data;
+      this.setState({
+        data: contributions.map((contrib) => ({
+          ...contrib,
+          checked: false,
+        })),
+      });
+    });
+  };
+
+  filterDataByYear = (code, year) =>
+    this.props.areas.filter(
+      (area) =>
+        area.properties.year == year  &&
+        area.properties.siteCode == code
+    );
+
+  /* 
+  Filter the initial data by the contribution's year and code, and check if the fields changed.
+  If they did, combine them into a single string
+   */
+  summarizeContrib = (contrib) => {
+    if (contrib && Object.keys(this.props.areas).length > 0) {
+      const year = new Date(contrib.date).getFullYear();
+      let filteredDataByYearAndCode = this.filterDataByYear(
+        contrib.site,
+        year
+      );
+      if (filteredDataByYearAndCode.length == 0) {
+        let toBeDisplayedFields = dataFields.filter(
+          (field) => contrib[field.value]
+        );
+        toBeDisplayedFields = toBeDisplayedFields.map(
+          (field) => `${field.label} - ${contrib[field.value]}`
+        );
+        return (
+          `Add ${year} ${contrib.site || "New Area"}: ` + toBeDisplayedFields.join("; ")
+        );
+      } else {
+        let toBeDisplayedFields = dataFields.filter(
+          (field) =>
+            contrib[field.value] &&
+            contrib[field.value] != filteredDataByYearAndCode[field.value]
+        );
+        toBeDisplayedFields = toBeDisplayedFields.map(
+          (field) =>
+            `${field.label} from ${filteredDataByYearAndCode[field.value] ||
+              "_"} to ${contrib[field.value]}`
+        );
+        return `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ");
+      }
+    }
+    return "";
+  };
 
   setActiveSection = (section) => {
     const currSection = this.state.activeSection == section ? "" : section;
@@ -373,6 +393,14 @@ class SidebarAdminHome extends Component {
     });
   };
 
+  handleModifyClick = () => {
+    this.props.toggleModifyingData();
+  }
+
+  updateData = (data) => {
+    this.setState({ data: data });
+  };
+
   render() {
     const noneChecked = Object.values(this.state.data).every(
       (value) => !value.checked
@@ -395,6 +423,8 @@ class SidebarAdminHome extends Component {
           isApprove={this.state.showModal == "approve"}
           closeModal={this.closeModal}
           data={checkedContribs}
+          updateData={this.updateData}
+          summarizeContrib={this.summarizeContrib}
         />
         <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
         <React.Fragment>
@@ -414,13 +444,10 @@ class SidebarAdminHome extends Component {
                 <Contribution key={value.id}>
                   <Checkbox
                     checked={value.checked}
+                    key={value.id}
                     onChange={(e) => this.handleCheckboxChange(e, key)}
                   />
-                  <span>
-                    Change {value.label}{" "}
-                    {value.fromValue && "from " + value.fromValue} to{" "}
-                    {value.toValue}
-                  </span>
+                  <span>{this.summarizeContrib(value)}</span>
                 </Contribution>
               ))}
               <br />
@@ -445,149 +472,172 @@ class SidebarAdminHome extends Component {
             </ButtonGroup>
           </Dropdown>
         </React.Fragment>
-        <DefaultTitle>Modify Data on Map</DefaultTitle>
-        <React.Fragment>
-          <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>
-            Manage Administrators
-          </DefaultTitle>
-          <DropdownAdmin isActive={this.state.activeSection == "manageAdmins"}>
-            <ManageAdmins isActive={this.state.activeSection == "manageAdmins"}>
-              {Object.entries(this.state.admins).map(([key, value]) => (
-                <React.Fragment>
-                  <Administrator key={value.id}>
-                    <img src={AdminIcon} alt="Admin Avatar" />
-                    <AdminUsername>{value.username}</AdminUsername>
-                    <ModifyText onClick={() => this.toggleModify(key)}>{value.showingModify ? "Cancel" : "Modify"}</ModifyText>
-                  </Administrator>
-                  {value.showingModify && (
-                    <ModifyAdmin
-                      isShowing={value.showingModify && this.state.activeSection == "manageAdmins"}
-                      key={"addAdmin" + key}
-                    >
-                      <span onClick={() => this.toggleModify(key)}>
-                        Modify {value.username}
-                      </span>
-                      <Formik
-                        initialValues={{
-                          username: value.username,
-                          password1: "",
-                          password2: "",
-                        }}
-                        onSubmit={(values, { setSubmitting }) => {
-                          setSubmitting(false);
-                        }}
-                        validationSchema={validationSchema}
-                      >
-                        {({ isSubmitting, errors, touched }) => (
-                          <Form>
-                            <AdminFields
-                              isActive={value.showingModify}
-                              isShowing={value.showingModify}
-                            >
-                              <TextField 
-                                name="username"
-                                placeholder="Username" 
-                              />
-                              <TextField
-                                name="password1"
-                                inputType="password"
-                                placeholder="Password"
-                                type="password"
-                              />
-                              <TextField
-                                name="password2"
-                                inputType="password"
-                                placeholder="Retype Password"
-                                type="password"
-                              />
-                              {errors.username && touched.username && (
-                                <AdminErrorMessage>
-                                  <span>Error: {errors.username}</span>
-                                </AdminErrorMessage>
-                              )}
-                              {errors.password1 && touched.password1 && (
-                                <AdminErrorMessage>
-                                  <span>Error: {errors.password1}</span>
-                                </AdminErrorMessage>
-                              )}
-                              {errors.password2 && touched.password2 && (
-                                <AdminErrorMessage>
-                                  <span>Error: {errors.password2}</span>
-                                </AdminErrorMessage>
-                              )}
-                              <SubmitAdminButton>Modify Admin</SubmitAdminButton>
-                            </AdminFields>
-                          </Form>
-                        )}
-                      </Formik>
-                    </ModifyAdmin>
-                  )}
-                </React.Fragment>
-              ))}
-            </ManageAdmins>
-            <Formik
-              initialValues={{
-                username: "",
-                password1: "",
-                password2: "",
-              }}
-              onSubmit={(values, { setSubmitting }) => {
-                setSubmitting(false);
-              }}
-              validationSchema={validationSchema}
+
+        <DefaultTitle onClick={this.handleModifyClick}>{`${this.props.isModifyingData ? "Stop Modifying" : "Modify"} Data on Map`}</DefaultTitle>
+
+        {getUser().isMaster && (
+          <React.Fragment>
+            <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>
+              Manage Administrators
+            </DefaultTitle>
+            <DropdownAdmin
+              isActive={this.state.activeSection == "manageAdmins"}
             >
-              {({ isSubmitting, values, errors, touched }) => (
-                <Form>
-                  <AddAdmin
-                    isActive={this.state.activeSection == "manageAdmins"}
-                    isShowing={this.state.isAdminShowing}
-                  >
-                    <span onClick={this.toggleAdmin}>
-                      {this.state.isAdminShowing ? "-" : "+"}&emsp;Add New Administrator
-                    </span>
-                    <AdminFields
+              <ManageAdmins
+                isActive={this.state.activeSection == "manageAdmins"}
+              >
+                {Object.entries(this.state.admins).map(([key, value]) => (
+                  <React.Fragment key={value._id}>
+                    <Administrator key={value._id}>
+                      <img src={AdminIcon} alt="Admin Avatar" />
+                      <AdminUsername>{value.username}</AdminUsername>
+                      <ModifyText onClick={() => this.toggleModify(key)}>
+                        {value.showingModify ? "Cancel" : "Modify"}
+                      </ModifyText>
+                    </Administrator>
+                    {value.showingModify && (
+                      <ModifyAdmin
+                        isShowing={
+                          value.showingModify &&
+                          this.state.activeSection == "manageAdmins"
+                        }
+                        key={"addAdmin" + key}
+                      >
+                        <span onClick={() => this.toggleModify(key)}>
+                          Modify {value.username}
+                        </span>
+                        <Formik
+                          initialValues={{
+                            username: value.username,
+                            password1: "",
+                            password2: "",
+                          }}
+                          onSubmit={async (values, { setSubmitting }) => {
+                            setSubmitting(false);
+                            const { username, password1 } = values;
+                            await api
+                              .updateAdmin(value.username, { username, password: password1 })
+                              .then((admin) => {
+                                window.location.reload();
+                              });
+                          }}
+                          validationSchema={validationSchema}
+                        >
+                          {({ isSubmitting, errors, touched }) => (
+                            <Form>
+                              <AdminFields
+                                isActive={value.showingModify}
+                                isShowing={value.showingModify}
+                              >
+                                <TextField
+                                  name="username"
+                                  placeholder="Username"
+                                />
+                                <TextField
+                                  name="password1"
+                                  inputType="password"
+                                  placeholder="Password"
+                                  type="password"
+                                />
+                                <TextField
+                                  name="password2"
+                                  inputType="password"
+                                  placeholder="Retype Password"
+                                  type="password"
+                                />
+                                {errors.username && touched.username && (
+                                  <AdminErrorMessage>
+                                    <span>Error: {errors.username}</span>
+                                  </AdminErrorMessage>
+                                )}
+                                {errors.password1 && touched.password1 && (
+                                  <AdminErrorMessage>
+                                    <span>Error: {errors.password1}</span>
+                                  </AdminErrorMessage>
+                                )}
+                                {errors.password2 && touched.password2 && (
+                                  <AdminErrorMessage>
+                                    <span>Error: {errors.password2}</span>
+                                  </AdminErrorMessage>
+                                )}
+                                <SubmitAdminButton>
+                                  Modify Admin
+                                </SubmitAdminButton>
+                              </AdminFields>
+                            </Form>
+                          )}
+                        </Formik>
+                      </ModifyAdmin>
+                    )}
+                  </React.Fragment>
+                ))}
+              </ManageAdmins>
+              <Formik
+                initialValues={{
+                  username: "",
+                  password1: "",
+                  password2: "",
+                }}
+                onSubmit={async (values, { setSubmitting }) => {
+                  setSubmitting(false);
+                  const { username, password1 } = values;
+                  await api.createAdmin({username, password: password1}).then((admin) => {
+                    window.location.reload();
+                  });
+                }}
+                validationSchema={validationSchema}
+              >
+                {({ isSubmitting, values, errors, touched }) => (
+                  <Form>
+                    <AddAdmin
                       isActive={this.state.activeSection == "manageAdmins"}
                       isShowing={this.state.isAdminShowing}
                     >
-                      <TextField 
-                        placeholder="Username" 
-                        name="username"
-                      />
-                      <TextField
-                        inputType="password"
-                        placeholder="Password"
-                        type="password"
-                        name="password1"
-                      />
-                      <TextField
-                        inputType="password"
-                        placeholder="Retype Password"
-                        type="password"
-                        name="password2"
-                      />
-                      {errors.username && touched.username && (
-                        <AdminErrorMessage>
-                          <span>Error: {errors.username}</span>
-                        </AdminErrorMessage>
-                      )}
-                      {errors.password1 && touched.password1 && (
-                        <AdminErrorMessage>
-                          <span>Error: {errors.password1}</span>
-                        </AdminErrorMessage>
-                      )}
-                      {errors.password2 && touched.password2 && (
-                        <AdminErrorMessage>
-                          <span>Error: {errors.password2}</span>
-                        </AdminErrorMessage>
-                      )}
-                      <SubmitAdminButton>Add Admin</SubmitAdminButton>
-                    </AdminFields>
-                  </AddAdmin>
-                </Form>
-              )}
-            </Formik>
-          </DropdownAdmin>
-        </React.Fragment>
+                      <span onClick={this.toggleAdmin}>
+                        {this.state.isAdminShowing ? "-" : "+"}&emsp;Add New
+                        Administrator
+                      </span>
+                      <AdminFields
+                        isActive={this.state.activeSection == "manageAdmins"}
+                        isShowing={this.state.isAdminShowing}
+                      >
+                        <TextField placeholder="Username" name="username" />
+                        <TextField
+                          inputType="password"
+                          placeholder="Password"
+                          type="password"
+                          name="password1"
+                        />
+                        <TextField
+                          inputType="password"
+                          placeholder="Retype Password"
+                          type="password"
+                          name="password2"
+                        />
+                        {errors.username && touched.username && (
+                          <AdminErrorMessage>
+                            <span>Error: {errors.username}</span>
+                          </AdminErrorMessage>
+                        )}
+                        {errors.password1 && touched.password1 && (
+                          <AdminErrorMessage>
+                            <span>Error: {errors.password1}</span>
+                          </AdminErrorMessage>
+                        )}
+                        {errors.password2 && touched.password2 && (
+                          <AdminErrorMessage>
+                            <span>Error: {errors.password2}</span>
+                          </AdminErrorMessage>
+                        )}
+                        <SubmitAdminButton>Add Admin</SubmitAdminButton>
+                      </AdminFields>
+                    </AddAdmin>
+                  </Form>
+                )}
+              </Formik>
+            </DropdownAdmin>
+          </React.Fragment>
+        )}
       </React.Fragment>
     );
   }

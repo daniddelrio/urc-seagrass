@@ -85,7 +85,7 @@ Contribution.post('save', function(doc, next) {
             })
         }
         else if(coordinates) {
-            const newSiteName = `${contribution.contributor !== undefined ? "Anonymous" : contribution.contributor} ${contribution.date} ${contribution.coordinates[0]}`
+            const newSiteName = `${!contribution.contributor ? "Anonymous" : contribution.contributor} ${contribution.date} ${contribution.coordinates[0]}`
             const siteCoordBody = {
                 type: "Feature",
                 properties: {

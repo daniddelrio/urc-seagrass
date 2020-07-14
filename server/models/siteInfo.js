@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 const Modification = require('./modification')
 const dataFields = require('../dataFields')
 
-const dataFieldsWithSchema = dataFields.reduce((obj, item) => (obj[item.value] = { type: Number }, obj), {})
+const dataFieldsWithSchema = dataFields.reduce((obj, item) => ({...obj, ...{[item.value]: {type: Number}}}), {})
 
 const SiteData = new Schema({
     siteCode: { type: String, required: true },

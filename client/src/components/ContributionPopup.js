@@ -1,8 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 import { ParentButton } from "./GlobalSidebarComponents";
+import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from 'react-bootstrap/Modal';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import api from "../services/contrib-services";
 
 const BaseFrame = styled(Modal)`
   font-family: Open Sans;
@@ -56,6 +57,19 @@ const DenyButton = styled(ParentButton)`
   color: #e38787;
 `;
 
+const handleClick = async (props) => {
+  const updatedData = await Object.values(props.data).map(contrib => {
+    api.updateContribution(contrib._id, {
+      ...contrib,
+      isApproved: props.isApprove,
+    });
+  });
+
+  if(updatedData) {
+    window.location.reload();
+  }
+};
+
 const ContributionPopup = (props) => (
   <BaseFrame show={props.show} onHide={props.closeModal} className="special-modal-content">
     <Header isApprove={props.isApprove} closeButton>{`Are you sure to ${
@@ -65,17 +79,16 @@ const ContributionPopup = (props) => (
       <Contributions>
         {Object.entries(props.data).map(([key, value]) => (
           <li>
-            Change {value.label} {value.fromValue && "from " + value.fromValue} to{" "}
-            {value.toValue}
+            {props.summarizeContrib(value)}
           </li>
         ))}
       </Contributions>
     </Modal.Body>
     <ButtonGroup>
       {props.isApprove ? (
-        <ApproveButton onClick={props.closeModal}>Approve</ApproveButton>
+        <ApproveButton onClick={() => {handleClick(props)}}>Approve</ApproveButton>
       ) : (
-        <DenyButton onClick={props.closeModal}>Deny</DenyButton>
+        <DenyButton onClick={() => {handleClick(props)}}>Deny</DenyButton>
       )}
     </ButtonGroup>
   </BaseFrame>

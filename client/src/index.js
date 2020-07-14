@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import { api } from "./services"
+import { isLoggedIn, getUser } from "./services/auth-funcs"
+
+if(isLoggedIn()) {
+	api.defaults.headers.common["Authorization"] = "JWT " + `${getUser().token}`;
+}
 
 ReactDOM.render(
   <React.StrictMode>

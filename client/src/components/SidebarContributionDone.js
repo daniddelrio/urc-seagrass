@@ -20,7 +20,12 @@ const NewContribButton = styled(ParentButton)`
   margin-bottom: 1rem;
 `;
 
-const SidebarContributionDone = (props) => (
+const handleClick = (props) => {
+  props.setActiveSidebar("home");
+  props.setContribHome("");
+};
+
+const SidebarContributionDone = React.memo((props) => (
   <React.Fragment>
     <SidebarSubheader>
       Thanks for contributing to the database! Our administrators will review
@@ -31,11 +36,11 @@ const SidebarContributionDone = (props) => (
     </NewContribButton>
     <EmptyButton
       style={{ width: "100%" }}
-      onClick={() => props.setActiveSidebar("home")}
+      onClick={() => props.handleLogout(true)}
     >
       Log Out
     </EmptyButton>
   </React.Fragment>
-);
+));
 
 export default SidebarContributionDone;

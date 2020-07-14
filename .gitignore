@@ -3,7 +3,6 @@
 
 ### react ###
 client/**/.DS_*
-client/.DS_*
 client/*.log
 client/logs
 client/**/*.backup.*
@@ -18,10 +17,10 @@ client/psd
 client/thumb
 client/sketch
 
-.env
+*/.env
+*/.DS_*
 
 ### nodejs ###
 server/node_modules
-server/.DS_*
 
 # End of https://www.gitignore.io/api/react

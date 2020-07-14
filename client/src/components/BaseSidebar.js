@@ -8,7 +8,12 @@ import SidebarContributionDone from "./SidebarContributionDone";
 import PayPal from "../assets/paypal.svg";
 import { PAYPAL_WIDTH } from "./GlobalDeviceWidths";
 import MediaQuery from "react-responsive";
-import { SidebarSubheader, ParentButton, EmptyButton } from "./GlobalSidebarComponents";
+import {
+  SidebarSubheader,
+  ParentButton,
+  EmptyButton,
+} from "./GlobalSidebarComponents";
+import { logout, isLoggedIn } from "../services/auth-funcs";
 
 const ParentDiv = styled.div`
   display: flex;
@@ -22,7 +27,7 @@ const ParentDiv = styled.div`
   padding: ${({ isOpen }) => (isOpen ? "2rem" : "0")};
   padding-bottom: ${({ isOpen }) => (isOpen ? "1rem" : "0")};
   overflow: auto;
-  float: ${({ isMobile }) => isMobile ? "right" : null};
+  float: ${({ isMobile }) => (isMobile ? "right" : null)};
 
   .sidebar-content {
     opacity: ${({ isOpen }) => (isOpen ? "100%" : "0%")};
@@ -66,8 +71,11 @@ class BaseSidebar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isLogoutPresent: false, 
-      activeSidebar: "home",
+      isLogoutPresent: false,
+      // activeSidebar: "contribDone",
+      activeSidebar: isLoggedIn() ? "adminHome" : "home",
+      contribName: "",
+      logoutButtonText: "",
     };
   }
 
@@ -79,13 +87,27 @@ class BaseSidebar extends Component {
     window.removeEventListener("resize", null);
   }
 
-  showLogoutButton = () => {
-    this.setState({isLogoutPresent: true});
+  showLogoutButton = (text) => {
+    this.setState({ isLogoutPresent: true, logoutButtonText: text });
   };
 
   setActiveSidebar = (key) => {
     this.setState({ activeSidebar: key });
-  }
+  };
+
+  setContribName = (name) => {
+    this.setState({ contribName: name });
+  };
+
+  handleLogout = (isContributor) => {
+    if (isContributor) {
+      this.setContribName("");
+    } else {
+      logout();
+    }
+    this.setActiveSidebar("home");
+    this.setState({ isLogoutPresent: false });
+  };
 
   renderContent() {
     switch (this.state.activeSidebar) {
@@ -93,23 +115,53 @@ class BaseSidebar extends Component {
         return <SidebarHome setActiveSidebar={this.setActiveSidebar} />;
       case "adminLogin":
         return (
-          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} />
+          <SidebarAdminLogin
+            setActiveSidebar={this.setActiveSidebar}
+            showLogoutButton={this.showLogoutButton}
+          />
         );
       case "adminHome":
         return (
-          <SidebarAdminHome setActiveSidebar={this.setActiveSidebar} showLoginButton={this.showLogoutButton}/>
+          <SidebarAdminHome
+            areas={this.props.areas}
+            isMobile={this.props.isMobile}
+            setActiveSidebar={this.setActiveSidebar}
+            showLogoutButton={this.showLogoutButton}
+            toggleModifyingData={this.props.toggleModifyingData}
+            isModifyingData={this.props.isModifyingData}
+          />
         );
       case "contribLogin":
         return (
-          <SidebarAdminLogin setActiveSidebar={this.setActiveSidebar} contributor />
+          <SidebarAdminLogin
+            showLogoutButton={this.showLogoutButton}
+            setActiveSidebar={this.setActiveSidebar}
+            setContribName={this.setContribName}
+            contributor
+          />
         );
       case "contribHome":
         return (
-          <SidebarContribution setActiveSidebar={this.setActiveSidebar} />
+          <SidebarContribution
+            showLogoutButton={this.showLogoutButton}
+            setActiveSidebar={this.setActiveSidebar}
+            contribName={this.state.contribName}
+            toggleSidebar={this.props.toggleSidebar}
+            isMobile={this.props.isMobile}
+            toggleChoosingSidebar={this.props.toggleChoosingSidebar}
+            isChoosingCoords={this.state.isChoosingCoords}
+            setLatLng={this.props.setLatLng}
+            latLng={this.props.latLng}
+          />
         );
       case "contribDone":
         return (
-          <SidebarContributionDone setActiveSidebar={this.setActiveSidebar} />
+          <SidebarContributionDone
+            setActiveSidebar={this.setActiveSidebar}
+            contribName={this.state.contribName}
+            setContribName={this.setContribName}
+            handleLogout={this.handleLogout}
+          />
         );
     }
   }
@@ -121,13 +173,26 @@ class BaseSidebar extends Component {
           <SidebarTitle>URC Seagrass & Carbon Stocks Database</SidebarTitle>
           {this.renderContent()}
         </SidebarContent>
-        <BottomDiv className="sidebar-content" isSmall={window.innerWidth <= PAYPAL_WIDTH}>
+        <BottomDiv
+          className="sidebar-content"
+          isSmall={window.innerWidth <= PAYPAL_WIDTH}
+        >
           {/*<MediaQuery minDeviceWidth={PAYPAL_WIDTH}>
             <PayPalText>Want to help the initiative?</PayPalText>
           </MediaQuery>*/}
-          {this.state.isLogoutPresent && <EmptyButton noFlex>
-            Log out
-          </EmptyButton>}
+          {this.state.isLogoutPresent && (
+            <EmptyButton
+              onClick={() =>
+                this.handleLogout(
+                  this.props.activeSidebar == "contribHome" ||
+                    this.props.activeSidebar == "contribDone"
+                )
+              }
+              noFlex
+            >
+              {this.state.logoutButtonText}
+            </EmptyButton>
+          )}
           <PayPalButton>
             Support us via &nbsp;
             <img src={PayPal} alt="Paypal Logo" />

@@ -4,10 +4,12 @@ import {
   SidebarSubheader,
   FilledButton,
   AdminTextField,
-  CustomErrorMessage
+  CustomErrorMessage,
 } from "./GlobalSidebarComponents";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import api from "../services/admin-services";
+import { handleLogin } from "../services/auth-funcs";
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -24,6 +26,17 @@ const validationSchemaContrib = Yup.object({
 });
 
 class SidebarAdminLogin extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loginError: false,
+    };
+  }
+
+  componentDidMount() {
+    this.props.showLogoutButton("Back to home");
+  }
+
   render() {
     return (
       <React.Fragment>
@@ -36,11 +49,26 @@ class SidebarAdminLogin extends Component {
             username: "",
             password: "",
           }}
-          onSubmit={(values, { setSubmitting }) => {
+          onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
-            this.props.setActiveSidebar(
-              this.props.contributor ? "contribHome" : "adminHome"
-            );
+
+            if(!this.props.contributor) {
+              const loginResult = await handleLogin(
+                values.username,
+                values.password
+              );
+              if (loginResult) {
+                this.props.setActiveSidebar("adminHome");
+              } else {
+                this.setState({
+                  loginError: true,
+                });
+              }
+            }
+            else {
+              this.props.setContribName(values.username);
+              this.props.setActiveSidebar("contribHome");
+            }
           }}
           validationSchema={
             this.props.contributor
@@ -51,6 +79,11 @@ class SidebarAdminLogin extends Component {
           {({ isSubmitting, errors, touched }) => (
             <Form>
               <ButtonGroup>
+                {this.state.loginError && (
+                  <CustomErrorMessage>
+                    <span>Error: Your username and/or password were incorrect. </span>
+                  </CustomErrorMessage>
+                )}
                 <AdminTextField
                   placeholder={
                     this.props.contributor ? "Display Name" : "Username"
