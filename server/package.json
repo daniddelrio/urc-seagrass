@@ -37,5 +37,7 @@
     "nodemon": "^2.0.4",
     "shx": "^0.3.2"
   },
-  "proxy": "http://localhost:8000"
+  "engines": {
+    "node": "v10.13.0"
+  }
 }
