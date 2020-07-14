@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node --exec babel-node index.js",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "clean": "rm -rf build && mkdir build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel index.js --out-file index-compiled.js"
+    "build-babel": "babel -d ./build ./src -s --copy-files",
+    "build": "npm run clean && npm run build-babel",
+    "start": "npm run build && node ./build/index.js"
   },
   "keywords": [],
   "author": "",
