@@ -1,7 +1,7 @@
-const createError = require('http-errors');
+const cors = require('cors');
+// const createError = require('http-errors');
 const express = require("express");
 const bodyParser = require("body-parser");
-const cors = require('cors');
 const passport = require('passport');
 // const session = require("express-session");
 // const MongoStore = require("connect-mongo")(session);
@@ -10,11 +10,20 @@ const MongoStore = require("connect-mongo");
 const { dbUrl, port, jwtSecret } = require('./config');
 
 var app = express();
+// app.options('*', cors())
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+const corsOptions ={origin:'*'}
+app.use(cors(corsOptions));
 
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 const db = require('./db')
 
 require('./passport')(passport);
+// app.use(cors({origin: '*'}));
 app.use(passport.initialize());
 
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
@@ -27,7 +36,6 @@ app.use(express.urlencoded({extended: true})); // to support URL-encoded bodies
 var distDir = __dirname + "/dist/";
 app.use(express.static(distDir));
 
-app.use(cors({origin: '*'}));
 db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
 // Pass the global passport object into the configuration function
