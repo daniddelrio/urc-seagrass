@@ -1,3 +1,6 @@
+var babel = require("@babel/core");
+require("regenerator-runtime/runtime");
+
 const cors = require('cors');
 // const createError = require('http-errors');
 const express = require("express");
