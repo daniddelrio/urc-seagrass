@@ -9,7 +9,6 @@
     "start": "npm run build && node ./build/index.js",
     "build": "npm run babel-build",
     "babel-build": "babel -d ./build ./src -s",
-    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "keywords": [],
   "author": "",
