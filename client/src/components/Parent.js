@@ -98,6 +98,10 @@ class Parent extends Component {
     this.setState({ isModifyingData: !this.state.isModifyingData });
   };
 
+  turnOffModifyingData = (flag) => {
+    this.setState({ isModifyingData: flag });
+  };
+
   render() {
     return (
       <AppDiv className="App" isMobile={this.state.isMobile}>
@@ -125,6 +129,7 @@ class Parent extends Component {
           isModifyingData={this.state.isModifyingData}
           setLatLng={this.setLatLng}
           latLng={this.state.latLng}
+          turnOffModifyingData={this.turnOffModifyingData}
         />
       </AppDiv>
     );
