@@ -62,12 +62,6 @@ const handleClick = async (props) => {
     api.updateContribution(contrib._id, {
       ...contrib,
       isApproved: props.isApprove,
-    }).then(res => {
-      console.log("RESPONSE")
-      console.log(res)
-    }).catch(err => {
-      console.log("ERROR")
-      console.log(err);
     });
   });
 
