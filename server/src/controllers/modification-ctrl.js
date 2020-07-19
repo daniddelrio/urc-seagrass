@@ -1,6 +1,6 @@
 const Modification = require('../models/modification');
 
-getModificationsBySite = async (req, res) => {
+const getModificationsBySite = async (req, res) => {
     await Modification.findOne({ siteCode: req.params.siteCode, year: req.params.year }, (err, modifications) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -15,7 +15,7 @@ getModificationsBySite = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-getModifications = async (req, res) => {
+const getModifications = async (req, res) => {
     await Modification.find({}, (err, modification) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
