@@ -6,8 +6,11 @@ import {
   AdminTextField,
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
+import dataFields from "../dataFields";
 
-const selectOptions = [
+const paramOptions = [{ value: "all", label: "All Parameters" }].concat(dataFields);
+
+const yearOptions = [
   { value: "2020", label: "2020" },
   { value: "2019", label: "2019" },
   { value: "2018", label: "2018" },
@@ -31,13 +34,10 @@ const customStyles = {
       background: "rgba(92, 92, 92, 0.15)",
     },
   }),
-  control: (styles, state) => ({
+  control: (styles, { selectProps }) => ({
     ...styles,
-    position: "absolute",
-    top: "1.2rem",
-    left: "3.3rem",
-    zIndex: "10",
-    width: "75px",
+    marginLeft: "0.5rem",
+    width: selectProps.name == "mapField" ? "125px" : "75px",
     background: "rgba(92, 92, 92, 0.15)",
     border: "none",
     borderRadius: "14.5px",
@@ -67,17 +67,20 @@ const customStyles = {
   }),
 };
 
-const YearDropdown = React.memo((props) => (
+const handleChange = (e, props) => {
+  if(props.isYear) props.setYear(e.value);
+  else props.setParameter(e.value);
+};
+
+const SelectDropdown = React.memo((props) => (
   <Select
-    name="mapYear"
+    name={props.isYear ? "mapYear" : "mapField"}
     styles={customStyles}
-    options={selectOptions}
-    defaultValue={{ label: "2020", value: "2020" }}
-    onChange={(e) => {
-      props.setYear(e.value); 
-    }}
+    options={props.isYear ? yearOptions : paramOptions}
+    defaultValue={props.isYear ? { label: "2020", value: "2020" } : { label: "All Parameters", value: "all"}}
+    onChange={(e) => { handleChange(e, props) }}
     menuPortalTarget={document.body}
   />
 ));
 
-export default YearDropdown;
+export default SelectDropdown;

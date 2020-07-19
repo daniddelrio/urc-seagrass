@@ -426,7 +426,7 @@ class SidebarAdminHome extends Component {
           updateData={this.updateData}
           summarizeContrib={this.summarizeContrib}
         />
-        <SidebarSubheader>Welcome, admin_123!</SidebarSubheader>
+        <SidebarSubheader>Welcome, {getUser().username}!</SidebarSubheader>
         <React.Fragment>
           <ReviewContributionsTitle
             onClick={() => this.setActiveSection("contributions")}

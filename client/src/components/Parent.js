@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
+import dataFields from "../dataFields";
 
 const AppDiv = styled.div`
   display: flex;
@@ -19,8 +20,10 @@ class Parent extends Component {
       isChoosingCoords: false,
       isModifyingData: false,
       year: "2020",
+      parameter: "all",
       latLng: null,
       areas: {},
+      minMaxOfParams: {},
     };
   }
 
@@ -32,9 +35,24 @@ class Parent extends Component {
       const newCoords = this.changeSiteKey(coords.data.coords);
       dataApi.getAllData().then((res) => {
         const finalData = this.processSiteData(newCoords, res.data.data);
+        const areaProps = finalData.map(coord => coord.properties);
+        const minMaxOfParams = dataFields.reduce(
+          (obj, item) => ({
+            ...obj,
+            ...{
+              [item.value]: {
+                min: Math.min(...areaProps.filter(coord => coord[item.value]).map(coord => coord[item.value])),
+                max: Math.max(...areaProps.filter(coord => coord[item.value]).map(coord => coord[item.value])),
+              },
+            },
+          }),
+          {}
+        );
+
         this.setState({
           areas: finalData,
           isLoading: false,
+          minMaxOfParams: minMaxOfParams,
         });
       });
     });
@@ -76,6 +94,10 @@ class Parent extends Component {
     this.setState({year: year});
   }
 
+  setParameter = (param) => {
+    this.setState({parameter: param});
+  }
+
   setSidebarOpen = () => {
     if(window.innerWidth >= MAX_WIDTH) {
       this.setState({ isSidebarOpen: true });
@@ -98,6 +120,10 @@ class Parent extends Component {
     this.setState({ isModifyingData: !this.state.isModifyingData });
   };
 
+  turnOffModifyingData = (flag) => {
+    this.setState({ isModifyingData: flag });
+  };
+
   render() {
     return (
       <AppDiv className="App" isMobile={this.state.isMobile}>
@@ -111,8 +137,11 @@ class Parent extends Component {
           toggleSidebar={this.toggleSidebar}
           year={this.state.year}
           setYear={this.setYear}
+          parameter={this.state.parameter}
+          setParameter={this.setParameter}
           areas={this.state.areas}
           setLatLng={this.setLatLng}
+          minMaxOfParams={this.state.minMaxOfParams}
         />
         <BaseSidebar 
           isOpen={this.state.isSidebarOpen} 
@@ -125,6 +154,7 @@ class Parent extends Component {
           isModifyingData={this.state.isModifyingData}
           setLatLng={this.setLatLng}
           latLng={this.state.latLng}
+          turnOffModifyingData={this.turnOffModifyingData}
         />
       </AppDiv>
     );
