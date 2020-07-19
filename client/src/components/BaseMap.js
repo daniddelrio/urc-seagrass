@@ -3,12 +3,12 @@ import { Map, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import styled from "styled-components";
 import sites from "../data/sites.json";
 import BasePopup from "./BasePopup";
-import YearDropdown from "./YearDropdown";
+import SelectDropdown from "./SelectDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import L from 'leaflet';
+import L from "leaflet";
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -49,6 +49,14 @@ const ReminderMessage = styled.div`
   color: #bb5f0a;
 `;
 
+const FlexDiv = styled.div`
+  display: flex;
+  position: absolute;
+  top: 1.2rem;
+  left: 3.3rem;
+  z-index: 10;
+`;
+
 let numMapClicks = 0;
 
 class BaseMap extends Component {
@@ -67,7 +75,9 @@ class BaseMap extends Component {
         key: numMapClicks++,
         position: e.latlng,
         properties: e.target.feature.properties,
-        ...e.target.feature.geometry.type == "Point" && {coordinates: e.target.feature.geometry.coordinates}
+        ...(e.target.feature.geometry.type == "Point" && {
+          coordinates: e.target.feature.geometry.coordinates,
+        }),
       },
     });
   };
@@ -115,20 +125,43 @@ class BaseMap extends Component {
     if (this.props.isMobile) this.props.toggleSidebar();
   };
 
+  getColor = (d) => {
+    // console.log(this.props.minMaxOfParams[])
+    if(this.props.parameter != "all") {
+      const { min, max } = this.props.minMaxOfParams[this.props.parameter];
+
+      const DIVISIONS = 3;
+      const INTERVAL = Math.ceil((max - min) / DIVISIONS);
+
+      return d > max - INTERVAL
+        ? "#C5F9D0"
+        : d > max - INTERVAL*2
+        ? "#FFDCBC"
+        : d > max - INTERVAL*3
+        ? "#FFC4C4"
+        : "#dedede";
+    }
+
+    return "#C5F9D0";
+  };
+
   render() {
-    const style = {
-      fillColor: "#C5F9D0",
+    const style = (feature) => ({
+      fillColor: this.getColor(feature.properties[this.props.parameter]),
       weight: 2,
       opacity: 1,
-      color: "#C5F9D0",
-      fillOpacity: 0.7,
-    };
+      color: this.getColor(feature.properties[this.props.parameter]),
+      fillOpacity: 0.8,
+    });
 
     const { popup } = this.state;
 
     return (
       <React.Fragment>
-        <YearDropdown setYear={this.props.setYear} />
+        <FlexDiv>
+          <SelectDropdown isYear setYear={this.props.setYear} />
+          <SelectDropdown setParameter={this.props.setParameter} />
+        </FlexDiv>
         <LeafletMap
           center={[15.52, 119.93]}
           zoom={13}
@@ -156,7 +189,14 @@ class BaseMap extends Component {
           )}
           {popup.position && (
             <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup isModifyingData={this.props.isModifyingData} properties={{...popup.properties, coordinates: popup.coordinates}} />
+              <BasePopup
+                isModifyingData={this.props.isModifyingData}
+                parameter={this.props.parameter}
+                properties={{
+                  ...popup.properties,
+                  coordinates: popup.coordinates,
+                }}
+              />
             </Popup>
           )}
         </LeafletMap>

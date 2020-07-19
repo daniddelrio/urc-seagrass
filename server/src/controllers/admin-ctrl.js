@@ -28,7 +28,7 @@ const signIn = (req, res) => {
 
                         // res.cookie('jwt',token);
                         // return the information including token as JSON
-                        res.json({ success: true, token: token, expiresIn: expires, isMaster: admin.isMaster });
+                        res.json({ success: true, token: token, expiresIn: expires, isMaster: admin.isMaster, username: admin.username });
                     } else {
                         res.status(401).send({
                             success: false,

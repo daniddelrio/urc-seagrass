@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { ParentButton } from "./GlobalSidebarComponents";
 import "bootstrap/dist/css/bootstrap.min.css";
-import Modal from 'react-bootstrap/Modal';
+import Modal from "react-bootstrap/Modal";
 import api from "../services/contrib-services";
 
 const BaseFrame = styled(Modal)`
@@ -13,7 +13,7 @@ const BaseFrame = styled(Modal)`
 
   &.special-modal-content .modal-content {
     width: 100%;
-    background: #5A5A5A;
+    background: #5a5a5a;
     padding: 1.5rem;
   }
 `;
@@ -24,14 +24,14 @@ const Header = styled(Modal.Header)`
   border-bottom: none;
 
   .close {
-    color: #8E8E8E;
+    color: #8e8e8e;
   }
 `;
 
 const Contributions = styled.ul`
   overflow-y: hidden;
   font-size: 0.8em;
-  color: #BABABA;
+  color: #bababa;
 `;
 
 const ButtonGroup = styled.div`
@@ -58,37 +58,56 @@ const DenyButton = styled(ParentButton)`
 `;
 
 const handleClick = async (props) => {
-  const updatedData = await Object.values(props.data).map(contrib => {
-    api.updateContribution(contrib._id, {
-      ...contrib,
-      isApproved: props.isApprove,
+  const updatedData = await Promise.all(
+    Object.values(props.data).map((contrib) => {
+      api.updateContribution(contrib._id, {
+        ...contrib,
+        isApproved: props.isApprove,
+      });
+    })
+  )
+    .then((data) => {
+      window.location.reload();
+    })
+    .catch((err) => {
+      console.log("An error has just occured!");
+      console.log(err);
     });
-  });
-
-  if(updatedData) {
-    // window.location.reload();
-  }
 };
 
 const ContributionPopup = (props) => (
-  <BaseFrame show={props.show} onHide={props.closeModal} className="special-modal-content">
+  <BaseFrame
+    show={props.show}
+    onHide={props.closeModal}
+    className="special-modal-content"
+  >
     <Header isApprove={props.isApprove} closeButton>{`Are you sure to ${
       props.isApprove ? "approve" : "deny"
     }...`}</Header>
     <Modal.Body>
       <Contributions>
         {Object.entries(props.data).map(([key, value]) => (
-          <li>
-            {props.summarizeContrib(value)}
-          </li>
+          <li>{props.summarizeContrib(value)}</li>
         ))}
       </Contributions>
     </Modal.Body>
     <ButtonGroup>
       {props.isApprove ? (
-        <ApproveButton onClick={() => {handleClick(props)}}>Approve</ApproveButton>
+        <ApproveButton
+          onClick={() => {
+            handleClick(props);
+          }}
+        >
+          Approve
+        </ApproveButton>
       ) : (
-        <DenyButton onClick={() => {handleClick(props)}}>Deny</DenyButton>
+        <DenyButton
+          onClick={() => {
+            handleClick(props);
+          }}
+        >
+          Deny
+        </DenyButton>
       )}
     </ButtonGroup>
   </BaseFrame>

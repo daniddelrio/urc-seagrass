@@ -105,6 +105,9 @@ class BaseSidebar extends Component {
     } else {
       logout();
     }
+    this.props.turnOffModifyingData(false);
+    this.props.toggleChoosingSidebar(false);
+    this.props.setLatLng(null);
     this.setActiveSidebar("home");
     this.setState({ isLogoutPresent: false });
   };
