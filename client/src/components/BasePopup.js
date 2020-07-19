@@ -108,7 +108,9 @@ const validationSchema = Yup.object().shape({
     (obj, item) => ({
       ...obj,
       ...{
-        [item.value]: Yup.number().typeError(`${item.label} must be a number`).min(0),
+        [item.value]: Yup.number()
+          .typeError(`${item.label} must be a number`)
+          .min(0),
       },
     }),
     {}
@@ -125,14 +127,20 @@ class BasePopup extends Component {
 
   render() {
     const { properties, isModifyingData } = this.props;
-    console.log(properties)
 
     return (
       <React.Fragment>
         <PopupImage />
         <AreaInfo>
           <AreaHeader>
-            <AreaName>{properties.areaName || properties.coordinates.reverse().map(coord => coord.toFixed(4)).join(", ")} | {properties.year}</AreaName>
+            <AreaName>
+              {properties.areaName ||
+                properties.coordinates
+                  .reverse()
+                  .map((coord) => coord.toFixed(4))
+                  .join(", ")}{" "}
+              | {properties.year}
+            </AreaName>
             {properties.status && (
               <StatusBox status={properties.status}>
                 {properties.status}
@@ -157,10 +165,7 @@ class BasePopup extends Component {
                 Object.keys(obj)
                   .filter((key) => predicate(obj[key]))
                   .reduce((res, key) => ((res[key] = obj[key]), res), {});
-              const filteredValues = Object.filter(
-                values,
-                (field) => !!field
-              );
+              const filteredValues = Object.filter(values, (field) => !!field);
 
               await api
                 .updateData(properties._id, {
@@ -179,46 +184,56 @@ class BasePopup extends Component {
             {({ isSubmitting, errors, touched }) => (
               <Form>
                 <FieldsDiv>
-                {this.state.error && (
-                  <DataErrorMessage>
-                    <span>Error: {this.state.error}</span>
-                  </DataErrorMessage>
-                )}
-                {Object.keys(errors).map(
-                  (key) =>
-                    errors[key] &&
-                    touched[key] && (
-                      <DataErrorMessage>
-                        <span>Error: {errors[key]}</span>
-                      </DataErrorMessage>
-                    )
-                )}
-                {dataFields.map((field) =>
-                  isModifyingData ? (
-                    <React.Fragment>
-                      <InfoStat>
-                        {field.label}: <ModifyField 
-                          name={field.value}
-                          defaultValue={properties[field.value]}
-                        /> {field.unit}
-                      </InfoStat>
-                      <br />
-                    </React.Fragment>
-                  ) : (
-                    properties[field.value] && (
+                  {this.state.error && (
+                    <DataErrorMessage>
+                      <span>Error: {this.state.error}</span>
+                    </DataErrorMessage>
+                  )}
+                  {Object.keys(errors).map(
+                    (key) =>
+                      errors[key] &&
+                      touched[key] && (
+                        <DataErrorMessage>
+                          <span>Error: {errors[key]}</span>
+                        </DataErrorMessage>
+                      )
+                  )}
+                  {dataFields.map((field) =>
+                    isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>
-                          {field.label}:{" "}
-                          <strong>{`${properties[field.value]} ${
-                            field.unit
-                          }`}</strong>
+                          {this.props.parameter === field.value ? (
+                            <strong>{field.label}:</strong>
+                          ) : (
+                            field.label + ":"
+                          )}{" "}
+                          <ModifyField
+                            name={field.value}
+                            defaultValue={properties[field.value]}
+                          />{" "}
+                          {field.unit}
                         </InfoStat>
                         <br />
                       </React.Fragment>
+                    ) : (
+                      properties[field.value] && (
+                        <React.Fragment>
+                          <InfoStat>
+                            {this.props.parameter === field.value ? (
+                              <strong>{field.label}:</strong>
+                            ) : (
+                              field.label + ":"
+                            )}{" "}
+                            <strong>{`${properties[field.value]} ${
+                              field.unit
+                            }`}</strong>
+                          </InfoStat>
+                          <br />
+                        </React.Fragment>
+                      )
                     )
-                  )
-                )}
-              </FieldsDiv>
+                  )}
+                </FieldsDiv>
                 <ModifyButton type="submit" disabled={!isModifyingData}>
                   Modify Data
                 </ModifyButton>
