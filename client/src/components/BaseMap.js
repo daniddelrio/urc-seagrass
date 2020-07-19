@@ -151,7 +151,7 @@ class BaseMap extends Component {
       weight: 2,
       opacity: 1,
       color: this.getColor(feature.properties[this.props.parameter]),
-      fillOpacity: 1,
+      fillOpacity: 0.8,
     });
 
     const { popup } = this.state;

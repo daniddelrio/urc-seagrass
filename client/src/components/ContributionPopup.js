@@ -65,9 +65,14 @@ const handleClick = async (props) => {
         isApproved: props.isApprove,
       });
     })
-  ).then((data) => {
-    window.location.reload();
-  });
+  )
+    .then((data) => {
+      window.location.reload();
+    })
+    .catch((err) => {
+      console.log("An error has just occured!");
+      console.log(err);
+    });
 };
 
 const ContributionPopup = (props) => (
