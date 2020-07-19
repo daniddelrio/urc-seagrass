@@ -131,13 +131,13 @@ class BaseMap extends Component {
       const { min, max } = this.props.minMaxOfParams[this.props.parameter];
 
       const DIVISIONS = 3;
-      const INTERVAL = Math.ceil((max - min) / DIVISIONS);
+      const INTERVAL = Math.ceil((max - min) / DIVISIONS)+1;
 
       return d > max - INTERVAL
         ? "#C5F9D0"
         : d > max - INTERVAL*2
         ? "#FFDCBC"
-        : d > max - INTERVAL*3
+        : d >= min
         ? "#FFC4C4"
         : "#dedede";
     }
