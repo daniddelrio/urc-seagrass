@@ -24,6 +24,8 @@ class Parent extends Component {
       latLng: null,
       areas: {},
       minMaxOfParams: {},
+      yearOptions: [],
+      paramOptions: [],
     };
   }
 
@@ -33,18 +35,39 @@ class Parent extends Component {
 
     const dataFields = await getData();
 
+    const paramOptions = [{ value: "all", label: "All Parameters" }].concat(
+      dataFields.map((field) => ({
+        ...field,
+        label: field.label + " (" + field.unit + ")",
+      }))
+    );
+
+    this.setState({ paramOptions });
+
+    await dataApi.getAllYears().then((res) => {
+      this.setState({ yearOptions: res.data.data, year: res.data.data[0].value });
+    });
+
     await coordsApi.getAllCoords().then((coords) => {
       const newCoords = this.changeSiteKey(coords.data.coords);
       dataApi.getAllData().then((res) => {
         const finalData = this.processSiteData(newCoords, res.data.data);
-        const areaProps = finalData.map(coord => coord.properties);
+        const areaProps = finalData.map((coord) => coord.properties);
         const minMaxOfParams = dataFields.reduce(
           (obj, item) => ({
             ...obj,
             ...{
               [item.value]: {
-                min: Math.min(...areaProps.filter(coord => coord[item.value]).map(coord => coord[item.value])),
-                max: Math.max(...areaProps.filter(coord => coord[item.value]).map(coord => coord[item.value])),
+                min: Math.min(
+                  ...areaProps
+                    .filter((coord) => coord[item.value])
+                    .map((coord) => coord[item.value])
+                ),
+                max: Math.max(
+                  ...areaProps
+                    .filter((coord) => coord[item.value])
+                    .map((coord) => coord[item.value])
+                ),
               },
             },
           }),
@@ -76,7 +99,8 @@ class Parent extends Component {
         ...newCoords[siteData.siteCode],
         properties: {
           ...siteData,
-          ...newCoords[siteData.siteCode] && newCoords[siteData.siteCode].properties
+          ...(newCoords[siteData.siteCode] &&
+            newCoords[siteData.siteCode].properties),
         },
       });
     });
@@ -84,8 +108,8 @@ class Parent extends Component {
   };
 
   setLatLng = (latlng) => {
-    this.setState({latLng: latlng})
-  }
+    this.setState({ latLng: latlng });
+  };
 
   componentWillUnmount() {
     window.removeEventListener("resize", this.setSidebarOpen);
@@ -93,15 +117,15 @@ class Parent extends Component {
   }
 
   setYear = (year) => {
-    this.setState({year: year});
-  }
+    this.setState({ year: year });
+  };
 
   setParameter = (param) => {
-    this.setState({parameter: param});
-  }
+    this.setState({ parameter: param });
+  };
 
   setSidebarOpen = () => {
-    if(window.innerWidth >= MAX_WIDTH) {
+    if (window.innerWidth >= MAX_WIDTH) {
       this.setState({ isSidebarOpen: true });
     }
   };
@@ -138,6 +162,8 @@ class Parent extends Component {
           toggleModifyingData={this.toggleModifyingData}
           toggleSidebar={this.toggleSidebar}
           year={this.state.year}
+          yearOptions={this.state.yearOptions}
+          paramOptions={this.state.paramOptions}
           setYear={this.setYear}
           parameter={this.state.parameter}
           setParameter={this.setParameter}
@@ -145,8 +171,8 @@ class Parent extends Component {
           setLatLng={this.setLatLng}
           minMaxOfParams={this.state.minMaxOfParams}
         />
-        <BaseSidebar 
-          isOpen={this.state.isSidebarOpen} 
+        <BaseSidebar
+          isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
           areas={this.state.areas}
           toggleSidebar={this.toggleSidebar}

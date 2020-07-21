@@ -6,25 +6,6 @@ import {
   AdminTextField,
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
-import getData from "../dataFields";
-import api from "../services/sitedata-services";
-
-const paramOptions = (dataFields) => {
-  return [{ value: "all", label: "All Parameters" }].concat(
-    dataFields.map((field) => ({
-      ...field,
-      label: field.label + " (" + field.unit + ")",
-    }))
-  );
-};
-
-// const yearOptions = [
-//   { value: "2020", label: "2020" },
-//   { value: "2019", label: "2019" },
-//   { value: "2018", label: "2018" },
-//   { value: "2017", label: "2017" },
-//   { value: "2016", label: "2016" },
-// ];
 
 const customStyles = {
   option: (provided, state) => ({
@@ -82,32 +63,14 @@ const handleChange = (e, props) => {
 
 
 const SelectDropdown = React.memo((props) => {
-  const [stateParamOptions, setParamOptions] = useState([]);
-  const [yearOptions, setYearOptions] = useState([]);
-
-  useEffect(async () => {
-    async function getAllData() {
-      await getData().then(data => {
-        const finalParams = paramOptions(data);
-        setParamOptions(finalParams);
-      })
-
-      await api.getAllYears().then(res => {
-        setYearOptions(res.data.data);
-      })
-    }
-
-    getAllData();
-  }, []);
-
   return (
-    (stateParamOptions || yearOptions) && <Select
+    <Select
       name={props.isYear ? "mapYear" : "mapField"}
       styles={customStyles}
-      options={props.isYear ? yearOptions : stateParamOptions}
+      options={props.isYear ? props.yearOptions : props.paramOptions}
       defaultValue={
         props.isYear
-          ? { label: 2019, value: 2019}
+          ? props.yearOptions[0] || { label: 2019, value: 2019 }
           : { label: "All Parameters", value: "all" }
       }
       onChange={(e) => {
