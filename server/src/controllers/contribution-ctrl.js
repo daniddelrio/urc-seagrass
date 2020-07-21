@@ -1,7 +1,7 @@
 const Contribution = require("../models/contribution");
 const dataFields = require("../dataFields");
 
-createContribution = (req, res) => {
+const createContribution = (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -34,7 +34,7 @@ createContribution = (req, res) => {
         });
 };
 
-updateContribution = async (req, res) => {
+const updateContribution = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -77,7 +77,7 @@ updateContribution = async (req, res) => {
     });
 };
 
-deleteContribution = async (req, res) => {
+const deleteContribution = async (req, res) => {
     await Contribution.findOneAndDelete(
         { _id: req.params.id },
         (err, contrib) => {
@@ -96,7 +96,7 @@ deleteContribution = async (req, res) => {
     ).catch((err) => console.log(err));
 };
 
-getContributionById = async (req, res) => {
+const getContributionById = async (req, res) => {
     await Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -111,7 +111,7 @@ getContributionById = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getContributionsByStatus = async (req, res) => {
+const getContributionsByStatus = async (req, res) => {
     await Contribution.find(
         {
             ...((req.params.status == "approved" ||
@@ -135,7 +135,7 @@ getContributionsByStatus = async (req, res) => {
     ).catch((err) => console.log(err));
 };
 
-getContributions = async (req, res) => {
+const getContributions = async (req, res) => {
     await Contribution.find({}, (err, contrib) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
