@@ -70,7 +70,7 @@ const SelectDropdown = React.memo((props) => {
       options={props.isYear ? props.yearOptions : props.paramOptions}
       defaultValue={
         props.isYear
-          ? props.yearOptions[0] || { label: 2019, value: 2019 }
+          ? props.yearOptions[0] || { label: new Date().getFullYear(), value: new Date().getFullYear() }
           : { label: "All Parameters", value: "all" }
       }
       onChange={(e) => {
