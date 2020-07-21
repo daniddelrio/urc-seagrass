@@ -1,27 +1,12 @@
 [
 	{
-	  "value": "seagrassCount",
-	  "label": "Total Seagrass Count",
-	  "unit": "Mg C/ha"
-	},
-	{
-	  "value": "carbonPercentage",
-	  "label": "Inorganic Carbon Percentage",
-	  "unit": "%"
-	},
-	{
-	  "value": "avoidedCarbonEmissions",
-	  "label": "Avoided Carbon Emissions",
-	  "unit": "Mg C/ha"
+	  "value": "carbonStocks",
+	  "label": "Total Carbon Stocks",
+	  "unit": "Mg C"
 	},
 	{
 	  "value": "nitrates",
-	  "label": "Total Nitrates",
-	  "unit": "Mg C/ha"
-	},
-	{
-	  "value": "phosphates",
-	  "label": "Phosphates",
-	  "unit": "Mg C/ha"
+	  "label": "Nitrates",
+	  "unit": "mg/L"
 	}
 ]
