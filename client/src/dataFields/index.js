@@ -1,4 +1,15 @@
 // Data Fields imported from JSON file to make it easier to add more fields
-import dataFields from './datafields.json';
+import axios from 'axios';
+import { api } from "../services";
 
-export default dataFields;
+let dataFields = [{test: "yes"}];
+const getParameters = async () => {
+	const res = await api.get(`/parameters`);
+	return res.data;
+}
+
+// dataFields = getParameters();
+// console.log(dataFields)
+
+export default getParameters
+

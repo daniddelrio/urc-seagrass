@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import dataFields from "../dataFields";
+import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
@@ -103,26 +103,34 @@ const DataErrorMessage = styled(CustomErrorMessage)`
   margin-bottom: 0.4rem;
 `;
 
-const validationSchema = Yup.object().shape({
-  ...dataFields.reduce(
-    (obj, item) => ({
-      ...obj,
-      ...{
-        [item.value]: Yup.number()
-          .typeError(`${item.label} must be a number`)
-          .min(0),
-      },
-    }),
-    {}
-  ),
-});
+const validationSchema = async (dataFields) => {
+  return Yup.object().shape({
+    ...dataFields.reduce(
+      (obj, item) => ({
+        ...obj,
+        ...{
+          [item.value]: Yup.number()
+            .typeError(`${item.label} must be a number`)
+            .min(0),
+        },
+      }),
+      {}
+    ),
+  });
+};
 
 class BasePopup extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
+      dataFields: [],
     };
+  }
+
+  async componentDidMount() {
+    const dataFields = await getData();
+    this.setState({dataFields});
   }
 
   render() {
@@ -149,7 +157,7 @@ class BasePopup extends Component {
           </AreaHeader>
           <Formik
             initialValues={{
-              ...dataFields.reduce(
+              ...this.state.dataFields.reduce(
                 (obj, item) => ({
                   ...obj,
                   ...{
@@ -198,7 +206,7 @@ class BasePopup extends Component {
                         </DataErrorMessage>
                       )
                   )}
-                  {dataFields.map((field) =>
+                  {this.state.dataFields.map((field) =>
                     isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>

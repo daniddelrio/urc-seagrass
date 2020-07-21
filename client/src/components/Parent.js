@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import dataFields from "../dataFields";
+import getData from "../dataFields";
 
 const AppDiv = styled.div`
   display: flex;
@@ -30,6 +30,8 @@ class Parent extends Component {
   async componentDidMount() {
     window.addEventListener("resize", this.setSidebarOpen);
     window.addEventListener("resize", this.setMobileState);
+
+    const dataFields = await getData();
 
     await coordsApi.getAllCoords().then((coords) => {
       const newCoords = this.changeSiteKey(coords.data.coords);
