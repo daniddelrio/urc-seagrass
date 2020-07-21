@@ -129,7 +129,7 @@ const getAllSiteData = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAllYears = async (req, res) => {
+const getAllYears = async (req, res) => {
     await SiteData.find({}, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
