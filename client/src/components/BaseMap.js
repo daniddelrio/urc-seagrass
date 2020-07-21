@@ -148,9 +148,9 @@ class BaseMap extends Component {
   render() {
     const style = (feature) => ({
       fillColor: this.getColor(feature.properties[this.props.parameter]),
-      weight: 2,
-      opacity: 1,
-      color: this.getColor(feature.properties[this.props.parameter]),
+      weight: 3,
+      opacity: 0.8,
+      color: feature.properties.status === "DISTURBED" ? "#C5F9D0" : "#FFC4C4",
       fillOpacity: 0.8,
     });
 
