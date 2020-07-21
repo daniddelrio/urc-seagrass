@@ -148,9 +148,9 @@ class BaseMap extends Component {
   render() {
     const style = (feature) => ({
       fillColor: this.getColor(feature.properties[this.props.parameter]),
-      weight: 2,
-      opacity: 1,
-      color: this.getColor(feature.properties[this.props.parameter]),
+      weight: 3,
+      opacity: 0.8,
+      color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
       fillOpacity: 0.8,
     });
 
@@ -159,8 +159,8 @@ class BaseMap extends Component {
     return (
       <React.Fragment>
         <FlexDiv>
-          <SelectDropdown isYear setYear={this.props.setYear} />
-          <SelectDropdown setParameter={this.props.setParameter} />
+          <SelectDropdown isYear setYear={this.props.setYear} yearOptions={this.props.yearOptions}/>
+          <SelectDropdown setParameter={this.props.setParameter} paramOptions={this.props.paramOptions}/>
         </FlexDiv>
         <LeafletMap
           center={[15.52, 119.93]}
@@ -183,7 +183,7 @@ class BaseMap extends Component {
               key={this.props.year}
               onEachFeature={this.onEachFeature}
               pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
-              filter={(site) => site.properties.year == this.props.year}
+              filter={(site) => this.props.year ? site.properties.year == this.props.year : site.properties.year == this.props.yearOptions[0].value}
               ref={this.geojson}
             />
           )}

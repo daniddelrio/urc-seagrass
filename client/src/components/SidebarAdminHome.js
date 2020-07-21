@@ -19,7 +19,7 @@ import * as Yup from "yup";
 import api from "../services/admin-services";
 import contribApi from "../services/contrib-services";
 import { getUser } from "../services/auth-funcs";
-import dataFields from "../dataFields";
+import getData from "../dataFields";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -280,6 +280,7 @@ class SidebarAdminHome extends Component {
       checked: false,
       data: [],
       admins: [],
+      dataFields: [],
     };
   }
 
@@ -305,6 +306,10 @@ class SidebarAdminHome extends Component {
         })),
       });
     });
+
+    await getData().then(dataFields => {
+      this.setState({dataFields});
+    })
   };
 
   filterDataByYear = (code, year) =>
@@ -326,7 +331,7 @@ class SidebarAdminHome extends Component {
         year
       );
       if (filteredDataByYearAndCode.length == 0) {
-        let toBeDisplayedFields = dataFields.filter(
+        let toBeDisplayedFields = this.state.dataFields.filter(
           (field) => contrib[field.value]
         );
         toBeDisplayedFields = toBeDisplayedFields.map(
@@ -336,7 +341,7 @@ class SidebarAdminHome extends Component {
           `Add ${year} ${contrib.site || "New Area"}: ` + toBeDisplayedFields.join("; ")
         );
       } else {
-        let toBeDisplayedFields = dataFields.filter(
+        let toBeDisplayedFields = this.state.dataFields.filter(
           (field) =>
             contrib[field.value] &&
             contrib[field.value] != filteredDataByYearAndCode[field.value]

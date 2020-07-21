@@ -45,12 +45,14 @@ const contribRouter = require('./routes/contrib-router')
 const siteInfoRouter = require('./routes/siteInfo-router')
 const modificationRouter = require('./routes/modification-router')
 const siteCoordRouter = require('./routes/siteCoord-router')
+const dataFieldsRouter = require('./routes/dataFields-router')
 
 app.use('/api', adminRouter)
 app.use('/api', contribRouter)
 app.use('/api', siteInfoRouter)
 app.use('/api', modificationRouter)
 app.use('/api', siteCoordRouter)
+app.use('/api', dataFieldsRouter)
 
 app.listen(port, () => console.log(`Server running on port ${port}`))
 
@@ -60,44 +62,3 @@ function handleError(res, reason, message, code) {
     res.status(code || 500).json({"error": message});
   }
 
-// app.use(
-//     session({
-//         secret: jwtSecret,
-//         resave: false,
-//         saveUninitialized: true,
-//         store: new MongoStore({ mongooseConnection: db })
-//     })
-// );
-
-
-// app.use('/api', adminRouter)
-// app.use('/api', contribRouter)
-// app.use('/api', siteInfoRouter)
-// app.use('/api', modificationRouter)
-// app.use('/api', siteCoordRouter)
-
-// catch 404 and forward to error handler
-// app.use((req, res, next) =>{
-//   next(createError(404));
-// });
- 
-// error handler
-// app.use((err, req, res, next) =>{
-//   // set locals, only providing error in development
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
- 
-//   // render the error page
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
- 
-// app.use((req, res, next) =>{
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   next();
-// });
- 
-// app.use(passportManager.initialize());
-// app.use(passportManager.session());
-  

@@ -129,6 +129,24 @@ getAllSiteData = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
+getAllYears = async (req, res) => {
+    await SiteData.find({}, (err, data) => {
+        if (err) {
+            return res.status(400).json({ success: false, error: err });
+        }
+        if (!data.length) {
+            return res
+                .status(404)
+                .json({ success: false, error: `Years not found` });
+        }
+        let uniqueYears = [...new Set(data.map(point => point.year))];
+        uniqueYears.sort(function(a, b){return b-a});
+        uniqueYears = uniqueYears.map(year => ({value: year, label: year}));
+        return res.status(200).json({ success: true, data: uniqueYears });
+    }).catch((err) => console.log(err));
+};
+
+
 module.exports = {
     createData,
     updateData,
@@ -136,4 +154,5 @@ module.exports = {
     getAllSiteData,
     getSiteDataById,
     getSiteDataByYear,
+    getAllYears
 };
