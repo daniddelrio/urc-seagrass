@@ -10,18 +10,9 @@ import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
 import getData from "../dataFields";
-
-const selectOptions = [
-  { value: "SM", label: "Seagrass Meadow" },
-  { value: "CP", label: "Adjacent Coal Power Plant" },
-  { value: "RA", label: "Adjacent Residential Area" },
-  { value: "CR", label: "Adjacent Coral Reef" },
-  { value: "MF", label: "Adjacent Mangrove Forest" },
-  { value: "AC", label: "Adjacent Aquaculture" },
-  { value: "newCoordinates", label: "+ New Coordinates" },
-];
 
 const customStyles = {
   option: (provided, { data }) => ({
@@ -160,7 +151,7 @@ const dataValidationFields = (fields) => {
   );
 };
 
-const validationSchema = async (dataFields) =>
+const validationSchema = (dataFields) =>
   Yup.object().shape(
     {
       ...dataValidationFields(dataFields),
@@ -186,11 +177,26 @@ class SidebarContribution extends Component {
     this.state = {
       error: null,
       dataFields: [],
+      selectOptions: [],
     };
   }
 
   async componentDidMount() {
     this.props.showLogoutButton("Log out");
+
+    await coordApi.getAllCoords().then((res) => {
+      const selectOptions = res.data.coords
+        .map((data) => ({
+          value: data.properties.siteCode,
+          label: data.properties.areaName,
+        }))
+        .concat({ value: "newCoordinates", label: "+ New Coordinates" });
+
+      this.setState({
+        selectOptions: selectOptions,
+      });
+    });
+
     const dataFields = await getData();
     this.setState({ dataFields });
   }
@@ -219,7 +225,6 @@ class SidebarContribution extends Component {
           {this.props.contribName
             ? `Welcome, {this.props.contribName}!`
             : "Welcome!"}
-          !
         </SidebarSubheader>
         <Formik
           initialValues={{
@@ -283,7 +288,7 @@ class SidebarContribution extends Component {
                 name="area"
                 placeholder="Choose Area"
                 styles={customStyles}
-                options={selectOptions}
+                options={this.state.selectOptions}
                 onChange={(selectedOption) => {
                   if (selectedOption.value == "newCoordinates") {
                     if (this.props.isMobile) this.props.toggleSidebar();
