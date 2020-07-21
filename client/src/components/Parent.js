@@ -44,42 +44,55 @@ class Parent extends Component {
 
     this.setState({ paramOptions });
 
-    await dataApi.getAllYears().then((res) => {
-      this.setState({ yearOptions: res.data.data, year: res.data.data[0].value });
-    });
+    await dataApi
+      .getAllYears()
+      .then((res) => {
+        this.setState({
+          yearOptions: res.data.data,
+          year: res.data.data[0].value,
+        });
+      })
+      .catch((err) => {
+        this.setState({ yearOptions: [{ value: 2020, label: 2020 }] });
+      });
 
     await coordsApi.getAllCoords().then((coords) => {
       const newCoords = this.changeSiteKey(coords.data.coords);
-      dataApi.getAllData().then((res) => {
-        const finalData = this.processSiteData(newCoords, res.data.data);
-        const areaProps = finalData.map((coord) => coord.properties);
-        const minMaxOfParams = dataFields.reduce(
-          (obj, item) => ({
-            ...obj,
-            ...{
-              [item.value]: {
-                min: Math.min(
-                  ...areaProps
-                    .filter((coord) => coord[item.value])
-                    .map((coord) => coord[item.value])
-                ),
-                max: Math.max(
-                  ...areaProps
-                    .filter((coord) => coord[item.value])
-                    .map((coord) => coord[item.value])
-                ),
+      dataApi
+        .getAllData()
+        .then((res) => {
+          const finalData = this.processSiteData(newCoords, res.data.data);
+          const areaProps = finalData.map((coord) => coord.properties);
+          const minMaxOfParams = dataFields.reduce(
+            (obj, item) => ({
+              ...obj,
+              ...{
+                [item.value]: {
+                  min: Math.min(
+                    ...areaProps
+                      .filter((coord) => coord[item.value])
+                      .map((coord) => coord[item.value])
+                  ),
+                  max: Math.max(
+                    ...areaProps
+                      .filter((coord) => coord[item.value])
+                      .map((coord) => coord[item.value])
+                  ),
+                },
               },
-            },
-          }),
-          {}
-        );
+            }),
+            {}
+          );
 
-        this.setState({
-          areas: finalData,
-          isLoading: false,
-          minMaxOfParams: minMaxOfParams,
-        });
-      });
+          this.setState({
+            areas: finalData,
+            isLoading: false,
+            minMaxOfParams: minMaxOfParams,
+          });
+        })
+        .catch((err) =>
+          this.setState({ areas: [], isLoading: false, minMaxOfParams: {} })
+        );
     });
   }
 
