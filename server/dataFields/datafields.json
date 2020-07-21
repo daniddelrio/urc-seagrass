@@ -3,5 +3,10 @@
 	  "value": "carbonStocks",
 	  "label": "Total Carbon Stocks",
 	  "unit": "Mg C"
+	},
+	{
+	  "value": "nitrates",
+	  "label": "Nitrates",
+	  "unit": "mg/L"
 	}
 ]
