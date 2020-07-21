@@ -160,9 +160,8 @@ const dataValidationFields = (fields) => {
   );
 };
 
-const validationSchema = async () => {
-  const dataFields = await getData();
-  return Yup.object().shape(
+const validationSchema = async (dataFields) =>
+  Yup.object().shape(
     {
       ...dataValidationFields(dataFields),
       area: Yup.mixed().required("Please input an area"),
@@ -175,7 +174,6 @@ const validationSchema = async () => {
     // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
     [["area"]].concat(pairsOfArray(dataFields.map((field) => field.value)))
   );
-};
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
@@ -194,7 +192,7 @@ class SidebarContribution extends Component {
   async componentDidMount() {
     this.props.showLogoutButton("Log out");
     const dataFields = await getData();
-    this.setState({dataFields})
+    this.setState({ dataFields });
   }
 
   componentDidUpdate(prevProps, prevstate) {
@@ -260,7 +258,7 @@ class SidebarContribution extends Component {
               });
             }
           }}
-          validationSchema={validationSchema}
+          validationSchema={() => validationSchema(this.state.dataFields)}
         >
           {({
             values,
@@ -360,7 +358,9 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !this.state.dataFields.some((field) => !!values[field.value])
+                    !this.state.dataFields.some(
+                      (field) => !!values[field.value]
+                    )
                   }
                 >
                   Submit Contribution

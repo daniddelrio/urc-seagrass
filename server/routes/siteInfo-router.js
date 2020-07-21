@@ -10,5 +10,7 @@ router.delete('/sitedata/:id', passport.authenticate('jwt', { session: false }),
 router.get('/sitedata/:id', SiteInfoCtrl.getSiteDataById)
 router.get('/sitedata', SiteInfoCtrl.getAllSiteData)
 router.get('/sitedata/year/:year', SiteInfoCtrl.getSiteDataByYear)
+// Add an endpoint for getting all the years for the dropdown
+router.get('/year', SiteInfoCtrl.getAllYears)
 
 module.exports = router;

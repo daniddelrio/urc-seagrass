@@ -150,7 +150,7 @@ class BaseMap extends Component {
       fillColor: this.getColor(feature.properties[this.props.parameter]),
       weight: 3,
       opacity: 0.8,
-      color: feature.properties.status === "DISTURBED" ? "#C5F9D0" : "#FFC4C4",
+      color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
       fillOpacity: 0.8,
     });
 

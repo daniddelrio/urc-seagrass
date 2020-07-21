@@ -19,7 +19,7 @@ class Parent extends Component {
       isMobile: window.innerWidth < MAX_WIDTH,
       isChoosingCoords: false,
       isModifyingData: false,
-      year: "2020",
+      year: "",
       parameter: "all",
       latLng: null,
       areas: {},

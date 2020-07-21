@@ -40,7 +40,7 @@ const AreaName = styled.strong`
   font-weight: 600;
   font-size: 13px;
   line-height: 16px;
-  margin-right: 0.4rem;
+  margin-bottom: 0.4rem;
 `;
 
 const StatusBox = styled.div`
