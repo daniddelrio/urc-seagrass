@@ -10,18 +10,9 @@ import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
-import dataFields from "../dataFields";
-
-const selectOptions = [
-  { value: "SM", label: "Seagrass Meadow" },
-  { value: "CP", label: "Adjacent Coal Power Plant" },
-  { value: "RA", label: "Adjacent Residential Area" },
-  { value: "CR", label: "Adjacent Coral Reef" },
-  { value: "MF", label: "Adjacent Mangrove Forest" },
-  { value: "AC", label: "Adjacent Aquaculture" },
-  { value: "newCoordinates", label: "+ New Coordinates" },
-];
+import getData from "../dataFields";
 
 const customStyles = {
   option: (provided, { data }) => ({
@@ -124,13 +115,16 @@ const SubmitButton = styled(ParentButton)`
 `;
 
 // Produces all pairs of an array
-const pairsOfArray = array => (
-    array.reduce((acc, val, i1) => [
+const pairsOfArray = (array) =>
+  array.reduce(
+    (acc, val, i1) => [
       ...acc,
-      ...new Array(array.length - 1 - i1).fill(0)
-        .map((v, i2) => ([array[i1], array[i1 + 1 + i2]]))
-    ], [])
-  )
+      ...new Array(array.length - 1 - i1)
+        .fill(0)
+        .map((v, i2) => [array[i1], array[i1 + 1 + i2]]),
+    ],
+    []
+  );
 
 const dataValidationFields = (fields) => {
   return fields.reduce(
@@ -140,11 +134,11 @@ const dataValidationFields = (fields) => {
         [item.value]: Yup.number()
           .typeError(`${item.label} must be a number`)
           .when(
-            dataFields
+            fields
               .filter((field) => field.value != item.value)
               .map((field) => field.value),
             {
-              is: (...args) => args.every(obj => !obj),
+              is: (...args) => args.every((obj) => !obj),
               then: Yup.number()
                 .typeError(`${item.label} must be a number`)
                 .min(0)
@@ -157,63 +151,88 @@ const dataValidationFields = (fields) => {
   );
 };
 
-const validationSchema = Yup.object().shape(
-  {
-    ...dataValidationFields(dataFields),
-    area: Yup.mixed().required("Please input an area"),
-    coordinates: Yup.mixed(),
-    date: Yup.date()
-      .required("Please input a date")
-      .max(new Date(), "Measuring date must be before today's date"),
-  },
-  // If the fields are: seagrassCount, carbonPercentage, phosphates
-  // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
-  [["area"]].concat(pairsOfArray(dataFields.map(field => field.value)))
-);
+const validationSchema = (dataFields) =>
+  Yup.object().shape(
+    {
+      ...dataValidationFields(dataFields),
+      area: Yup.mixed().required("Please input an area"),
+      coordinates: Yup.mixed(),
+      date: Yup.date()
+        .required("Please input a date")
+        .max(new Date(), "Measuring date must be before today's date"),
+    },
+    // If the fields are: seagrassCount, carbonPercentage, phosphates
+    // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
+    [["area"]].concat(pairsOfArray(dataFields.map((field) => field.value)))
+  );
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
   margin-bottom: 0.4rem;
 `;
 
-
 class SidebarContribution extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
+      dataFields: [],
+      selectOptions: [],
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.props.showLogoutButton("Log out");
+
+    await coordApi.getAllCoords().then((res) => {
+      const selectOptions = res.data.coords
+        .map((data) => ({
+          value: data.properties.siteCode,
+          label: data.properties.areaName,
+        }))
+        .concat({ value: "newCoordinates", label: "+ New Coordinates" });
+
+      this.setState({
+        selectOptions: selectOptions,
+      });
+    });
+
+    const dataFields = await getData();
+    this.setState({ dataFields });
   }
 
-  componentDidUpdate(prevProps,prevstate){
-    if(this.props.latLng !== prevProps.latLng && this.props.latLng){
-       this.setState({error: null})
+  componentDidUpdate(prevProps, prevstate) {
+    if (this.props.latLng !== prevProps.latLng && this.props.latLng) {
+      this.setState({ error: null });
     }
   }
 
   render() {
-    const dataFieldsObj = (values) => dataFields.reduce(
-      (obj, item) => ({
-        ...obj,
-        ...(values[item.value] !== "" && {
-          [item.value]: values[item.value],
+    const dataFieldsObj = (values) =>
+      this.state.dataFields.reduce(
+        (obj, item) => ({
+          ...obj,
+          ...(values[item.value] !== "" && {
+            [item.value]: values[item.value],
+          }),
         }),
-      }),
-      {}
-    );
+        {}
+      );
 
     return (
       <React.Fragment>
-        <SidebarSubheader>Welcome, Pedro!</SidebarSubheader>
+        <SidebarSubheader>
+          {this.props.contribName
+            ? `Welcome, {this.props.contribName}!`
+            : "Welcome!"}
+        </SidebarSubheader>
         <Formik
           initialValues={{
             area: null,
             date: "",
-            ...dataFieldsObj(dataFields.map(field => ({[field.value] : null})))
+            ...dataFieldsObj(
+              this.state.dataFields.map((field) => ({ [field.value]: null }))
+            ),
           }}
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
@@ -244,7 +263,7 @@ class SidebarContribution extends Component {
               });
             }
           }}
-          validationSchema={validationSchema}
+          validationSchema={() => validationSchema(this.state.dataFields)}
         >
           {({
             values,
@@ -269,7 +288,7 @@ class SidebarContribution extends Component {
                 name="area"
                 placeholder="Choose Area"
                 styles={customStyles}
-                options={selectOptions}
+                options={this.state.selectOptions}
                 onChange={(selectedOption) => {
                   if (selectedOption.value == "newCoordinates") {
                     if (this.props.isMobile) this.props.toggleSidebar();
@@ -285,7 +304,9 @@ class SidebarContribution extends Component {
               />
               <ContributionFields isShown={values.area || this.props.latLng}>
                 {this.props.latLng && (
-                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${this.props.latLng.lng}`}</LabelField>
+                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
+                    this.props.latLng.lng
+                  }`}</LabelField>
                 )}
                 <RelativeDiv>
                   <TextField
@@ -300,7 +321,7 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                {dataFields.map((field) => (
+                {this.state.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
                     <LabelField for="seagrassCount">{field.label}</LabelField>
                     <FlexDiv>
@@ -328,7 +349,7 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {dataFields.map(
+                {this.state.dataFields.map(
                   (field) =>
                     errors[field.value] &&
                     touched[field.value] && (
@@ -342,8 +363,8 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !(
-                      dataFields.some(field => !!values[field.value])
+                    !this.state.dataFields.some(
+                      (field) => !!values[field.value]
                     )
                   }
                 >

@@ -146,6 +146,7 @@ class BaseSidebar extends Component {
       case "contribHome":
         return (
           <SidebarContribution
+            areas={this.props.areas}
             showLogoutButton={this.showLogoutButton}
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}

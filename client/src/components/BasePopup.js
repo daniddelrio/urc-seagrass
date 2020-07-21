@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import dataFields from "../dataFields";
+import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
@@ -40,7 +40,7 @@ const AreaName = styled.strong`
   font-weight: 600;
   font-size: 13px;
   line-height: 16px;
-  margin-right: 0.4rem;
+  margin-bottom: 0.4rem;
 `;
 
 const StatusBox = styled.div`
@@ -95,7 +95,7 @@ const ModifyField = styled(Field)`
   border-radius: 2px;
 
   color: #767676;
-  width: 30px;
+  width: ${({ isLong }) => isLong ? "80px" : "30px"};
 `;
 
 const DataErrorMessage = styled(CustomErrorMessage)`
@@ -103,26 +103,36 @@ const DataErrorMessage = styled(CustomErrorMessage)`
   margin-bottom: 0.4rem;
 `;
 
-const validationSchema = Yup.object().shape({
-  ...dataFields.reduce(
-    (obj, item) => ({
-      ...obj,
-      ...{
-        [item.value]: Yup.number()
-          .typeError(`${item.label} must be a number`)
-          .min(0),
-      },
-    }),
-    {}
-  ),
-});
+const validationSchema = (dataFields) =>
+  Yup.object().shape({
+    status: Yup.string()
+      .uppercase()
+      .matches(/\bCONSERVED\b|\bDISTURBED\b/, "Status must be either CONSERVED or DISTURBED"),
+    ...dataFields.reduce(
+      (obj, item) => ({
+        ...obj,
+        ...{
+          [item.value]: Yup.number()
+            .typeError(`${item.label} must be a number`)
+            .min(0),
+        },
+      }),
+      {}
+    ),
+  });
 
 class BasePopup extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
+      dataFields: [],
     };
+  }
+
+  async componentDidMount() {
+    const dataFields = await getData();
+    this.setState({ dataFields });
   }
 
   render() {
@@ -132,24 +142,10 @@ class BasePopup extends Component {
       <React.Fragment>
         <PopupImage />
         <AreaInfo>
-          <AreaHeader>
-            <AreaName>
-              {properties.areaName ||
-                properties.coordinates
-                  .reverse()
-                  .map((coord) => coord.toFixed(4))
-                  .join(", ")}{" "}
-              | {properties.year}
-            </AreaName>
-            {properties.status && (
-              <StatusBox status={properties.status}>
-                {properties.status}
-              </StatusBox>
-            )}
-          </AreaHeader>
           <Formik
             initialValues={{
-              ...dataFields.reduce(
+              status: properties.status,
+              ...this.state.dataFields.reduce(
                 (obj, item) => ({
                   ...obj,
                   ...{
@@ -179,10 +175,33 @@ class BasePopup extends Component {
                   this.setState({ error: err });
                 });
             }}
-            validationSchema={validationSchema}
+            validationSchema={() => validationSchema(this.state.dataFields)}
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
+                <AreaHeader>
+                  <AreaName>
+                    {properties.areaName ||
+                      properties.coordinates
+                        .reverse()
+                        .map((coord) => coord.toFixed(4))
+                        .join(", ")}{" "}
+                    | {properties.year}
+                  </AreaName>
+                  {isModifyingData ? (
+                    <ModifyField
+                      name="status"
+                      defaultValue={properties.status}
+                      isLong
+                    />
+                  ) : (
+                    properties.status && (
+                      <StatusBox status={properties.status}>
+                        {properties.status}
+                      </StatusBox>
+                    )
+                  )}
+                </AreaHeader>
                 <FieldsDiv>
                   {this.state.error && (
                     <DataErrorMessage>
@@ -198,7 +217,7 @@ class BasePopup extends Component {
                         </DataErrorMessage>
                       )
                   )}
-                  {dataFields.map((field) =>
+                  {this.state.dataFields.map((field) =>
                     isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>

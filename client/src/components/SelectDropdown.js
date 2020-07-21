@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import {
   SidebarSubheader,
@@ -6,17 +6,6 @@ import {
   AdminTextField,
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
-import dataFields from "../dataFields";
-
-const paramOptions = [{ value: "all", label: "All Parameters" }].concat(dataFields);
-
-const yearOptions = [
-  { value: "2020", label: "2020" },
-  { value: "2019", label: "2019" },
-  { value: "2018", label: "2018" },
-  { value: "2017", label: "2017" },
-  { value: "2016", label: "2016" },
-];
 
 const customStyles = {
   option: (provided, state) => ({
@@ -68,19 +57,28 @@ const customStyles = {
 };
 
 const handleChange = (e, props) => {
-  if(props.isYear) props.setYear(e.value);
+  if (props.isYear) props.setYear(e.value);
   else props.setParameter(e.value);
 };
 
-const SelectDropdown = React.memo((props) => (
-  <Select
-    name={props.isYear ? "mapYear" : "mapField"}
-    styles={customStyles}
-    options={props.isYear ? yearOptions : paramOptions}
-    defaultValue={props.isYear ? { label: "2020", value: "2020" } : { label: "All Parameters", value: "all"}}
-    onChange={(e) => { handleChange(e, props) }}
-    menuPortalTarget={document.body}
-  />
-));
+
+const SelectDropdown = React.memo((props) => {
+  return (
+    <Select
+      name={props.isYear ? "mapYear" : "mapField"}
+      styles={customStyles}
+      options={props.isYear ? props.yearOptions : props.paramOptions}
+      defaultValue={
+        props.isYear
+          ? props.yearOptions[0] || { label: new Date().getFullYear(), value: new Date().getFullYear() }
+          : { label: "All Parameters", value: "all" }
+      }
+      onChange={(e) => {
+        handleChange(e, props);
+      }}
+      menuPortalTarget={document.body}
+    />
+  );
+});
 
 export default SelectDropdown;
