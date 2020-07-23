@@ -125,21 +125,35 @@ class BaseMap extends Component {
     if (this.props.isMobile) this.props.toggleSidebar();
   };
 
+  compareStandards = (d, standardsArr) => {
+    return standardsArr.some((curr) => {
+      if (curr[1] == "infinity") {
+        return d >= curr[0];
+      }
+
+      return d >= curr[0] && d <= curr[1];
+    });
+  };
+
   getColor = (d) => {
-    // console.log(this.props.minMaxOfParams[])
-    if(this.props.parameter != "all") {
-      const { min, max } = this.props.minMaxOfParams[this.props.parameter];
+    if (this.props.parameter != "all") {
+      const standards = this.props.dataFields.filter(
+        (data) => data.value == this.props.parameter
+      )[0].standards;
+      if (!standards) {
+        return "#DEDEDE";
+      }
+      if (standards.green) {
+        if (this.compareStandards(d, standards.green)) return "#C5F9D0";
+      }
+      if (standards.yellow) {
+        if (this.compareStandards(d, standards.yellow)) return "#FFDCBC";
+      }
+      if (standards.red) {
+        if (this.compareStandards(d, standards.red)) return "#FFC4C4";
+      }
 
-      const DIVISIONS = 3;
-      const INTERVAL = Math.ceil((max - min) / DIVISIONS)+1;
-
-      return d > max - INTERVAL
-        ? "#C5F9D0"
-        : d > max - INTERVAL*2
-        ? "#FFDCBC"
-        : d >= min
-        ? "#FFC4C4"
-        : "#dedede";
+      return "#DEDEDE";
     }
 
     return "#C5F9D0";
@@ -159,8 +173,15 @@ class BaseMap extends Component {
     return (
       <React.Fragment>
         <FlexDiv>
-          <SelectDropdown isYear setYear={this.props.setYear} yearOptions={this.props.yearOptions}/>
-          <SelectDropdown setParameter={this.props.setParameter} paramOptions={this.props.paramOptions}/>
+          <SelectDropdown
+            isYear
+            setYear={this.props.setYear}
+            yearOptions={this.props.yearOptions}
+          />
+          <SelectDropdown
+            setParameter={this.props.setParameter}
+            paramOptions={this.props.paramOptions}
+          />
         </FlexDiv>
         <LeafletMap
           center={[15.52, 119.93]}
@@ -183,7 +204,11 @@ class BaseMap extends Component {
               key={this.props.year}
               onEachFeature={this.onEachFeature}
               pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
-              filter={(site) => this.props.year ? site.properties.year == this.props.year : site.properties.year == this.props.yearOptions[0].value}
+              filter={(site) =>
+                this.props.year
+                  ? site.properties.year == this.props.year
+                  : site.properties.year == this.props.yearOptions[0].value
+              }
               ref={this.geojson}
             />
           )}
