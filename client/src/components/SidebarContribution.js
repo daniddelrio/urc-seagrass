@@ -186,6 +186,7 @@ class SidebarContribution extends Component {
 
     await coordApi.getAllCoords().then((res) => {
       const selectOptions = res.data.coords
+        .filter((data) => data.geometry.type == "Polygon")
         .map((data) => ({
           value: data.properties.siteCode,
           label: data.properties.areaName,

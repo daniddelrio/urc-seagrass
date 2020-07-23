@@ -23,9 +23,9 @@ class Parent extends Component {
       parameter: "all",
       latLng: null,
       areas: {},
-      minMaxOfParams: {},
       yearOptions: [],
       paramOptions: [],
+      dataFields: [],
     };
   }
 
@@ -38,11 +38,11 @@ class Parent extends Component {
     const paramOptions = [{ value: "all", label: "All Parameters" }].concat(
       dataFields.map((field) => ({
         ...field,
-        label: field.label + " (" + field.unit + ")",
+        label: field.label + (field.unit ? " (" + field.unit + ")" : ""),
       }))
     );
 
-    this.setState({ paramOptions });
+    this.setState({ paramOptions, dataFields });
 
     await dataApi
       .getAllYears()
@@ -63,35 +63,14 @@ class Parent extends Component {
         .then((res) => {
           const finalData = this.processSiteData(newCoords, res.data.data);
           const areaProps = finalData.map((coord) => coord.properties);
-          const minMaxOfParams = dataFields.reduce(
-            (obj, item) => ({
-              ...obj,
-              ...{
-                [item.value]: {
-                  min: Math.min(
-                    ...areaProps
-                      .filter((coord) => coord[item.value])
-                      .map((coord) => coord[item.value])
-                  ),
-                  max: Math.max(
-                    ...areaProps
-                      .filter((coord) => coord[item.value])
-                      .map((coord) => coord[item.value])
-                  ),
-                },
-              },
-            }),
-            {}
-          );
 
           this.setState({
             areas: finalData,
             isLoading: false,
-            minMaxOfParams: minMaxOfParams,
           });
         })
         .catch((err) =>
-          this.setState({ areas: [], isLoading: false, minMaxOfParams: {} })
+          this.setState({ areas: [], isLoading: false })
         );
     });
   }
@@ -182,7 +161,7 @@ class Parent extends Component {
           setParameter={this.setParameter}
           areas={this.state.areas}
           setLatLng={this.setLatLng}
-          minMaxOfParams={this.state.minMaxOfParams}
+          dataFields={this.state.dataFields}
         />
         <BaseSidebar
           isOpen={this.state.isSidebarOpen}

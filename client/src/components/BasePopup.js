@@ -161,7 +161,7 @@ class BasePopup extends Component {
                 Object.keys(obj)
                   .filter((key) => predicate(obj[key]))
                   .reduce((res, key) => ((res[key] = obj[key]), res), {});
-              const filteredValues = Object.filter(values, (field) => !!field);
+              const filteredValues = Object.filter(values, (field) => !isNaN(field));
 
               await api
                 .updateData(properties._id, {
@@ -230,12 +230,12 @@ class BasePopup extends Component {
                             name={field.value}
                             defaultValue={properties[field.value]}
                           />{" "}
-                          {field.unit}
+                          {field.unit || ""}
                         </InfoStat>
                         <br />
                       </React.Fragment>
                     ) : (
-                      properties[field.value] && (
+                      !isNaN(properties[field.value]) && (
                         <React.Fragment>
                           <InfoStat>
                             {this.props.parameter === field.value ? (
@@ -244,7 +244,7 @@ class BasePopup extends Component {
                               field.label + ":"
                             )}{" "}
                             <strong>{`${properties[field.value]} ${
-                              field.unit
+                              field.unit || ""
                             }`}</strong>
                           </InfoStat>
                           <br />
