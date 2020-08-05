@@ -26,6 +26,8 @@ class Parent extends Component {
       yearOptions: [],
       paramOptions: [],
       dataFields: [],
+      isLoadingMap: true,
+      isLoadingPopups: true,
     };
   }
 
@@ -42,7 +44,7 @@ class Parent extends Component {
       }))
     );
 
-    this.setState({ paramOptions, dataFields });
+    this.setState({ paramOptions, dataFields, isLoadingPopups: false });
 
     await dataApi
       .getAllYears()
@@ -66,11 +68,12 @@ class Parent extends Component {
 
           this.setState({
             areas: finalData,
-            isLoading: false,
+            isLoadingMap: false,
+            isLoadingPopups: false,
           });
         })
         .catch((err) =>
-          this.setState({ areas: [], isLoading: false })
+          this.setState({ areas: {}, isLoadingMap: false, isLoadingPopups: false })
         );
     });
   }
@@ -150,6 +153,8 @@ class Parent extends Component {
           isMobile={this.state.isMobile}
           isChoosingCoords={this.state.isChoosingCoords}
           isModifyingData={this.state.isModifyingData}
+          isLoadingMap={this.state.isLoadingMap}
+          isLoadingPopups={this.state.isLoadingPopups}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
           toggleModifyingData={this.toggleModifyingData}
           toggleSidebar={this.toggleSidebar}

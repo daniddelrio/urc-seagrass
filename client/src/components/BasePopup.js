@@ -30,28 +30,22 @@ const AreaInfo = styled.div`
   padding-top: 0.7rem;
 `;
 
-const AreaHeader = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 0.2rem;
-`;
-
 const AreaName = styled.strong`
   font-weight: 600;
   font-size: 13px;
   line-height: 16px;
-  margin-bottom: 0.4rem;
+  margin-right: 1rem;
 `;
 
 const StatusBox = styled.div`
-  max-width: 150px;
+  max-width: 80px;
   background: ${(props) => StatusBoxColors[props.status]["background"]};
   border: 0.7px solid ${(props) => StatusBoxColors[props.status]["border"]};
   box-sizing: border-box;
   border-radius: 7px;
-  padding: 0.15rem;
-  padding-left: 0.55rem;
-  padding-right: 0.55rem;
+  padding: 0.15rem 0.55rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.5rem;
 
   font-weight: 600;
   font-size: 7px;
@@ -130,11 +124,6 @@ class BasePopup extends Component {
     };
   }
 
-  async componentDidMount() {
-    const dataFields = await getData();
-    this.setState({ dataFields });
-  }
-
   render() {
     const { properties, isModifyingData } = this.props;
 
@@ -145,7 +134,7 @@ class BasePopup extends Component {
           <Formik
             initialValues={{
               status: properties.status,
-              ...this.state.dataFields.reduce(
+              ...this.props.dataFields.reduce(
                 (obj, item) => ({
                   ...obj,
                   ...{
@@ -175,33 +164,31 @@ class BasePopup extends Component {
                   this.setState({ error: err });
                 });
             }}
-            validationSchema={() => validationSchema(this.state.dataFields)}
+            validationSchema={() => validationSchema(this.props.dataFields)}
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
-                <AreaHeader>
-                  <AreaName>
-                    {properties.areaName ||
-                      properties.coordinates
-                        .reverse()
-                        .map((coord) => coord.toFixed(4))
-                        .join(", ")}{" "}
-                    | {properties.year}
-                  </AreaName>
-                  {isModifyingData ? (
-                    <ModifyField
-                      name="status"
-                      defaultValue={properties.status}
-                      isLong
-                    />
-                  ) : (
-                    properties.status && (
-                      <StatusBox status={properties.status}>
-                        {properties.status}
-                      </StatusBox>
-                    )
-                  )}
-                </AreaHeader>
+                <AreaName>
+                  {properties.areaName ||
+                    properties.coordinates
+                      .reverse()
+                      .map((coord) => coord.toFixed(4))
+                      .join(", ")}{" "}
+                  | {properties.year}
+                </AreaName>
+                {isModifyingData ? (
+                  <ModifyField
+                    name="status"
+                    defaultValue={properties.status}
+                    isLong
+                  />
+                ) : (
+                  properties.status && (
+                    <StatusBox status={properties.status}>
+                      {properties.status}
+                    </StatusBox>
+                  )
+                )}
                 <FieldsDiv>
                   {this.state.error && (
                     <DataErrorMessage>
@@ -217,7 +204,7 @@ class BasePopup extends Component {
                         </DataErrorMessage>
                       )
                   )}
-                  {this.state.dataFields.map((field) =>
+                  {this.props.dataFields.map((field) =>
                     isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>

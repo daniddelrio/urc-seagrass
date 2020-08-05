@@ -1,5 +1,13 @@
 import styled from "styled-components";
 import { Field } from "formik";
+import ReactLoading from "react-loading";
+
+export const MapLoading = styled(ReactLoading)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 99999;
+`;
 
 export const SidebarSubheader = styled.h1`
   font-size: 14px;

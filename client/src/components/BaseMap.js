@@ -9,6 +9,7 @@ import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
 import L from "leaflet";
+import { MapLoading } from "./GlobalSidebarComponents";
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -65,8 +66,14 @@ class BaseMap extends Component {
     this.geojson = React.createRef();
     this.state = {
       popup: {},
-      isLoading: false,
+      isLoadingPopups: true,
     };
+  }
+
+  componentDidMount() {
+    // if (Object.keys(this.props.areas).length > 0) {
+    //   this.setState({ isLoadingPopups: false });
+    // }
   }
 
   addPopup = (e) => {
@@ -117,6 +124,10 @@ class BaseMap extends Component {
         },
       },
     });
+  };
+
+  setLoadingFalse = () => {
+    this.setState({ isLoadingPopups: false });
   };
 
   handleClick = (e) => {
@@ -197,7 +208,9 @@ class BaseMap extends Component {
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          {Object.keys(this.props.areas).length !== 0 && (
+          {this.props.isLoadingMap ? (
+            <MapLoading type="spin" />
+          ) : (
             <GeoJSON
               style={style}
               data={this.props.areas}
@@ -213,15 +226,25 @@ class BaseMap extends Component {
             />
           )}
           {popup.position && (
-            <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup
-                isModifyingData={this.props.isModifyingData}
-                parameter={this.props.parameter}
-                properties={{
-                  ...popup.properties,
-                  coordinates: popup.coordinates,
-                }}
-              />
+            <Popup
+              key={`popup-${popup.key}`}
+              position={popup.position}
+              style={{ position: "relative" }}
+            >
+              {this.props.isLoadingPopups ? (
+                <MapLoading type="spin" />
+              ) : (
+                <BasePopup
+                  dataFields={this.props.dataFields}
+                  setLoadingFalse={this.setLoadingFalse}
+                  isModifyingData={this.props.isModifyingData}
+                  parameter={this.props.parameter}
+                  properties={{
+                    ...popup.properties,
+                    coordinates: popup.coordinates,
+                  }}
+                />
+              )}
             </Popup>
           )}
         </LeafletMap>
