@@ -6,6 +6,10 @@ const SiteCoords = new Schema({
     properties: {
         siteCode: String,
         areaName: String,
+        image: {
+            data: Buffer, 
+            contentType: String 
+        }
     },
     geometry: {
         type: {
