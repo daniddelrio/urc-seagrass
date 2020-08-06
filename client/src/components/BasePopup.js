@@ -20,8 +20,9 @@ const StatusBoxColors = {
 };
 
 const PopupImage = styled.div`
-  height: 106px;
-  background-color: #c4c4c4;
+  height: 150px;
+  width: auto;
+  background: ${({backgroundImage}) => backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : "#c4c4c4"};
 `;
 
 const AreaInfo = styled.div`
@@ -89,7 +90,7 @@ const ModifyField = styled(Field)`
   border-radius: 2px;
 
   color: #767676;
-  width: ${({ isLong }) => isLong ? "80px" : "30px"};
+  width: ${({ isLong }) => (isLong ? "80px" : "30px")};
 `;
 
 const DataErrorMessage = styled(CustomErrorMessage)`
@@ -101,7 +102,10 @@ const validationSchema = (dataFields) =>
   Yup.object().shape({
     status: Yup.string()
       .uppercase()
-      .matches(/\bCONSERVED\b|\bDISTURBED\b/, "Status must be either CONSERVED or DISTURBED"),
+      .matches(
+        /\bCONSERVED\b|\bDISTURBED\b/,
+        "Status must be either CONSERVED or DISTURBED"
+      ),
     ...dataFields.reduce(
       (obj, item) => ({
         ...obj,
@@ -124,12 +128,22 @@ class BasePopup extends Component {
     };
   }
 
+  _arrayBufferToBase64 = ( buffer ) => {
+      var binary = '';
+      var bytes = new Uint8Array( buffer );
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+          binary += String.fromCharCode( bytes[ i ] );
+      }
+      return window.btoa( binary );
+  }
+
   render() {
     const { properties, isModifyingData } = this.props;
 
     return (
       <React.Fragment>
-        <PopupImage />
+        <PopupImage backgroundImage={properties.image && `data:${properties.image.contentType};base64,${this._arrayBufferToBase64(properties.image.data.data)}`} />
         <AreaInfo>
           <Formik
             initialValues={{
@@ -150,7 +164,10 @@ class BasePopup extends Component {
                 Object.keys(obj)
                   .filter((key) => predicate(obj[key]))
                   .reduce((res, key) => ((res[key] = obj[key]), res), {});
-              const filteredValues = Object.filter(values, (field) => !isNaN(field));
+              const filteredValues = Object.filter(
+                values,
+                (field) => !isNaN(field)
+              );
 
               await api
                 .updateData(properties._id, {
@@ -230,9 +247,8 @@ class BasePopup extends Component {
                             ) : (
                               field.label + ":"
                             )}{" "}
-                            <strong>{`${properties[field.value]} ${
-                              field.unit || ""
-                            }`}</strong>
+                            <strong>{`${properties[field.value]} ${field.unit ||
+                              ""}`}</strong>
                           </InfoStat>
                           <br />
                         </React.Fragment>
