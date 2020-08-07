@@ -70,12 +70,6 @@ class BaseMap extends Component {
     };
   }
 
-  componentDidMount() {
-    // if (Object.keys(this.props.areas).length > 0) {
-    //   this.setState({ isLoadingPopups: false });
-    // }
-  }
-
   addPopup = (e) => {
     this.setState({
       popup: {

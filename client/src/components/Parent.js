@@ -64,7 +64,6 @@ class Parent extends Component {
         .getAllData()
         .then((res) => {
           const finalData = this.processSiteData(newCoords, res.data.data);
-          const areaProps = finalData.map((coord) => coord.properties);
 
           this.setState({
             areas: finalData,
@@ -73,7 +72,11 @@ class Parent extends Component {
           });
         })
         .catch((err) =>
-          this.setState({ areas: {}, isLoadingMap: false, isLoadingPopups: false })
+          this.setState({
+            areas: {},
+            isLoadingMap: false,
+            isLoadingPopups: false,
+          })
         );
     });
   }
@@ -87,20 +90,16 @@ class Parent extends Component {
     return newSites;
   };
 
-  processSiteData = (newCoords, data) => {
-    let finalData = [];
-    data.forEach((siteData) => {
-      finalData.push({
-        ...newCoords[siteData.siteCode],
-        properties: {
-          ...siteData,
-          ...(newCoords[siteData.siteCode] &&
-            newCoords[siteData.siteCode].properties),
-        },
-      });
-    });
-    return finalData;
-  };
+  processSiteData = (newCoords, data) =>
+    data.map((siteData) => ({
+      ...newCoords[siteData.siteCode],
+      properties: {
+        ...siteData,
+        ...(newCoords[siteData.siteCode] &&
+          newCoords[siteData.siteCode].properties),
+        coordId: newCoords[siteData.siteCode] && newCoords[siteData.siteCode]._id,
+      },
+    }));
 
   setLatLng = (latlng) => {
     this.setState({ latLng: latlng });

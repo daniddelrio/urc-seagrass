@@ -4,7 +4,10 @@ import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
+import { uploadSiteImage } from "../services/siteCoord-services";
 import * as Yup from "yup";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCamera } from "@fortawesome/free-solid-svg-icons";
 
 const StatusBoxColors = {
   DISTURBED: {
@@ -22,7 +25,22 @@ const StatusBoxColors = {
 const PopupImage = styled.div`
   height: 150px;
   width: auto;
-  background: ${({backgroundImage}) => backgroundImage ? `url(${backgroundImage}) center/cover no-repeat` : "#c4c4c4"};
+  background: ${({ backgroundImage }) =>
+    backgroundImage
+      ? `url(${backgroundImage}) center/cover no-repeat`
+      : "#c4c4c4"};
+  position: relative;
+`;
+
+const UploadLabel = styled.label`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(232, 232, 232, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
 `;
 
 const AreaInfo = styled.div`
@@ -125,25 +143,97 @@ class BasePopup extends Component {
     this.state = {
       error: null,
       dataFields: [],
+      image: {
+        preview: "",
+        raw: "",
+      },
     };
   }
 
-  _arrayBufferToBase64 = ( buffer ) => {
-      var binary = '';
-      var bytes = new Uint8Array( buffer );
-      var len = bytes.byteLength;
-      for (var i = 0; i < len; i++) {
-          binary += String.fromCharCode( bytes[ i ] );
-      }
-      return window.btoa( binary );
-  }
+  _arrayBufferToBase64 = (buffer) => {
+    var binary = "";
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  handleChange = (e) => {
+    if (e.target.files.length) {
+      this.setState({
+        image: {
+          preview: URL.createObjectURL(e.target.files[0]),
+          raw: e.target.files[0],
+        },
+      });
+    }
+  };
+
+  handleSubmit = async (properties, values) => {
+    Object.filter = (obj, predicate) =>
+      Object.keys(obj)
+        .filter((key) => predicate(obj[key]))
+        .reduce((res, key) => ((res[key] = obj[key]), res), {});
+    const filteredValues = Object.filter(values, (field) => !isNaN(field));
+
+    const formData = new FormData();
+    formData.append("file", this.state.image.raw);
+    const config = { headers: { "Content-Type": "multipart/form-data" } };
+
+    await Promise.all([
+      async () =>
+        await api
+          .updateData(properties._id, {
+            ...filteredValues,
+            ...properties,
+          })
+          .catch((err) => this.setState({ error: err })),
+      this.state.image.preview &&
+        (await uploadSiteImage(properties.coordId, formData, config).catch(
+          (err) => this.setState({ error: err })
+        )),
+    ])
+      .then((data) => {
+        window.location.reload();
+      })
+      .catch((err) => {
+        this.setState({ error: err });
+      });
+  };
 
   render() {
     const { properties, isModifyingData } = this.props;
 
     return (
       <React.Fragment>
-        <PopupImage backgroundImage={properties.image && `data:${properties.image.contentType};base64,${this._arrayBufferToBase64(properties.image.data.data)}`} />
+        <PopupImage
+          backgroundImage={
+            (isModifyingData && this.state.image.preview) ||
+            (properties.image &&
+              `data:${
+                properties.image.contentType
+              };base64,${this._arrayBufferToBase64(
+                properties.image.data.data
+              )}`) ||
+            null
+          }
+        >
+          {isModifyingData && (
+            <React.Fragment>
+              <UploadLabel htmlFor="upload-button">
+                <FontAwesomeIcon size="3x" icon={faCamera} />
+              </UploadLabel>
+              <input
+                type="file"
+                id="upload-button"
+                style={{ display: "none" }}
+                onChange={this.handleChange}
+              />
+            </React.Fragment>
+          )}
+        </PopupImage>
         <AreaInfo>
           <Formik
             initialValues={{
@@ -160,26 +250,7 @@ class BasePopup extends Component {
             }}
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(false);
-              Object.filter = (obj, predicate) =>
-                Object.keys(obj)
-                  .filter((key) => predicate(obj[key]))
-                  .reduce((res, key) => ((res[key] = obj[key]), res), {});
-              const filteredValues = Object.filter(
-                values,
-                (field) => !isNaN(field)
-              );
-
-              await api
-                .updateData(properties._id, {
-                  ...filteredValues,
-                  ...properties,
-                })
-                .then((data) => {
-                  window.location.reload();
-                })
-                .catch((err) => {
-                  this.setState({ error: err });
-                });
+              await this.handleSubmit(properties, values);
             }}
             validationSchema={() => validationSchema(this.props.dataFields)}
           >
