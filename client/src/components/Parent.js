@@ -179,6 +179,7 @@ class Parent extends Component {
           setLatLng={this.setLatLng}
           latLng={this.state.latLng}
           turnOffModifyingData={this.turnOffModifyingData}
+          dataFields={this.state.dataFields}
         />
       </AppDiv>
     );

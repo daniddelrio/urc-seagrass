@@ -12,7 +12,6 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
-import getData from "../dataFields";
 
 const customStyles = {
   option: (provided, { data }) => ({
@@ -176,7 +175,6 @@ class SidebarContribution extends Component {
     super(props);
     this.state = {
       error: null,
-      dataFields: [],
       selectOptions: [],
     };
   }
@@ -197,9 +195,6 @@ class SidebarContribution extends Component {
         selectOptions: selectOptions,
       });
     });
-
-    const dataFields = await getData();
-    this.setState({ dataFields });
   }
 
   componentDidUpdate(prevProps, prevstate) {
@@ -210,7 +205,7 @@ class SidebarContribution extends Component {
 
   render() {
     const dataFieldsObj = (values) =>
-      this.state.dataFields.reduce(
+      this.props.dataFields.reduce(
         (obj, item) => ({
           ...obj,
           ...(values[item.value] !== "" && {
@@ -232,7 +227,7 @@ class SidebarContribution extends Component {
             area: null,
             date: "",
             ...dataFieldsObj(
-              this.state.dataFields.map((field) => ({ [field.value]: null }))
+              this.props.dataFields.map((field) => ({ [field.value]: null }))
             ),
           }}
           onSubmit={async (values, { setSubmitting }) => {
@@ -264,7 +259,7 @@ class SidebarContribution extends Component {
               });
             }
           }}
-          validationSchema={() => validationSchema(this.state.dataFields)}
+          validationSchema={() => validationSchema(this.props.dataFields)}
         >
           {({
             values,
@@ -322,7 +317,7 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                {this.state.dataFields.map((field) => (
+                {this.props.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
                     <LabelField for="seagrassCount">{field.label}</LabelField>
                     <FlexDiv>
@@ -350,7 +345,7 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {this.state.dataFields.map(
+                {this.props.dataFields.map(
                   (field) =>
                     errors[field.value] &&
                     touched[field.value] && (
@@ -364,7 +359,7 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !this.state.dataFields.some(
+                    !this.props.dataFields.some(
                       (field) => !!values[field.value]
                     )
                   }

@@ -132,6 +132,7 @@ class BaseSidebar extends Component {
             showLogoutButton={this.showLogoutButton}
             toggleModifyingData={this.props.toggleModifyingData}
             isModifyingData={this.props.isModifyingData}
+            dataFields={this.props.dataFields}
           />
         );
       case "contribLogin":
@@ -156,6 +157,7 @@ class BaseSidebar extends Component {
             isChoosingCoords={this.state.isChoosingCoords}
             setLatLng={this.props.setLatLng}
             latLng={this.props.latLng}
+            dataFields={this.props.dataFields}
           />
         );
       case "contribDone":
