@@ -10,6 +10,7 @@ const dataFieldsWithSchema = dataFields.reduce(
 
 const SiteData = new Schema(
     {
+        siteId: { type: String },
         siteCode: { type: String, required: true },
         year: { type: Number, required: true },
         status: {

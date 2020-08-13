@@ -4,7 +4,7 @@ import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
-import { uploadSiteImage } from "../services/siteCoord-services";
+import { uploadSiteImage, updateCoords } from "../services/siteCoord-services";
 import * as Yup from "yup";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera } from "@fortawesome/free-solid-svg-icons";
@@ -108,7 +108,9 @@ const ModifyField = styled(Field)`
   border-radius: 2px;
 
   color: #767676;
-  width: ${({ isLong }) => (isLong ? "80px" : "30px")};
+  width: ${({ isLong, isVeryLong }) =>
+    isVeryLong ? "150px" : isLong ? "80px" : "30px"};
+  margin-right: ${({ isVeryLong }) => (isVeryLong ? "1rem" : 0)};
 `;
 
 const DataErrorMessage = styled(CustomErrorMessage)`
@@ -183,20 +185,25 @@ class BasePopup extends Component {
     const config = { headers: { "Content-Type": "multipart/form-data" } };
 
     await Promise.all([
-      async () =>
-        await api
-          .updateData(properties._id, {
-            ...filteredValues,
-            ...properties,
-          })
-          .catch((err) => this.setState({ error: err })),
+      await api
+        .updateData(properties._id, {
+          ...filteredValues,
+          ...properties,
+        })
+        .catch((err) => {this.setState({ error: err })}),
+      await updateCoords(properties.coordId, {
+        properties: {
+          areaName: values.areaName,
+          siteCode: values.siteCode,
+        },
+      }).then(data => {console.log(data)}).catch((err) => {this.setState({ error: err }); console.log(err)}),
       this.state.image.preview &&
         (await uploadSiteImage(properties.coordId, formData, config).catch(
-          (err) => this.setState({ error: err })
+          (err) => {this.setState({ error: err })}
         )),
     ])
       .then((data) => {
-        window.location.reload();
+        // window.location.reload();
       })
       .catch((err) => {
         this.setState({ error: err });
@@ -256,14 +263,22 @@ class BasePopup extends Component {
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
-                <AreaName>
-                  {properties.areaName ||
-                    properties.coordinates
-                      .reverse()
-                      .map((coord) => coord.toFixed(4))
-                      .join(", ")}{" "}
-                  | {properties.year}
-                </AreaName>
+                {isModifyingData ? (
+                  <ModifyField
+                    name="areaName"
+                    defaultValue={properties.areaName}
+                    isVeryLong
+                  />
+                ) : (
+                  <AreaName>
+                    {properties.areaName ||
+                      properties.coordinates
+                        .reverse()
+                        .map((coord) => coord.toFixed(4))
+                        .join(", ")}{" "}
+                    | {properties.year}
+                  </AreaName>
+                )}
                 {isModifyingData ? (
                   <ModifyField
                     name="status"
@@ -291,6 +306,16 @@ class BasePopup extends Component {
                           <span>Error: {errors[key]}</span>
                         </DataErrorMessage>
                       )
+                  )}
+                  {isModifyingData && (
+                    <InfoStat>
+                      Site Code: &nbsp;{" "}
+                      <ModifyField
+                        name="siteCode"
+                        defaultValue={properties.siteCode}
+                      />
+                      <br />
+                    </InfoStat>
                   )}
                   {this.props.dataFields.map((field) =>
                     isModifyingData ? (

@@ -308,9 +308,7 @@ class SidebarAdminHome extends Component {
 
   filterDataByYear = (code, year) =>
     this.props.areas.filter(
-      (area) =>
-        area.properties.year == year  &&
-        area.properties.siteCode == code
+      (area) => area.properties.year == year && area.properties.siteCode == code
     );
 
   /* 
@@ -320,10 +318,7 @@ class SidebarAdminHome extends Component {
   summarizeContrib = (contrib) => {
     if (contrib && Object.keys(this.props.areas).length > 0) {
       const year = new Date(contrib.date).getFullYear();
-      let filteredDataByYearAndCode = this.filterDataByYear(
-        contrib.site,
-        year
-      );
+      let filteredDataByYearAndCode = this.filterDataByYear(contrib.site, year);
       if (filteredDataByYearAndCode.length == 0) {
         let toBeDisplayedFields = this.props.dataFields.filter(
           (field) => contrib[field.value]
@@ -332,7 +327,8 @@ class SidebarAdminHome extends Component {
           (field) => `${field.label} - ${contrib[field.value]}`
         );
         return (
-          `Add ${year} ${contrib.site || "New Area"}: ` + toBeDisplayedFields.join("; ")
+          `Add ${year} ${contrib.site || "New Area"}: ` +
+          toBeDisplayedFields.join("; ")
         );
       } else {
         let toBeDisplayedFields = this.props.dataFields.filter(
@@ -345,7 +341,9 @@ class SidebarAdminHome extends Component {
             `${field.label} from ${filteredDataByYearAndCode[field.value] ||
               "_"} to ${contrib[field.value]}`
         );
-        return `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ");
+        return (
+          `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ")
+        );
       }
     }
     return "";
@@ -394,7 +392,7 @@ class SidebarAdminHome extends Component {
 
   handleModifyClick = () => {
     this.props.toggleModifyingData();
-  }
+  };
 
   updateData = (data) => {
     this.setState({ data: data });
@@ -472,7 +470,9 @@ class SidebarAdminHome extends Component {
           </Dropdown>
         </React.Fragment>
 
-        <DefaultTitle onClick={this.handleModifyClick}>{`${this.props.isModifyingData ? "Stop Modifying" : "Modify"} Data on Map`}</DefaultTitle>
+        <DefaultTitle onClick={this.handleModifyClick}>{`${
+          this.props.isModifyingData ? "Stop Modifying" : "Modify"
+        } Data on Map`}</DefaultTitle>
 
         {getUser().isMaster && (
           <React.Fragment>
@@ -515,7 +515,10 @@ class SidebarAdminHome extends Component {
                             setSubmitting(false);
                             const { username, password1 } = values;
                             await api
-                              .updateAdmin(value.username, { username, password: password1 })
+                              .updateAdmin(value.username, {
+                                username,
+                                password: password1,
+                              })
                               .then((admin) => {
                                 window.location.reload();
                               });
@@ -580,9 +583,11 @@ class SidebarAdminHome extends Component {
                 onSubmit={async (values, { setSubmitting }) => {
                   setSubmitting(false);
                   const { username, password1 } = values;
-                  await api.createAdmin({username, password: password1}).then((admin) => {
-                    window.location.reload();
-                  });
+                  await api
+                    .createAdmin({ username, password: password1 })
+                    .then((admin) => {
+                      window.location.reload();
+                    });
                 }}
                 validationSchema={validationSchema}
               >
