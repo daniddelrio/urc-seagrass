@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Modification = require("./modification");
 const dataFields = require("../dataFields");
+const { takeModifications } = require('../config');
 
 const dataFieldsWithSchema = dataFields.reduce(
     (obj, item) => ({ ...obj, ...{ [item.value]: { type: Number } } }),
@@ -10,7 +11,7 @@ const dataFieldsWithSchema = dataFields.reduce(
 
 const SiteData = new Schema(
     {
-        siteId: { type: String },
+        siteId: { type: Schema.Types.ObjectId, ref: "siteCoords" },
         siteCode: { type: String, required: true },
         year: { type: Number, required: true },
         status: {
@@ -27,50 +28,52 @@ const SiteData = new Schema(
 
 // If a site is modified, create a Modification in order to log
 SiteData.post("findOneAndUpdate", function(result) {
-    let isModifiedAtAll = false;
-    const changes = [];
+    if(takeModifications) {
+        let isModifiedAtAll = false;
+        const changes = [];
 
-    if (this._update["$set"].status) {
-        isModifiedAtAll = true;
-        changes.push({
-            field: "status",
-            newValue: this._update["$set"].status,
-        });
-    }
-
-    dataFields.forEach((field) => {
-        if (this._update["$set"][field.value]) {
+        if (this._update["$set"].status) {
             isModifiedAtAll = true;
             changes.push({
-                field: field.value,
-                newValue: this._update["$set"][field.value],
+                field: "status",
+                newValue: this._update["$set"].status,
             });
         }
-    });
 
-    // only submit a modification if a field was modified
-    if (isModifiedAtAll) {
-        const modificationBody = {
-            siteCode: result.siteCode,
-            year: result.year,
-            changes: changes,
-        };
+        dataFields.forEach((field) => {
+            if (this._update["$set"][field.value]) {
+                isModifiedAtAll = true;
+                changes.push({
+                    field: field.value,
+                    newValue: this._update["$set"][field.value],
+                });
+            }
+        });
 
-        const modification = new Modification(modificationBody);
+        // only submit a modification if a field was modified
+        if (isModifiedAtAll) {
+            const modificationBody = {
+                siteCode: result.siteCode,
+                year: result.year,
+                changes: changes,
+            };
 
-        if (!modification) {
-            console.log("A modification couldn't be created!");
+            const modification = new Modification(modificationBody);
+
+            if (!modification) {
+                console.log("A modification couldn't be created!");
+            }
+
+            modification
+                .save()
+                .then(() => {
+                    console.log("A modification was added!");
+                })
+                .catch((error) => {
+                    console.log("A modification was not added!");
+                    console.log(error);
+                });
         }
-
-        modification
-            .save()
-            .then(() => {
-                console.log("A modification was added!");
-            })
-            .catch((error) => {
-                console.log("A modification was not added!");
-                console.log(error);
-            });
     }
 });
 

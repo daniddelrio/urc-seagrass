@@ -42,16 +42,16 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 
 const adminRouter = require('./routes/admin-router')
 const contribRouter = require('./routes/contrib-router')
+const siteCoordRouter = require('./routes/siteCoord-router')
 const siteInfoRouter = require('./routes/siteInfo-router')
 const modificationRouter = require('./routes/modification-router')
-const siteCoordRouter = require('./routes/siteCoord-router')
 const dataFieldsRouter = require('./routes/dataFields-router')
 
 app.use('/api', adminRouter)
 app.use('/api', contribRouter)
+app.use('/api', siteCoordRouter)
 app.use('/api', siteInfoRouter)
 app.use('/api', modificationRouter)
-app.use('/api', siteCoordRouter)
 app.use('/api', dataFieldsRouter)
 
 app.listen(port, () => console.log(`Server running on port ${port}`))
