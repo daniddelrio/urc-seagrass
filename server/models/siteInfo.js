@@ -1,13 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Modification = require("./modification");
-const dataFields = require("../dataFields");
 const { takeModifications } = require('../config');
-
-const dataFieldsWithSchema = dataFields.reduce(
-    (obj, item) => ({ ...obj, ...{ [item.value]: { type: Number } } }),
-    {}
-);
 
 const SiteData = new Schema(
     {
@@ -21,7 +15,12 @@ const SiteData = new Schema(
                 "CONSERVED",
             ],
         },
-        ...dataFieldsWithSchema,
+        parameters: [
+            {
+                paramId: { type: Schema.Types.ObjectId, ref: "dataFields" },
+                paramValue: Number
+            }
+        ]
     },
     { timestamps: true }
 );
@@ -40,12 +39,12 @@ SiteData.post("findOneAndUpdate", function(result) {
             });
         }
 
-        dataFields.forEach((field) => {
-            if (this._update["$set"][field.value]) {
+        this._update["$set"].parameters.forEach((field) => {
+            if (field) {
                 isModifiedAtAll = true;
                 changes.push({
-                    field: field.value,
-                    newValue: this._update["$set"][field.value],
+                    field: field.paramId,
+                    newValue: field.paramValue,
                 });
             }
         });
@@ -53,7 +52,7 @@ SiteData.post("findOneAndUpdate", function(result) {
         // only submit a modification if a field was modified
         if (isModifiedAtAll) {
             const modificationBody = {
-                siteCode: result.siteCode,
+                siteId: result.siteId,
                 year: result.year,
                 changes: changes,
             };

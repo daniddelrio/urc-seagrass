@@ -1,5 +1,4 @@
 const SiteData = require("../models/siteInfo");
-const dataFields = require('../dataFields')
 
 createData = (req, res) => {
     const body = req.body;
@@ -43,16 +42,12 @@ updateData = (req, res) => {
         });
     }
 
-    const dataFieldsObj = dataFields.reduce((obj, item) => ({...obj, ...(body[item.value] !== undefined && {
-        [item.value]: body[item.value]
-    })}), {})
-
     SiteData.findOneAndUpdate(
         { _id: req.params.id },
         {
             $set: {
                 ...(body.status !== undefined && { status: body.status }),
-                ...dataFieldsObj
+                parameters: body.parameters
             },
         },
         { new: true },
