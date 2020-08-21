@@ -306,9 +306,9 @@ class SidebarAdminHome extends Component {
     });
   };
 
-  filterDataByYear = (code, year) =>
+  filterDataByYear = (siteId, year) =>
     this.props.areas.filter(
-      (area) => area.properties.year == year && area.properties.siteCode == code
+      (area) => area.properties.year == year && area._siteId == siteId
     );
 
   /* 
@@ -316,31 +316,37 @@ class SidebarAdminHome extends Component {
   If they did, combine them into a single string
    */
   summarizeContrib = (contrib) => {
+    const getParam = (data, field) => data.parameters.find((param) => param.paramId == field._id);
+
     if (contrib && Object.keys(this.props.areas).length > 0) {
       const year = new Date(contrib.date).getFullYear();
-      let filteredDataByYearAndCode = this.filterDataByYear(contrib.site, year);
-      if (filteredDataByYearAndCode.length == 0) {
-        let toBeDisplayedFields = this.props.dataFields.filter(
-          (field) => contrib[field.value]
-        );
-        toBeDisplayedFields = toBeDisplayedFields.map(
-          (field) => `${field.label} - ${contrib[field.value]}`
-        );
+      let filteredDataByYearAndId = this.filterDataByYear(contrib.siteId, year);
+      if (filteredDataByYearAndId.length == 0) {
+        let toBeDisplayedFields = this.props.dataFields
+          .filter((field) => getParam(contrib, field))
+          .map(
+            (field) =>
+              `${field.label} - ${
+                getParam(contrib, field).paramValue
+              }`
+          );
         return (
-          `Add ${year} ${contrib.site || "New Area"}: ` +
+          `Add ${year} ${contrib.areaName || "New Area"}: ` +
           toBeDisplayedFields.join("; ")
         );
       } else {
-        let toBeDisplayedFields = this.props.dataFields.filter(
-          (field) =>
-            contrib[field.value] &&
-            contrib[field.value] != filteredDataByYearAndCode[field.value]
-        );
-        toBeDisplayedFields = toBeDisplayedFields.map(
-          (field) =>
-            `${field.label} from ${filteredDataByYearAndCode[field.value] ||
-              "_"} to ${contrib[field.value]}`
-        );
+        let toBeDisplayedFields = this.props.dataFields
+          .filter(
+            (field) =>
+              getParam(contrib, field) &&
+              getParam(contrib, field)
+                .paramValue != getParam(filteredDataByYearAndId, field)
+          )
+          .map(
+            (field) =>
+              `${field.label} from ${getParam(filteredDataByYearAndId, field) ||
+                "_"} to ${getParam(contrib, field)}`
+          );
         return (
           `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ")
         );

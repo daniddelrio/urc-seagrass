@@ -5,8 +5,7 @@ const { takeModifications } = require('../config');
 
 const SiteData = new Schema(
     {
-        siteId: { type: Schema.Types.ObjectId, ref: "siteCoords" },
-        siteCode: { type: String, required: true },
+        siteId: { type: Schema.Types.ObjectId, ref: "siteCoords", required: true },
         year: { type: Number, required: true },
         status: {
             type: String,

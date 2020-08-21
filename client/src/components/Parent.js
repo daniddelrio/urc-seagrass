@@ -85,19 +85,19 @@ class Parent extends Component {
   changeSiteKey = (coords) => {
     const newSites = {};
     coords.forEach((site) => {
-      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
+      newSites[site._id] = site;
     });
     return newSites;
   };
 
   processSiteData = (newCoords, data) =>
     data.map((siteData) => ({
-      ...newCoords[siteData.siteCode],
+      ...newCoords[siteData.siteId],
       properties: {
         ...siteData,
-        ...(newCoords[siteData.siteCode] &&
-          newCoords[siteData.siteCode].properties),
-        coordId: newCoords[siteData.siteCode] && newCoords[siteData.siteCode]._id,
+        ...(newCoords[siteData.siteId] &&
+          newCoords[siteData.siteId].properties),
+        coordId: newCoords[siteData.siteId] && newCoords[siteData.siteId]._id,
       },
     }));
 

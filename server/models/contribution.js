@@ -56,7 +56,7 @@ Contribution.post("save", function(doc, next) {
                     const dataBody = {
                         siteId,
                         year,
-                        status,
+                        status: contribution.status,
                         parameters,
                     };
 

@@ -190,20 +190,31 @@ class BasePopup extends Component {
           ...filteredValues,
           ...properties,
         })
-        .catch((err) => {this.setState({ error: err })}),
+        .catch((err) => {
+          this.setState({ error: err });
+        }),
       await updateCoords(properties.coordId, {
         properties: {
           areaName: values.areaName,
           siteCode: values.siteCode,
         },
-      }).then(data => {console.log(data)}).catch((err) => {this.setState({ error: err }); console.log(err)}),
+      })
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          this.setState({ error: err });
+          console.log(err);
+        }),
       this.state.image.preview &&
         (await uploadSiteImage(properties.coordId, formData, config).catch(
-          (err) => {this.setState({ error: err })}
+          (err) => {
+            this.setState({ error: err });
+          }
         )),
     ])
       .then((data) => {
-        // window.location.reload();
+        window.location.reload();
       })
       .catch((err) => {
         this.setState({ error: err });
@@ -245,15 +256,17 @@ class BasePopup extends Component {
           <Formik
             initialValues={{
               status: properties.status,
-              ...this.props.dataFields.reduce(
-                (obj, item) => ({
+              ...this.props.dataFields.reduce((obj, item) => {
+                const param = properties.parameters.find(
+                  (param) => param.paramId == item._id
+                );
+                return {
                   ...obj,
                   ...{
-                    [item.value]: properties[item.value] || "",
+                    [item.value]: (param && param.paramValue) || "",
                   },
-                }),
-                {}
-              ),
+                };
+              }, {}),
             }}
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(false);
@@ -317,8 +330,11 @@ class BasePopup extends Component {
                       <br />
                     </InfoStat>
                   )}
-                  {this.props.dataFields.map((field) =>
-                    isModifyingData ? (
+                  {this.props.dataFields.map((field) => {
+                    const param = properties.parameters.find(
+                      (param) => param.paramId == field._id
+                    );
+                    return isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>
                           {this.props.parameter === field.value ? (
@@ -328,14 +344,14 @@ class BasePopup extends Component {
                           )}{" "}
                           <ModifyField
                             name={field.value}
-                            defaultValue={properties[field.value]}
+                            defaultValue={(param && param.paramValue) || ""}
                           />{" "}
                           {field.unit || ""}
                         </InfoStat>
                         <br />
                       </React.Fragment>
                     ) : (
-                      !isNaN(properties[field.value]) && (
+                      param && !isNaN(param.paramValue) && (
                         <React.Fragment>
                           <InfoStat>
                             {this.props.parameter === field.value ? (
@@ -343,14 +359,14 @@ class BasePopup extends Component {
                             ) : (
                               field.label + ":"
                             )}{" "}
-                            <strong>{`${properties[field.value]} ${field.unit ||
+                            <strong>{`${param.paramValue} ${field.unit ||
                               ""}`}</strong>
                           </InfoStat>
                           <br />
                         </React.Fragment>
                       )
-                    )
-                  )}
+                    );
+                  })}
                 </FieldsDiv>
                 <ModifyButton type="submit" disabled={!isModifyingData}>
                   Modify Data
