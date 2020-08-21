@@ -18,7 +18,11 @@ import { Formik, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import api from "../services/admin-services";
 import contribApi from "../services/contrib-services";
+import paramApi from "../services/dataFields-services";
 import { getUser } from "../services/auth-funcs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
+import Select from "react-select";
 
 const ReviewContributions = styled.div`
   height: 85%;
@@ -162,6 +166,7 @@ const Checkbox = ({ className, checked, ...props }) => (
 // transition: 0.5s height;
 const DropdownAdmin = styled.div`
   visibility: ${(props) => (props.isActive ? "visible" : "hidden")};
+  display: ${(props) => (props.isActive ? "block" : "none")};
 `;
 
 const DefaultTitle = styled.h4`
@@ -231,6 +236,7 @@ const ModifyAdmin = styled(AddAdmin)`
 const AdminFields = styled.div`
   opacity: ${(props) => (props.isShowing ? "100%" : "0%")};
   transition: opacity 0.4s;
+  display: ${(props) => (props.isShowing ? "block" : "none")};
 
   padding-top: 1rem;
   padding-bottom: 0.1rem;
@@ -250,6 +256,72 @@ const SubmitAdminButton = styled(FilledButton)`
   margin-bottom: 0.25rem;
 `;
 
+const customStyles = {
+  option: (provided, { data }) => ({
+    ...provided,
+    background: "#5F5F5F",
+    fontSize: "13px",
+    color: "#999999",
+    fontWeight: 600,
+    paddingBottom: "0.3rem",
+    paddingTop: "0.3rem",
+    cursor: "pointer",
+
+    ":active": {},
+  }),
+  control: (styles, state) => ({
+    ...styles,
+    height: "33px",
+    minHeight: "33px",
+    background: "#4F4F4F",
+    fontSize: "13px",
+    fontWeight: 600,
+    border: "0.7px solid #9A9A9A",
+    boxSizing: "border-box",
+    borderRadius: "4px",
+    marginRight: "0.5rem",
+  }),
+  input: (provided, state) => ({
+    ...provided,
+    margin: "0px",
+  }),
+  valueContainer: (provided, state) => ({
+    ...provided,
+    height: "33px",
+    padding: "0 6px",
+  }),
+  indicatorsContainer: (provided, state) => ({
+    ...provided,
+    height: "33px",
+  }),
+  menu: (styles) => ({
+    ...styles,
+    flex: 1,
+    background: "#5F5F5F",
+    border: "0.8px solid #AFAFAF",
+    // boxSizing: "border-box",
+    borderRadius: "4px",
+  }),
+  singleValue: (provided, state) => ({
+    color: "#808080",
+  }),
+  indicatorSeparator: () => ({}),
+  dropdownIndicator: () => ({ display: "none" }),
+};
+
+const LabelField = styled.label`
+  font-weight: 600;
+  font-size: 1em;
+  line-height: 15px;
+  align-items: center;
+
+  color: #808080;
+`;
+
+const FlexDiv = styled.div`
+  display: flex;
+`;
+
 const validationSchema = Yup.object({
   username: Yup.string().required("No username provided"),
   password1: Yup.string()
@@ -264,6 +336,23 @@ const validationSchema = Yup.object({
   }),
 });
 
+const validationSchemaParam = Yup.object({
+  label: Yup.string().required("No label provided"),
+  unit: Yup.string(),
+  greenLess: Yup.string(),
+  greenLessVal: Yup.number(),
+  greenGreater: Yup.string(),
+  greenGreaterVal: Yup.number(),
+  yellowLess: Yup.string(),
+  yellowLessVal: Yup.number(),
+  yellowGreater: Yup.string(),
+  yellowGreaterVal: Yup.number(),
+  redLess: Yup.string(),
+  redLessVal: Yup.number(),
+  redGreater: Yup.string(),
+  redGreaterVal: Yup.number(),
+});
+
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 1em;
   margin-bottom: 0.4rem;
@@ -276,13 +365,15 @@ class SidebarAdminHome extends Component {
       activeSection: "",
       showModal: "",
       isAdminShowing: false,
+      isParamShowing: false,
       checked: false,
       data: [],
       admins: [],
+      dataFields: [],
     };
   }
 
-  componentDidMount = async () => {
+  async componentDidMount() {
     this.props.showLogoutButton("Log out");
 
     await api.getAllAdmins().then((res) => {
@@ -304,7 +395,14 @@ class SidebarAdminHome extends Component {
         })),
       });
     });
-  };
+
+    this.setState({
+      dataFields: this.props.dataFields.map((field) => ({
+        ...field,
+        showingModify: false,
+      })),
+    });
+  }
 
   filterDataByYear = (siteId, year) =>
     this.props.areas.filter(
@@ -316,7 +414,8 @@ class SidebarAdminHome extends Component {
   If they did, combine them into a single string
    */
   summarizeContrib = (contrib) => {
-    const getParam = (data, field) => data.parameters.find((param) => param.paramId == field._id);
+    const getParam = (data, field) =>
+      data.parameters.find((param) => param.paramId == field._id);
 
     if (contrib && Object.keys(this.props.areas).length > 0) {
       const year = new Date(contrib.date).getFullYear();
@@ -325,10 +424,7 @@ class SidebarAdminHome extends Component {
         let toBeDisplayedFields = this.props.dataFields
           .filter((field) => getParam(contrib, field))
           .map(
-            (field) =>
-              `${field.label} - ${
-                getParam(contrib, field).paramValue
-              }`
+            (field) => `${field.label} - ${getParam(contrib, field).paramValue}`
           );
         return (
           `Add ${year} ${contrib.areaName || "New Area"}: ` +
@@ -339,8 +435,8 @@ class SidebarAdminHome extends Component {
           .filter(
             (field) =>
               getParam(contrib, field) &&
-              getParam(contrib, field)
-                .paramValue != getParam(filteredDataByYearAndId, field)
+              getParam(contrib, field).paramValue !=
+                getParam(filteredDataByYearAndId, field)
           )
           .map(
             (field) =>
@@ -360,16 +456,28 @@ class SidebarAdminHome extends Component {
     this.setState({ activeSection: currSection });
   };
 
-  toggleModify = (index) => {
-    this.setState({
-      admins: {
-        ...this.state.admins,
-        [index]: {
-          ...this.state.admins[index],
-          showingModify: !this.state.admins[index].showingModify,
+  toggleModify = (isAdmin, index) => {
+    if (isAdmin) {
+      this.setState({
+        admins: {
+          ...this.state.admins,
+          [index]: {
+            ...this.state.admins[index],
+            showingModify: !this.state.admins[index].showingModify,
+          },
         },
-      },
-    });
+      });
+    } else {
+      this.setState({
+        dataFields: {
+          ...this.state.dataFields,
+          [index]: {
+            ...this.state.dataFields[index],
+            showingModify: !this.state.dataFields[index].showingModify,
+          },
+        },
+      });
+    }
   };
 
   setModal = (kind) => {
@@ -382,6 +490,10 @@ class SidebarAdminHome extends Component {
 
   toggleAdmin = () => {
     this.setState({ isAdminShowing: !this.state.isAdminShowing });
+  };
+
+  toggleParam = () => {
+    this.setState({ isParamShowing: !this.state.isParamShowing });
   };
 
   handleCheckboxChange = (event, index) => {
@@ -480,6 +592,545 @@ class SidebarAdminHome extends Component {
           this.props.isModifyingData ? "Stop Modifying" : "Modify"
         } Data on Map`}</DefaultTitle>
 
+        <React.Fragment>
+          <DefaultTitle onClick={() => this.setActiveSection("modifyParams")}>
+            Modify Parameters
+          </DefaultTitle>
+          <DropdownAdmin isActive={this.state.activeSection == "modifyParams"}>
+            <ManageAdmins isActive={this.state.activeSection == "modifyParams"}>
+              {Object.entries(this.state.dataFields).map(([key, value]) => (
+                <React.Fragment key={value._id}>
+                  <Administrator key={value._id}>
+                    <div style={{ color: "#797979" }}>
+                      <FontAwesomeIcon icon={faPencilAlt} />
+                    </div>
+                    <AdminUsername>{value.label}</AdminUsername>
+                    <ModifyText onClick={() => this.toggleModify(false, key)}>
+                      {value.showingModify ? "Cancel" : "Modify"}
+                    </ModifyText>
+                  </Administrator>
+                  {value.showingModify && (
+                    <ModifyAdmin
+                      isShowing={
+                        value.showingModify &&
+                        this.state.activeSection == "modifyParams"
+                      }
+                      key={"modifyField" + key}
+                    >
+                      <span onClick={() => this.toggleModify(false, key)}>
+                        Modify {value.label}
+                      </span>
+                      <Formik
+                        initialValues={{
+                          label: value.label,
+                          unit: value.unit,
+                          greenLess: (value.standards && value.standards.green && value.standards.green.lessThan)
+                            ? value.standards.green.lessThan.hasEqual
+                              ? "lessThanEq"
+                              : "lessThan"
+                            : "",
+                          greenLessVal: (value.standards && value.standards.green && value.standards.green.lessThan)
+                            ? value.standards.green.lessThan.standard
+                            : "",
+                          greenGreater: (value.standards && value.standards.green && value.standards.green.greaterThan)
+                            ? value.standards.green.greaterThan.hasEqual
+                              ? "greaterThanEq"
+                              : "greaterThan"
+                            : "",
+                          greenGreaterVal: (value.standards && value.standards.green && value.standards.green.greaterThan)
+                            ? value.standards.green.greaterThan.standard
+                            : "",
+                          yellowLess: (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
+                            ? value.standards.yellow.lessThan.hasEqual
+                              ? "lessThanEq"
+                              : "lessThan"
+                            : "",
+                          yellowLessVal: (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
+                            ? value.standards.yellow.lessThan.standard
+                            : "",
+                          yellowGreater: (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
+                            ? value.standards.yellow.greaterThan.hasEqual
+                              ? "greaterThanEq"
+                              : "greaterThan"
+                            : "",
+                          yellowGreaterVal: (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
+                            ? value.standards.yellow.greaterThan.standard
+                            : "",
+                          redLess: (value.standards && value.standards.red && value.standards.red.lessThan)
+                            ? value.standards.red.lessThan.hasEqual
+                              ? "lessThanEq"
+                              : "lessThan"
+                            : "",
+                          redLessVal: (value.standards && value.standards.red && value.standards.red.lessThan)
+                            ? value.standards.red.lessThan.standard
+                            : "",
+                          redGreater: (value.standards && value.standards.red && value.standards.red.greaterThan)
+                            ? value.standards.red.greaterThan.hasEqual
+                              ? "greaterThanEq"
+                              : "greaterThan"
+                            : "",
+                          redGreaterVal: (value.standards && value.standards.red && value.standards.red.greaterThan)
+                            ? value.standards.red.greaterThan.standard
+                            : "",
+                        }}
+                        onSubmit={async (values, { setSubmitting }) => {
+                          setSubmitting(false);
+                          const { label, unit } = values;
+
+                          const green = (values.greenGreaterVal ||
+                            values.greenLessVal) && {
+                            ...(values.greenGreaterVal && {
+                              greaterThan: {
+                                hasEqual:
+                                  values.greenGreater == "greaterThanEq",
+                                standard: values.greenGreaterVal,
+                              },
+                            }),
+                            ...(values.greenLessVal && {
+                              lessThan: {
+                                hasEqual: values.greenLess == "lessThanEq",
+                                standard: values.greenLessVal,
+                              },
+                            }),
+                          };
+                          const yellow = (values.yellowGreaterVal ||
+                            values.yellowLessVal) && {
+                            ...(values.yellowGreaterVal && {
+                              greaterThan: {
+                                hasEqual:
+                                  values.yellowGreater == "greaterThanEq",
+                                standard: values.yellowGreaterVal,
+                              },
+                            }),
+                            ...(values.yellowLessVal && {
+                              lessThan: {
+                                hasEqual: values.yellowLess == "lessThanEq",
+                                standard: values.yellowLessVal,
+                              },
+                            }),
+                          };
+                          const red = (values.redGreaterVal ||
+                            values.redLessVal) && {
+                            ...(values.redGreaterVal && {
+                              greaterThan: {
+                                hasEqual: values.redGreater == "greaterThanEq",
+                                standard: values.redGreaterVal,
+                              },
+                            }),
+                            ...(values.redLessVal && {
+                              lessThan: {
+                                hasEqual: values.redLess == "lessThanEq",
+                                standard: values.redLessVal,
+                              },
+                            }),
+                          };
+
+                          const body = {
+                            label,
+                            unit,
+                            ...((green || yellow || red) && {
+                              standards: {
+                                ...(green && { green }),
+                                ...(yellow && { yellow }),
+                                ...(red && { red }),
+                              },
+                            }),
+                          };
+                          await paramApi
+                            .updateField(value._id, body)
+                            .then((param) => {
+                              window.location.reload();
+                            });
+                        }}
+                        validationSchema={validationSchemaParam}
+                      >
+                        {({ isSubmitting, errors, touched }) => (
+                          <Form>
+                            <AdminFields
+                              isActive={value.showingModify}
+                              isShowing={value.showingModify}
+                            >
+                              <TextField name="label" placeholder="Label" />
+                              <TextField name="unit" placeholder="Unit" />
+                              <LabelField>Green Standards</LabelField>
+                              <FlexDiv>
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="greenLess"
+                                    placeholder="<"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "lessThan", label: "<" },
+                                      { value: "lessThanEq", label: "≤" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.green && value.standards.green.lessThan)
+                                        ? value.standards.green.lessThan
+                                            .hasEqual
+                                          ? { value: "lessThanEq", label: "≤" }
+                                          : { value: "lessThan", label: "<" }
+                                        : { value: "lessThan", label: "<" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="greenLessVal"
+                                  placeholder="Less than"
+                                  style={{ marginRight: "0.5rem" }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="greenGreater"
+                                    placeholder=">"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "greaterThan", label: ">" },
+                                      { value: "greaterThanEq", label: "≥" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.green && value.standards.green.greaterThan)
+                                        ? value.standards.green.greaterThan
+                                            .hasEqual
+                                          ? {
+                                              value: "greaterThanEq",
+                                              label: "≥",
+                                            }
+                                          : { value: "greaterThan", label: ">" }
+                                        : { value: "greaterThan", label: ">" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="greenGreaterVal"
+                                  placeholder="Greater than"
+                                />
+                              </FlexDiv>
+                              <LabelField>Yellow Standards</LabelField>
+                              <FlexDiv>
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="yellowLess"
+                                    placeholder="<"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "lessThan", label: "<" },
+                                      { value: "lessThanEq", label: "≤" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
+                                        ? value.standards.yellow.lessThan
+                                            .hasEqual
+                                          ? { value: "lessThanEq", label: "≤" }
+                                          : { value: "lessThan", label: "<" }
+                                        : { value: "lessThan", label: "<" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="yellowLessVal"
+                                  placeholder="Less than"
+                                  style={{ marginRight: "0.5rem" }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="yellowGreater"
+                                    placeholder=">"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "greaterThan", label: ">" },
+                                      { value: "greaterThanEq", label: "≥" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
+                                        ? value.standards.yellow.greaterThan
+                                            .hasEqual
+                                          ? {
+                                              value: "greaterThanEq",
+                                              label: "≥",
+                                            }
+                                          : { value: "greaterThan", label: ">" }
+                                        : { value: "greaterThan", label: ">" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="yellowGreaterVal"
+                                  placeholder="Greater than"
+                                />
+                              </FlexDiv>
+                              <LabelField>Red Standards</LabelField>
+                              <FlexDiv>
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="redLess"
+                                    placeholder="<"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "lessThan", label: "<" },
+                                      { value: "lessThanEq", label: "≤" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.red && value.standards.red.lessThan)
+                                        ? value.standards.red.lessThan.hasEqual
+                                          ? { value: "lessThanEq", label: "≤" }
+                                          : { value: "lessThan", label: "<" }
+                                        : { value: "lessThan", label: "<" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="redLessVal"
+                                  placeholder="Less than"
+                                  style={{ marginRight: "0.5rem" }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <Select
+                                    name="redGreater"
+                                    placeholder=">"
+                                    styles={customStyles}
+                                    options={[
+                                      { value: "greaterThan", label: ">" },
+                                      { value: "greaterThanEq", label: "≥" },
+                                    ]}
+                                    defaultValue={
+                                      (value.standards && value.standards.red && value.standards.red.greaterThan)
+                                        ? value.standards.red.greaterThan
+                                            .hasEqual
+                                          ? {
+                                              value: "greaterThanEq",
+                                              label: "≥",
+                                            }
+                                          : { value: "greaterThan", label: ">" }
+                                        : { value: "greaterThan", label: ">" }
+                                    }
+                                  />
+                                </div>
+                                <TextField
+                                  name="redGreaterVal"
+                                  placeholder="Greater than"
+                                />
+                              </FlexDiv>
+                              <SubmitAdminButton>
+                                Modify Parameter
+                              </SubmitAdminButton>
+                            </AdminFields>
+                          </Form>
+                        )}
+                      </Formik>
+                    </ModifyAdmin>
+                  )}
+                </React.Fragment>
+              ))}
+            </ManageAdmins>
+            <Formik
+              initialValues={{
+                label: "",
+                unit: "",
+                greenLess: "",
+                greenLessVal: "",
+                greenGreater: "",
+                greenGreaterVal: "",
+                yellowLess: "",
+                yellowLessVal: "",
+                yellowGreater: "",
+                yellowGreaterVal: "",
+                redLess: "",
+                redLessVal: "",
+                redGreater: "",
+                redGreaterVal: "",
+              }}
+              onSubmit={async (values, { setSubmitting }) => {
+                setSubmitting(false);
+                const { label, unit } = values;
+
+                const green = (values.greenGreaterVal ||
+                  values.greenLessVal) && {
+                  ...(values.greenGreaterVal && {
+                    greaterThan: {
+                      hasEqual: values.greenGreater == "greaterThanEq",
+                      standard: values.greenGreaterVal,
+                    },
+                  }),
+                  ...(values.greenLessVal && {
+                    lessThan: {
+                      hasEqual: values.greenLess == "lessThanEq",
+                      standard: values.greenLessVal,
+                    },
+                  }),
+                };
+                const yellow = (values.yellowGreaterVal ||
+                  values.yellowLessVal) && {
+                  ...(values.yellowGreaterVal && {
+                    greaterThan: {
+                      hasEqual: values.yellowGreater == "greaterThanEq",
+                      standard: values.yellowGreaterVal,
+                    },
+                  }),
+                  ...(values.yellowLessVal && {
+                    lessThan: {
+                      hasEqual: values.yellowLess == "lessThanEq",
+                      standard: values.yellowLessVal,
+                    },
+                  }),
+                };
+                const red = (values.redGreaterVal || values.redLessVal) && {
+                  ...(values.redGreaterVal && {
+                    greaterThan: {
+                      hasEqual: values.redGreater == "greaterThanEq",
+                      standard: values.redGreaterVal,
+                    },
+                  }),
+                  ...(values.redLessVal && {
+                    lessThan: {
+                      hasEqual: values.redLess == "lessThanEq",
+                      standard: values.redLessVal,
+                    },
+                  }),
+                };
+
+                const body = {
+                  label,
+                  unit,
+                  ...((green || yellow || red) && {
+                    standards: {
+                      ...(green && { green }),
+                      ...(yellow && { yellow }),
+                      ...(red && { red }),
+                    },
+                  }),
+                };
+                await paramApi.createField(body).then((param) => {
+                  window.location.reload();
+                });
+              }}
+              validationSchema={validationSchemaParam}
+            >
+              {({ isSubmitting, values, errors, touched }) => (
+                <Form>
+                  <AddAdmin
+                    isActive={this.state.activeSection == "modifyParams"}
+                    isShowing={this.state.isParamShowing}
+                  >
+                    <span onClick={this.toggleParam}>
+                      {this.state.isParamShowing ? "-" : "+"}&emsp;Add New
+                      Parameter
+                    </span>
+                    <AdminFields
+                      isActive={this.state.activeSection == "modifyParams"}
+                      isShowing={this.state.isParamShowing}
+                    >
+                      <TextField name="label" placeholder="Label" />
+                      <TextField name="unit" placeholder="Unit" />
+                      <LabelField>Green Standards</LabelField>
+                      <FlexDiv>
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="greenLess"
+                            placeholder="<"
+                            styles={customStyles}
+                            options={[
+                              { value: "lessThan", label: "<" },
+                              { value: "lessThanEq", label: "≤" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="greenLessVal"
+                          placeholder="Less than"
+                          style={{ marginRight: "0.5rem" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="greenGreater"
+                            placeholder=">"
+                            styles={customStyles}
+                            options={[
+                              { value: "greaterThan", label: ">" },
+                              { value: "greaterThanEq", label: "≥" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="greenGreaterVal"
+                          placeholder="Greater than"
+                        />
+                      </FlexDiv>
+                      <LabelField>Yellow Standards</LabelField>
+                      <FlexDiv>
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="yellowLess"
+                            placeholder="<"
+                            styles={customStyles}
+                            options={[
+                              { value: "lessThan", label: "<" },
+                              { value: "lessThanEq", label: "≤" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="yellowLessVal"
+                          placeholder="Less than"
+                          style={{ marginRight: "0.5rem" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="yellowGreater"
+                            placeholder=">"
+                            styles={customStyles}
+                            options={[
+                              { value: "greaterThan", label: ">" },
+                              { value: "greaterThanEq", label: "≥" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="yellowGreaterVal"
+                          placeholder="Greater than"
+                        />
+                      </FlexDiv>
+                      <LabelField>Red Standards</LabelField>
+                      <FlexDiv>
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="redLess"
+                            placeholder="<"
+                            styles={customStyles}
+                            options={[
+                              { value: "lessThan", label: "<" },
+                              { value: "lessThanEq", label: "≤" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="redLessVal"
+                          placeholder="Less than"
+                          style={{ marginRight: "0.5rem" }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <Select
+                            name="redGreater"
+                            placeholder=">"
+                            styles={customStyles}
+                            options={[
+                              { value: "greaterThan", label: ">" },
+                              { value: "greaterThanEq", label: "≥" },
+                            ]}
+                          />
+                        </div>
+                        <TextField
+                          name="redGreaterVal"
+                          placeholder="Greater than"
+                        />
+                      </FlexDiv>
+                      <SubmitAdminButton>Add Parameter</SubmitAdminButton>
+                    </AdminFields>
+                  </AddAdmin>
+                </Form>
+              )}
+            </Formik>
+          </DropdownAdmin>
+        </React.Fragment>
         {getUser().isMaster && (
           <React.Fragment>
             <DefaultTitle onClick={() => this.setActiveSection("manageAdmins")}>
@@ -496,7 +1147,7 @@ class SidebarAdminHome extends Component {
                     <Administrator key={value._id}>
                       <img src={AdminIcon} alt="Admin Avatar" />
                       <AdminUsername>{value.username}</AdminUsername>
-                      <ModifyText onClick={() => this.toggleModify(key)}>
+                      <ModifyText onClick={() => this.toggleModify(true, key)}>
                         {value.showingModify ? "Cancel" : "Modify"}
                       </ModifyText>
                     </Administrator>
@@ -508,7 +1159,7 @@ class SidebarAdminHome extends Component {
                         }
                         key={"addAdmin" + key}
                       >
-                        <span onClick={() => this.toggleModify(key)}>
+                        <span onClick={() => this.toggleModify(true, key)}>
                           Modify {value.username}
                         </span>
                         <Formik

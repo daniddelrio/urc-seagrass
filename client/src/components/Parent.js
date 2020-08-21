@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import getData from "../dataFields";
+import paramsApi from "../services/dataFields-services";
 
 const AppDiv = styled.div`
   display: flex;
@@ -35,11 +35,12 @@ class Parent extends Component {
     window.addEventListener("resize", this.setSidebarOpen);
     window.addEventListener("resize", this.setMobileState);
 
-    const dataFields = await getData();
+    const getFieldsMethod = await paramsApi.getAllFields();
+    const dataFields = getFieldsMethod.data.data;
 
     const paramOptions = [{ value: "all", label: "All Parameters" }].concat(
       dataFields.map((field) => ({
-        ...field,
+        value: field._id,
         label: field.label + (field.unit ? " (" + field.unit + ")" : ""),
       }))
     );

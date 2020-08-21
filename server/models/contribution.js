@@ -50,7 +50,7 @@ Contribution.post("save", function(doc, next) {
 
         if (siteId) {
             SiteData.findOne({ siteId: siteId, year: year }, (err, data) => {
-                if (err || data == null) {
+                if (err || !data) {
                     console.log("Site data not found. Creating a new record.");
 
                     const dataBody = {

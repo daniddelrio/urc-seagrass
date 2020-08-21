@@ -326,7 +326,7 @@ class SidebarContribution extends Component {
                 </RelativeDiv>
                 {this.props.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
-                    <LabelField for="seagrassCount">{field.label}</LabelField>
+                    <LabelField for={field.value}>{field.label}</LabelField>
                     <FlexDiv>
                       <TextField
                         id={field.value}

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
