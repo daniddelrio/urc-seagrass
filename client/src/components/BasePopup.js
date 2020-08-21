@@ -119,6 +119,7 @@ const DataErrorMessage = styled(CustomErrorMessage)`
 
 const validationSchema = (dataFields) =>
   Yup.object().shape({
+    areaName: Yup.string().required("No area name was given"),
     status: Yup.string()
       .uppercase()
       .matches(
@@ -129,7 +130,7 @@ const validationSchema = (dataFields) =>
       (obj, item) => ({
         ...obj,
         ...{
-          [item.value]: Yup.number()
+          [item._id]: Yup.number()
             .typeError(`${item.label} must be a number`)
             .min(0),
         },
@@ -177,7 +178,9 @@ class BasePopup extends Component {
       Object.keys(obj)
         .filter((key) => predicate(obj[key]))
         .reduce((res, key) => ((res[key] = obj[key]), res), {});
-    const filteredValues = Object.filter(values, (field) => !isNaN(field));
+    const parameters = Object.entries(
+      Object.filter(values, (field) => !isNaN(field) && !!field)
+    ).map((param) => ({ paramId: param[0], paramValue: param[1] }));
 
     const formData = new FormData();
     formData.append("file", this.state.image.raw);
@@ -186,10 +189,14 @@ class BasePopup extends Component {
     await Promise.all([
       await api
         .updateData(properties._id, {
-          ...filteredValues,
-          ...properties,
+          status: values.status,
+          parameters,
+        })
+        .then((data) => {
+          console.log(data);
         })
         .catch((err) => {
+          console.log(err);
           this.setState({ error: err });
         }),
       await updateCoords(properties.coordId, {
@@ -202,12 +209,13 @@ class BasePopup extends Component {
           console.log(data);
         })
         .catch((err) => {
-          this.setState({ error: err });
           console.log(err);
+          this.setState({ error: err });
         }),
       this.state.image.preview &&
         (await uploadSiteImage(properties.coordId, formData, config).catch(
           (err) => {
+            console.log(err);
             this.setState({ error: err });
           }
         )),
@@ -216,6 +224,7 @@ class BasePopup extends Component {
         window.location.reload();
       })
       .catch((err) => {
+        console.log(err);
         this.setState({ error: err });
       });
   };
@@ -254,7 +263,9 @@ class BasePopup extends Component {
         <AreaInfo>
           <Formik
             initialValues={{
+              areaName: properties.areaName,
               status: properties.status,
+              siteCode: properties.siteCode,
               ...this.props.dataFields.reduce((obj, item) => {
                 const param = properties.parameters.find(
                   (param) => param.paramId == item._id
@@ -262,7 +273,7 @@ class BasePopup extends Component {
                 return {
                   ...obj,
                   ...{
-                    [item.value]: (param && param.paramValue) || "",
+                    [item._id]: (param && param.paramValue) || "",
                   },
                 };
               }, {}),
@@ -342,7 +353,7 @@ class BasePopup extends Component {
                             field.label + ":"
                           )}{" "}
                           <ModifyField
-                            name={field.value}
+                            name={field._id}
                             defaultValue={(param && param.paramValue) || ""}
                           />{" "}
                           {field.unit || ""}

@@ -26,7 +26,7 @@ const SiteData = new Schema(
 
 // If a site is modified, create a Modification in order to log
 SiteData.post("findOneAndUpdate", function(result) {
-    if(takeModifications) {
+    if(takeModifications == true) {
         let isModifiedAtAll = false;
         const changes = [];
 
