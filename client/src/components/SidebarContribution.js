@@ -184,9 +184,8 @@ class SidebarContribution extends Component {
 
     await coordApi.getAllCoords().then((res) => {
       const selectOptions = res.data.coords
-        .filter((data) => data.geometry.type == "Polygon")
         .map((data) => ({
-          value: data.properties.siteCode,
+          value: data._id,
           label: data.properties.areaName,
         }))
         .concat({ value: "newCoordinates", label: "+ New Coordinates" });
@@ -219,7 +218,7 @@ class SidebarContribution extends Component {
       <React.Fragment>
         <SidebarSubheader>
           {this.props.contribName
-            ? `Welcome, {this.props.contribName}!`
+            ? `Welcome, ${this.props.contribName}!`
             : "Welcome!"}
         </SidebarSubheader>
         <Formik
@@ -245,12 +244,20 @@ class SidebarContribution extends Component {
                         this.props.latLng.lng,
                         this.props.latLng.lat,
                       ],
+                      areaName: values.areaName,
+                      siteCode: values.siteCode,
                     }
-                  : { site: values.area }),
+                  : { siteId: values.area }),
                 ...(this.props.contribName && {
                   contributor: this.props.contribName,
                 }),
-                ...dataFieldsObj(values),
+                status: values.status,
+                parameters: this.props.dataFields
+                  .filter((field) => values[field.value])
+                  .map((field) => ({
+                    paramId: field._id,
+                    paramValue: values[field.value],
+                  })),
                 date,
               };
               await api.createContribution(body).then((contrib) => {
@@ -319,7 +326,7 @@ class SidebarContribution extends Component {
                 </RelativeDiv>
                 {this.props.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
-                    <LabelField for="seagrassCount">{field.label}</LabelField>
+                    <LabelField for={field.value}>{field.label}</LabelField>
                     <FlexDiv>
                       <TextField
                         id={field.value}

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import getData from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
@@ -120,6 +119,7 @@ const DataErrorMessage = styled(CustomErrorMessage)`
 
 const validationSchema = (dataFields) =>
   Yup.object().shape({
+    areaName: Yup.string().required("No area name was given"),
     status: Yup.string()
       .uppercase()
       .matches(
@@ -130,7 +130,7 @@ const validationSchema = (dataFields) =>
       (obj, item) => ({
         ...obj,
         ...{
-          [item.value]: Yup.number()
+          [item._id]: Yup.number()
             .typeError(`${item.label} must be a number`)
             .min(0),
         },
@@ -178,7 +178,9 @@ class BasePopup extends Component {
       Object.keys(obj)
         .filter((key) => predicate(obj[key]))
         .reduce((res, key) => ((res[key] = obj[key]), res), {});
-    const filteredValues = Object.filter(values, (field) => !isNaN(field));
+    const parameters = Object.entries(
+      Object.filter(values, (field) => !isNaN(field) && !!field)
+    ).map((param) => ({ paramId: param[0], paramValue: param[1] }));
 
     const formData = new FormData();
     formData.append("file", this.state.image.raw);
@@ -187,25 +189,42 @@ class BasePopup extends Component {
     await Promise.all([
       await api
         .updateData(properties._id, {
-          ...filteredValues,
-          ...properties,
+          status: values.status,
+          parameters,
         })
-        .catch((err) => {this.setState({ error: err })}),
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.setState({ error: err });
+        }),
       await updateCoords(properties.coordId, {
         properties: {
           areaName: values.areaName,
           siteCode: values.siteCode,
         },
-      }).then(data => {console.log(data)}).catch((err) => {this.setState({ error: err }); console.log(err)}),
+      })
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.setState({ error: err });
+        }),
       this.state.image.preview &&
         (await uploadSiteImage(properties.coordId, formData, config).catch(
-          (err) => {this.setState({ error: err })}
+          (err) => {
+            console.log(err);
+            this.setState({ error: err });
+          }
         )),
     ])
       .then((data) => {
-        // window.location.reload();
+        window.location.reload();
       })
       .catch((err) => {
+        console.log(err);
         this.setState({ error: err });
       });
   };
@@ -244,16 +263,20 @@ class BasePopup extends Component {
         <AreaInfo>
           <Formik
             initialValues={{
+              areaName: properties.areaName,
               status: properties.status,
-              ...this.props.dataFields.reduce(
-                (obj, item) => ({
+              siteCode: properties.siteCode,
+              ...this.props.dataFields.reduce((obj, item) => {
+                const param = properties.parameters.find(
+                  (param) => param.paramId == item._id
+                );
+                return {
                   ...obj,
                   ...{
-                    [item.value]: properties[item.value] || "",
+                    [item._id]: (param && param.paramValue) || "",
                   },
-                }),
-                {}
-              ),
+                };
+              }, {}),
             }}
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(false);
@@ -317,8 +340,11 @@ class BasePopup extends Component {
                       <br />
                     </InfoStat>
                   )}
-                  {this.props.dataFields.map((field) =>
-                    isModifyingData ? (
+                  {this.props.dataFields.map((field) => {
+                    const param = properties.parameters.find(
+                      (param) => param.paramId == field._id
+                    );
+                    return isModifyingData ? (
                       <React.Fragment>
                         <InfoStat>
                           {this.props.parameter === field.value ? (
@@ -327,15 +353,15 @@ class BasePopup extends Component {
                             field.label + ":"
                           )}{" "}
                           <ModifyField
-                            name={field.value}
-                            defaultValue={properties[field.value]}
+                            name={field._id}
+                            defaultValue={(param && param.paramValue) || ""}
                           />{" "}
                           {field.unit || ""}
                         </InfoStat>
                         <br />
                       </React.Fragment>
                     ) : (
-                      !isNaN(properties[field.value]) && (
+                      param && !isNaN(param.paramValue) && (
                         <React.Fragment>
                           <InfoStat>
                             {this.props.parameter === field.value ? (
@@ -343,14 +369,14 @@ class BasePopup extends Component {
                             ) : (
                               field.label + ":"
                             )}{" "}
-                            <strong>{`${properties[field.value]} ${field.unit ||
+                            <strong>{`${param.paramValue} ${field.unit ||
                               ""}`}</strong>
                           </InfoStat>
                           <br />
                         </React.Fragment>
                       )
-                    )
-                  )}
+                    );
+                  })}
                 </FieldsDiv>
                 <ModifyButton type="submit" disabled={!isModifyingData}>
                   Modify Data

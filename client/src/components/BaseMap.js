@@ -130,21 +130,27 @@ class BaseMap extends Component {
     if (this.props.isMobile) this.props.toggleSidebar();
   };
 
-  compareStandards = (d, standardsArr) => {
-    return standardsArr.some((curr) => {
-      if (curr[1] == "infinity") {
-        return d >= curr[0];
+  compareStandards = (d, standards) => {
+    const compareLessWithEqual = (comparison) => comparison.hasEqual ? (d <= comparison.standard) : (d < comparison.standard);
+    const compareGreaterWithEqual = (comparison) => comparison.hasEqual ? (d >= comparison.standard) : (d > comparison.standard);
+    if(standards.lessThan && standards.greaterThan) {
+      if(standards.lessThan.standard > standards.greaterThan.standard) {
+        return compareGreaterWithEqual(standards.greaterThan) && compareLessWithEqual(standards.lessThan);
       }
+      return compareGreaterWithEqual(standards.greaterThan) || compareLessWithEqual(standards.lessThan);
+    }
 
-      return d >= curr[0] && d <= curr[1];
-    });
+    if(standards.lessThan) return compareLessWithEqual(standards.lessThan);
+    if(standards.greaterThan) return compareGreaterWithEqual(standards.greaterThan);
+
+    return false;
   };
 
   getColor = (d) => {
     if (this.props.parameter != "all") {
-      const standards = this.props.dataFields.filter(
-        (data) => data.value == this.props.parameter
-      )[0].standards;
+      const standards = this.props.dataFields.find(
+        (field) => field._id == this.props.parameter
+      ).standards;
       if (!standards) {
         return "#DEDEDE";
       }
@@ -165,8 +171,9 @@ class BaseMap extends Component {
   };
 
   render() {
+    const getParamValue = (feature) => feature.properties.parameters.find(param => param.paramId == this.props.parameter);
     const style = (feature) => ({
-      fillColor: this.getColor(feature.properties[this.props.parameter]),
+      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramValue),
       weight: 3,
       opacity: 0.8,
       color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",

@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import getData from "../dataFields";
+import paramsApi from "../services/dataFields-services";
 
 const AppDiv = styled.div`
   display: flex;
@@ -35,11 +35,12 @@ class Parent extends Component {
     window.addEventListener("resize", this.setSidebarOpen);
     window.addEventListener("resize", this.setMobileState);
 
-    const dataFields = await getData();
+    const getFieldsMethod = await paramsApi.getAllFields();
+    const dataFields = getFieldsMethod.data.data;
 
     const paramOptions = [{ value: "all", label: "All Parameters" }].concat(
       dataFields.map((field) => ({
-        ...field,
+        value: field._id,
         label: field.label + (field.unit ? " (" + field.unit + ")" : ""),
       }))
     );
@@ -85,19 +86,19 @@ class Parent extends Component {
   changeSiteKey = (coords) => {
     const newSites = {};
     coords.forEach((site) => {
-      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
+      newSites[site._id] = site;
     });
     return newSites;
   };
 
   processSiteData = (newCoords, data) =>
     data.map((siteData) => ({
-      ...newCoords[siteData.siteCode],
+      ...newCoords[siteData.siteId],
       properties: {
         ...siteData,
-        ...(newCoords[siteData.siteCode] &&
-          newCoords[siteData.siteCode].properties),
-        coordId: newCoords[siteData.siteCode] && newCoords[siteData.siteCode]._id,
+        ...(newCoords[siteData.siteId] &&
+          newCoords[siteData.siteId].properties),
+        coordId: newCoords[siteData.siteId] && newCoords[siteData.siteId]._id,
       },
     }));
 
