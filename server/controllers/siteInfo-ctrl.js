@@ -53,6 +53,7 @@ updateData = (req, res) => {
         { new: true },
         (err, data) => {
             if (err) {
+                console.log(err);
                 return res.status(404).json({
                     err,
                     message: "Data not found!",

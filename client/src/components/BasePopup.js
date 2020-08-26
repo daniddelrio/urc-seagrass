@@ -7,6 +7,7 @@ import { uploadSiteImage, updateCoords } from "../services/siteCoord-services";
 import * as Yup from "yup";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera } from "@fortawesome/free-solid-svg-icons";
+import mapValues from "lodash/mapValues";
 
 const StatusBoxColors = {
   DISTURBED: {
@@ -117,27 +118,36 @@ const DataErrorMessage = styled(CustomErrorMessage)`
   margin-bottom: 0.4rem;
 `;
 
-const validationSchema = (dataFields) =>
-  Yup.object().shape({
-    areaName: Yup.string().required("No area name was given"),
-    status: Yup.string()
-      .uppercase()
-      .matches(
-        /\bCONSERVED\b|\bDISTURBED\b/,
-        "Status must be either CONSERVED or DISTURBED"
-      ),
-    ...dataFields.reduce(
-      (obj, item) => ({
-        ...obj,
-        ...{
-          [item._id]: Yup.number()
-            .typeError(`${item.label} must be a number`)
-            .min(0),
-        },
-      }),
-      {}
-    ),
-  });
+const lazyValidationSchema = (dataFields) =>
+  Yup.lazy((obj) =>
+    Yup.object(
+      mapValues(obj, (value, key) => {
+        if (key == "areaName") {
+          return Yup.string().required();
+        }
+        if (key == "siteCode") {
+          return Yup.string();
+        }
+        if (key == "status") {
+          return Yup.string()
+            .uppercase()
+            .matches(
+              /\bCONSERVED\b|\bDISTURBED\b/,
+              "Status must be either CONSERVED or DISTURBED"
+            );
+        }
+        const doesKeyInclude = dataFields.reduce(
+          (accumulator, field) => accumulator || key.includes(field._id),
+          false
+        );
+        if (doesKeyInclude) {
+          return Yup.number()
+            .typeError(`All parameters must be numbers`)
+            .min(0);
+        }
+      })
+    )
+  );
 
 class BasePopup extends Component {
   constructor(props) {
@@ -178,9 +188,31 @@ class BasePopup extends Component {
       Object.keys(obj)
         .filter((key) => predicate(obj[key]))
         .reduce((res, key) => ((res[key] = obj[key]), res), {});
-    const parameters = Object.entries(
+    let tempParams = Object.entries(
       Object.filter(values, (field) => !isNaN(field) && !!field)
-    ).map((param) => ({ paramId: param[0], paramValue: param[1] }));
+    );
+    tempParams = tempParams.reduce((acc, param) => {
+      const paramId = param[0].split("_")[0];
+      const paramIfExists = acc.findIndex((elem) =>
+        elem.hasOwnProperty(paramId)
+      );
+      if (paramIfExists != -1) {
+        acc[paramIfExists][paramId] = acc[paramIfExists][paramId].concat([
+          param[1],
+        ]);
+      } else {
+        acc.push({ [paramId]: [param[1]] });
+      }
+      return acc;
+    }, []);
+
+    const parameters = tempParams.map(param => {
+      const [key, value] = Object.entries(param)[0];
+      return {
+        paramId: key,
+        paramValues: value
+      }
+    })
 
     const formData = new FormData();
     formData.append("file", this.state.image.raw);
@@ -270,10 +302,24 @@ class BasePopup extends Component {
                 const param = properties.parameters.find(
                   (param) => param.paramId == item._id
                 );
+                if (param && param.paramValues.length > 0) {
+                  const reduction = param.paramValues.reduce(
+                    (accumulator, currParamValue, idx) => ({
+                      ...accumulator,
+                      [item._id + "_" + (idx + 1)]: currParamValue,
+                    }),
+                    {}
+                  );
+                  return {
+                    ...obj,
+                    ...reduction,
+                  };
+                }
+
                 return {
                   ...obj,
                   ...{
-                    [item._id]: (param && param.paramValue) || "",
+                    [item._id + "_1"]: "",
                   },
                 };
               }, {}),
@@ -282,7 +328,7 @@ class BasePopup extends Component {
               setSubmitting(false);
               await this.handleSubmit(properties, values);
             }}
-            validationSchema={() => validationSchema(this.props.dataFields)}
+            validationSchema={() => lazyValidationSchema(this.props.dataFields)}
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
@@ -345,23 +391,27 @@ class BasePopup extends Component {
                       (param) => param.paramId == field._id
                     );
                     return isModifyingData ? (
-                      <React.Fragment>
-                        <InfoStat>
-                          {this.props.parameter === field.value ? (
-                            <strong>{field.label}:</strong>
-                          ) : (
-                            field.label + ":"
-                          )}{" "}
-                          <ModifyField
-                            name={field._id}
-                            defaultValue={(param && param.paramValue) || ""}
-                          />{" "}
-                          {field.unit || ""}
-                        </InfoStat>
-                        <br />
-                      </React.Fragment>
-                    ) : (
-                      param && !isNaN(param.paramValue) && (
+                      param && param.paramValues.length > 0 ? (
+                        param.paramValues.map((currParamValue, index) => (
+                          <React.Fragment>
+                            <InfoStat>
+                              {this.props.parameter === field.value ? (
+                                <strong>
+                                  {field.label + " #" + (index + 1)}:
+                                </strong>
+                              ) : (
+                                field.label + " #" + (index + 1) + ":"
+                              )}{" "}
+                              <ModifyField
+                                name={field._id + "_" + (index + 1)}
+                                defaultValue={currParamValue}
+                              />{" "}
+                              {field.unit || ""}
+                            </InfoStat>
+                            <br />
+                          </React.Fragment>
+                        ))
+                      ) : (
                         <React.Fragment>
                           <InfoStat>
                             {this.props.parameter === field.value ? (
@@ -369,7 +419,25 @@ class BasePopup extends Component {
                             ) : (
                               field.label + ":"
                             )}{" "}
-                            <strong>{`${param.paramValue} ${field.unit ||
+                            <ModifyField
+                              name={field._id + "_1"}
+                              defaultValue={""}
+                            />{" "}
+                            {field.unit || ""}
+                          </InfoStat>
+                          <br />
+                        </React.Fragment>
+                      )
+                    ) : (
+                      param && !isNaN(param.paramAverage) && (
+                        <React.Fragment>
+                          <InfoStat>
+                            {this.props.parameter === field.value ? (
+                              <strong>{field.label}:</strong>
+                            ) : (
+                              field.label + ":"
+                            )}{" "}
+                            <strong>{`${param.paramAverage} ${field.unit ||
                               ""}`}</strong>
                           </InfoStat>
                           <br />

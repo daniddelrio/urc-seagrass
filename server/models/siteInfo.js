@@ -34,6 +34,15 @@ SiteData.pre("save", function(next) {
     next();
 });
 
+SiteData.pre("findOneAndUpdate", function(next) {
+    // Average all the paramValues
+    this._update.$set.parameters.forEach(param => {
+        if(param.paramValues.length > 0)
+            param.paramAverage = param.paramValues.reduce((a, b) => a+b) / (param.paramValues.length);
+    })
+    next();
+});
+
 // If a site is modified, create a Modification in order to log
 SiteData.post("findOneAndUpdate", function(result) {
     if(takeModifications == true) {

@@ -173,7 +173,7 @@ class BaseMap extends Component {
   render() {
     const getParamValue = (feature) => feature.properties.parameters.find(param => param.paramId == this.props.parameter);
     const style = (feature) => ({
-      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramValue),
+      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramAverage),
       weight: 3,
       opacity: 0.8,
       color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
