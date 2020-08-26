@@ -17,12 +17,22 @@ const SiteData = new Schema(
         parameters: [
             {
                 paramId: { type: Schema.Types.ObjectId, ref: "dataFields" },
-                paramValue: Number
+                paramAverage: Number,
+                paramValues: [Number]
             }
         ]
     },
     { timestamps: true }
 );
+
+SiteData.pre("save", function(next) {
+    // Average all the paramValues
+    this.parameters.forEach(param => {
+        if(param.paramValues.length > 0)
+            param.paramAverage = param.paramValues.reduce((a, b) => a+b) / (param.paramValues.length);
+    })
+    next();
+});
 
 // If a site is modified, create a Modification in order to log
 SiteData.post("findOneAndUpdate", function(result) {
@@ -43,7 +53,7 @@ SiteData.post("findOneAndUpdate", function(result) {
                 isModifiedAtAll = true;
                 changes.push({
                     field: field.paramId,
-                    newValue: field.paramValue,
+                    newValue: field.paramAverage,
                 });
             }
         });

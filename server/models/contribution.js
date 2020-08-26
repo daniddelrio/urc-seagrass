@@ -42,7 +42,7 @@ Contribution.post("save", function(doc, next) {
     // don't modify the site info if it is new
     if (this.wasNew) return next();
 
-    if (contribution.isApproved != null) {
+    if (contribution.isApproved != null && contribution.isApproved == true) {
         const siteId = contribution.siteId;
         const year = new Date(contribution.date).getFullYear();
         const coordinates = contribution.coordinates;
@@ -52,12 +52,17 @@ Contribution.post("save", function(doc, next) {
             SiteData.findOne({ siteId: siteId, year: year }, (err, data) => {
                 if (err || !data) {
                     console.log("Site data not found. Creating a new record.");
+                    const newParameters = parameters.map(param => {
+                        let tempParam = param.toObject();
+                        tempParam.paramValues = [tempParam.paramValue];
+                        return tempParam;
+                    })
 
                     const dataBody = {
                         siteId,
                         year,
                         status: contribution.status,
-                        parameters,
+                        parameters: newParameters,
                     };
 
                     const siteData = new SiteData(dataBody);
@@ -72,15 +77,23 @@ Contribution.post("save", function(doc, next) {
                             console.log("New site data was created!");
                         })
                         .catch((error) => {
+                            // console.log(error);
                             console.log("New site data was not created!");
                         });
                 } else {
-                    data.parameters = parameters;
+                    data.parameters = data.parameters.map(param => {
+                        const paramInData = parameters.find((dataParam) => new String(dataParam.paramId).valueOf() === new String(param.paramId).valueOf());
+                        if(paramInData && paramInData.paramValue) {
+                            param.paramValues.push(paramInData.paramValue)
+                        }
+                        return param;
+                    })
                     data.save()
                         .then(() => {
                             console.log("Site updated");
                         })
                         .catch((error) => {
+                            console.log(error);
                             console.log("Site not updated");
                         });
                 }
@@ -141,9 +154,9 @@ Contribution.post("save", function(doc, next) {
                     console.log("A new site was not created!");
                 });
         }
-
-        next();
     }
+
+    next();
 });
 
 module.exports = mongoose.model("contribution", Contribution);
