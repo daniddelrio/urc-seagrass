@@ -77,7 +77,6 @@ Contribution.post("save", function(doc, next) {
                             console.log("New site data was created!");
                         })
                         .catch((error) => {
-                            // console.log(error);
                             console.log("New site data was not created!");
                         });
                 } else {
@@ -125,14 +124,18 @@ Contribution.post("save", function(doc, next) {
 
             siteCoord
                 .save()
-                .then(() => {
-                    console.log("A new site was created!");
+                .then((res) => {
+                    const newParameters = parameters.map(param => {
+                        let tempParam = param.toObject();
+                        tempParam.paramValues = [tempParam.paramValue];
+                        return tempParam;
+                    });
 
                     const dataBody = {
-                        siteCode: newSiteName,
+                        siteId: res._id,
                         year,
-                        status,
-                        parameters,
+                        status: contribution.status,
+                        parameters: newParameters,
                     };
 
                     const siteData = new SiteData(dataBody);
@@ -147,10 +150,12 @@ Contribution.post("save", function(doc, next) {
                             console.log("New site data was created!");
                         })
                         .catch((error) => {
+                            console.log(error);
                             console.log("New site data was not created!");
                         });
                 })
                 .catch((error) => {
+                    console.log(error);
                     console.log("A new site was not created!");
                 });
         }
