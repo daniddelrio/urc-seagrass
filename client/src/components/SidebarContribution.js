@@ -14,12 +14,12 @@ import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
 
 const customStyles = {
-  option: (provided, { data }) => ({
+  option: (provided, { selectProps, data }) => ({
     ...provided,
     background: data.value === "newCoordinates" ? "#585858" : "#5F5F5F",
     fontSize: "13px",
     color: data.value === "newCoordinates" ? "#C8A55F" : "#999999",
-    fontWeight: 600,
+    fontWeight: selectProps.name === "status" ? 400 : 600,
     paddingBottom: "0.3rem",
     paddingTop: "0.3rem",
     cursor: "pointer",
@@ -30,7 +30,7 @@ const customStyles = {
     ...styles,
     background: state.hasValue ? "#5A5A5A" : "#4F4F4F",
     fontSize: "13px",
-    fontWeight: 600,
+    fontWeight: state.selectProps.name === "status" ? 400 : 600,
     border: "0.7px solid #9A9A9A",
     boxSizing: "border-box",
     borderRadius: "4px",
@@ -155,6 +155,8 @@ const validationSchema = (dataFields) =>
     {
       ...dataValidationFields(dataFields),
       area: Yup.mixed().required("Please input an area"),
+      areaName: Yup.string(),
+      status: Yup.string(),
       coordinates: Yup.mixed(),
       date: Yup.date()
         .required("Please input a date")
@@ -224,6 +226,8 @@ class SidebarContribution extends Component {
         <Formik
           initialValues={{
             area: null,
+            areaName: "",
+            status: "",
             date: "",
             ...dataFieldsObj(
               this.props.dataFields.map((field) => ({ [field.value]: null }))
@@ -244,14 +248,17 @@ class SidebarContribution extends Component {
                         this.props.latLng.lng,
                         this.props.latLng.lat,
                       ],
-                      areaName: values.areaName,
-                      siteCode: values.siteCode,
+                      ...(values.areaName && {
+                        areaName: values.areaName,
+                      }),
+                      ...(values.status && {
+                        status: values.status,
+                      }),
                     }
                   : { siteId: values.area }),
                 ...(this.props.contribName && {
                   contributor: this.props.contribName,
                 }),
-                status: values.status,
                 parameters: this.props.dataFields
                   .filter((field) => values[field.value])
                   .map((field) => ({
@@ -307,9 +314,31 @@ class SidebarContribution extends Component {
               />
               <ContributionFields isShown={values.area || this.props.latLng}>
                 {this.props.latLng && (
-                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
-                    this.props.latLng.lng
-                  }`}</LabelField>
+                  <React.Fragment>
+                    <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
+                      this.props.latLng.lng
+                    }`}</LabelField>
+                    <TextField
+                      placeholder="Area Name"
+                      name="areaName"
+                      style={
+                        values.areaName && values.areaName != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
+                    />
+                    <Select
+                      name="status"
+                      placeholder="Area Status"
+                      styles={customStyles}
+                      options={[{label: "Area Status", value: undefined}, {label: "DISTURBED", value: "DISTURBED"}, {label: "CONSERVED", value: "CONSERVED"}]}
+                      onChange={(selectedOption) => {
+                        setFieldValue("status", selectedOption.value);
+                      }}
+                      onBlur={() => setFieldTouched("status")}
+                      error={(error) => setFieldError("status")(error)}
+                    />
+                  </React.Fragment>
                 )}
                 <RelativeDiv>
                   <TextField

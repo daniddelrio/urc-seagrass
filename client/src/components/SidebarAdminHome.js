@@ -406,7 +406,7 @@ class SidebarAdminHome extends Component {
 
   filterDataByYear = (siteId, year) =>
     this.props.areas.filter(
-      (area) => area.properties.year == year && area._siteId == siteId
+      (area) => area.properties.year == year && area._id == siteId
     );
 
   /* 
@@ -415,7 +415,7 @@ class SidebarAdminHome extends Component {
    */
   summarizeContrib = (contrib) => {
     const getParam = (data, field) =>
-      data.parameters.find((param) => param.paramId == field._id);
+     data.parameters ? data.parameters.find((param) => param.paramId == field._id) : [];
 
     if (contrib && Object.keys(this.props.areas).length > 0) {
       const year = new Date(contrib.date).getFullYear();
@@ -427,7 +427,7 @@ class SidebarAdminHome extends Component {
             (field) => `${field.label} - ${getParam(contrib, field).paramValue}`
           );
         return (
-          `Add ${year} ${contrib.areaName || "New Area"}: ` +
+          `${contrib.contribName || "Anonymous"}: Add ${year} ${contrib.areaName || "New Area"}: ` +
           toBeDisplayedFields.join("; ")
         );
       } else {
@@ -444,7 +444,7 @@ class SidebarAdminHome extends Component {
                 "_"} to ${getParam(contrib, field)}`
           );
         return (
-          `Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ")
+          `${contrib.contribName || "Anonymous"}: Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ")
         );
       }
     }

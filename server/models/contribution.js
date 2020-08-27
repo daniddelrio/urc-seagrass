@@ -87,6 +87,16 @@ Contribution.post("save", function(doc, next) {
                         }
                         return param;
                     })
+
+                    parameters.forEach(param => {
+                        const paramInData = data.parameters.find((dataParam) => new String(dataParam.paramId).valueOf() === new String(param.paramId).valueOf());
+                        if(paramInData && paramInData.paramValues) {
+                            paramInData.paramValues.push(param.paramValue)
+                        }
+                        else {
+                            data.parameters.push({paramId: param.paramId, paramValues: [param.paramValue]})
+                        }
+                    })
                     data.save()
                         .then(() => {
                             console.log("Site updated");
