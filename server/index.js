@@ -46,6 +46,7 @@ const siteCoordRouter = require('./routes/siteCoord-router')
 const siteInfoRouter = require('./routes/siteInfo-router')
 const modificationRouter = require('./routes/modification-router')
 const dataFieldsRouter = require('./routes/dataFields-router')
+const datasetRouter = require('./routes/dataset-router')
 
 app.use('/api', adminRouter)
 app.use('/api', contribRouter)
@@ -53,6 +54,7 @@ app.use('/api', siteCoordRouter)
 app.use('/api', siteInfoRouter)
 app.use('/api', modificationRouter)
 app.use('/api', dataFieldsRouter)
+app.use('/api', datasetRouter)
 
 app.listen(port, () => console.log(`Server running on port ${port}`))
 

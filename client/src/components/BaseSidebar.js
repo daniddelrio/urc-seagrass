@@ -11,6 +11,7 @@ import MediaQuery from "react-responsive";
 import {
   SidebarSubheader,
   ParentButton,
+  FilledButton,
   EmptyButton,
 } from "./GlobalSidebarComponents";
 import { logout, isLoggedIn } from "../services/auth-funcs";
@@ -199,10 +200,19 @@ class BaseSidebar extends Component {
               {this.state.logoutButtonText}
             </EmptyButton>
           )}
-          <PayPalButton>
-            Support us via &nbsp;
-            <img src={PayPal} alt="Paypal Logo" />
-          </PayPalButton>
+          <FilledButton
+            style={{
+              color: "#63470f",
+              background: "#ffbc32",
+              marginTop: "0.5rem",
+            }}
+          >
+            Download Dataset
+          </FilledButton>
+          {/*<PayPalButton>
+                      Support us via &nbsp;
+                      <img src={PayPal} alt="Paypal Logo" />
+                    </PayPalButton>*/}
         </BottomDiv>
       </ParentDiv>
     );
