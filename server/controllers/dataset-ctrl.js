@@ -2,16 +2,17 @@ const SiteCoord = require("../models/siteCoord");
 const SiteData = require("../models/siteInfo");
 const DataFields = require("../models/dataFields");
 const Contribution = require("../models/contribution");
-const createCsvWriter = require("csv-writer").createObjectCsvWriter;
-const csvWriter = createCsvWriter({
-    path: "out.csv",
-    header: [
-        { id: "name", title: "Name" },
-        { id: "surname", title: "Surname" },
-        { id: "age", title: "Age" },
-        { id: "gender", title: "Gender" },
-    ],
-});
+
+const formatDateTime = (datetime, hasTime) => {
+    const month = datetime.getMonth() + 1;
+    const day = datetime.getDate();
+    const year = datetime.getFullYear();
+    if(hasTime) {
+        return `${month}/${day}/${year} ${datetime.getHours()}:${datetime.getMinutes()}`
+    }
+
+    return `${month}/${day}/${year}`
+}
 
 const getDataset = async (req, res) => {
     let headers = [
@@ -21,6 +22,7 @@ const getDataset = async (req, res) => {
         { id: "loggingDateTime", title: "Date and Time Logged" },
         { id: "measuringDate", title: "Measuring Date" },
         { id: "site", title: "Site" },
+        { id: "year", title: "Year" },
     ];
     let parameters = {};
     await DataFields.find({}, (err, fields) => {
@@ -146,8 +148,7 @@ const getDataset = async (req, res) => {
                         contribs[idx - 1].date.getFullYear()
                 ) {
                     currReplicate++;
-                }
-                else {
+                } else {
                     currReplicate = 1;
                 }
 
@@ -155,12 +156,13 @@ const getDataset = async (req, res) => {
                     type: currData.status,
                     replicate: currReplicate, // change
                     contributor: contrib.contributor || "Anonymous",
-                    loggingDateTime: contrib.createdAt,
-                    measuringDate: contrib.date,
+                    loggingDateTime: formatDateTime(contrib.createdAt, true),
+                    measuringDate: formatDateTime(contrib.date, false),
                     site:
                         currSite.siteCode ||
                         currSite.areaName ||
                         currSite.coordinates,
+                    year: contrib.date.getFullYear(),
                     ...contrib.parameters.reduce(
                         (accumulator, param) => ({
                             ...accumulator,
@@ -173,7 +175,21 @@ const getDataset = async (req, res) => {
         });
     }).catch((err) => console.log(err));
 
-    return res.status(200).json({ success: true, data: rows });
+    const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+    const csvWriter = createCsvWriter({
+      path: 'dataset.csv',
+      header: headers
+    });
+
+    console.log(rows)
+
+    // return res.status(200).json({ success: true, data: rows, headers: headers });
+    csvWriter
+      .writeRecords(rows)
+      .then(() => console.log('The CSV file was written successfully'));
+
+
+    return res.download('dataset.csv')
 };
 
 module.exports = {
