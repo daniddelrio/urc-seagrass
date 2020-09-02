@@ -54,7 +54,10 @@ Contribution.post("save", function(doc, next) {
                     console.log("Site data not found. Creating a new record.");
                     const newParameters = parameters.map(param => {
                         let tempParam = param.toObject();
-                        tempParam.paramValues = [tempParam.paramValue];
+                        tempParam.paramValues = [{
+                            value: tempParam.paramValue,
+                            contribution: contribution._id
+                        }];
                         return tempParam;
                     })
 
@@ -73,32 +76,38 @@ Contribution.post("save", function(doc, next) {
 
                     siteData
                         .save()
-                        .then(() => {
+                        .then((data) => {
                             console.log("New site data was created!");
                         })
                         .catch((error) => {
                             console.log("New site data was not created!");
                         });
                 } else {
-                    data.parameters = data.parameters.map(param => {
-                        const paramInData = parameters.find((dataParam) => new String(dataParam.paramId).valueOf() === new String(param.paramId).valueOf());
-                        if(paramInData && paramInData.paramValue) {
-                            param.paramValues.push(paramInData.paramValue)
-                        }
-                        return param;
-                    })
-
+                    // Parameters of the current contribution
                     parameters.forEach(param => {
                         const paramInData = data.parameters.find((dataParam) => new String(dataParam.paramId).valueOf() === new String(param.paramId).valueOf());
                         if(paramInData && paramInData.paramValues) {
-                            paramInData.paramValues.push(param.paramValue)
+                            paramInData.paramValues.push({
+                                value: param.paramValue,
+                                contribution: contribution._id
+                            })
                         }
                         else {
-                            data.parameters.push({paramId: param.paramId, paramValues: [param.paramValue]})
+                            data.parameters.push(
+                                {
+                                    paramId: param.paramId,
+                                    paramValues: [
+                                        {
+                                            value: param.paramValue,
+                                            contribution: contribution._id,
+                                        }
+                                    ]
+                                }
+                            )
                         }
                     })
                     data.save()
-                        .then(() => {
+                        .then((newData) => {
                             console.log("Site updated");
                         })
                         .catch((error) => {
@@ -137,7 +146,10 @@ Contribution.post("save", function(doc, next) {
                 .then((res) => {
                     const newParameters = parameters.map(param => {
                         let tempParam = param.toObject();
-                        tempParam.paramValues = [tempParam.paramValue];
+                        tempParam.paramValues = [{
+                            value: tempParam.paramValue,
+                            contribution: contribution._id
+                        }];
                         return tempParam;
                     });
 
@@ -156,7 +168,7 @@ Contribution.post("save", function(doc, next) {
 
                     siteData
                         .save()
-                        .then(() => {
+                        .then((newData) => {
                             console.log("New site data was created!");
                         })
                         .catch((error) => {

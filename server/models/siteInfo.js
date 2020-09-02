@@ -18,7 +18,12 @@ const SiteData = new Schema(
             {
                 paramId: { type: Schema.Types.ObjectId, ref: "dataFields" },
                 paramAverage: Number,
-                paramValues: [Number]
+                paramValues: [
+                    {
+                        value: Number,
+                        contribution: { type: Schema.Types.ObjectId, ref: "contribution" },
+                    }
+                ]
             }
         ]
     },
