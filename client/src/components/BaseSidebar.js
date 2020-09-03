@@ -15,6 +15,7 @@ import {
   EmptyButton,
 } from "./GlobalSidebarComponents";
 import { logout, isLoggedIn } from "../services/auth-funcs";
+import { CSVLink } from "react-csv";
 
 const ParentDiv = styled.div`
   display: flex;
@@ -207,7 +208,14 @@ class BaseSidebar extends Component {
               marginTop: "0.5rem",
             }}
           >
-            Download Dataset
+            <CSVLink
+              data={this.props.dataset.data}
+              headers={this.props.dataset.headers}
+              filename="dataset.csv"
+              style={{ color: "inherit" }}
+            >
+              Download Dataset
+            </CSVLink>
           </FilledButton>
           {/*<PayPalButton>
                       Support us via &nbsp;

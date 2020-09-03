@@ -6,6 +6,7 @@ import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
 import paramsApi from "../services/dataFields-services";
+import getDataset from "../services/dataset-services";
 
 const AppDiv = styled.div`
   display: flex;
@@ -28,6 +29,10 @@ class Parent extends Component {
       dataFields: [],
       isLoadingMap: true,
       isLoadingPopups: true,
+      dataset: {
+        data: [],
+        headers: [],
+      },
     };
   }
 
@@ -80,6 +85,15 @@ class Parent extends Component {
           })
         );
     });
+
+    await getDataset().then((res) => {
+      this.setState({
+        dataset: {
+          headers: res.data.headers,
+          data: res.data.data,
+        }
+      })
+    })
   }
 
   // Make the site code the key in the object
@@ -181,6 +195,7 @@ class Parent extends Component {
           latLng={this.state.latLng}
           turnOffModifyingData={this.turnOffModifyingData}
           dataFields={this.state.dataFields}
+          dataset={this.state.dataset}
         />
       </AppDiv>
     );
