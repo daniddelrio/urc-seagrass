@@ -125,7 +125,7 @@ const lazyValidationSchema = (dataFields) =>
         if (key == "areaName") {
           return Yup.string().required();
         }
-        if (key == "siteCode") {
+        if (key == "siteCode" || key.includes("_contrib")) {
           return Yup.string();
         }
         if (key == "status") {
@@ -196,23 +196,34 @@ class BasePopup extends Component {
       const paramIfExists = acc.findIndex((elem) =>
         elem.hasOwnProperty(paramId)
       );
+      const contribution = values[param[0] + "_contrib"];
       if (paramIfExists != -1) {
         acc[paramIfExists][paramId] = acc[paramIfExists][paramId].concat([
-          param[1],
+          {
+            value: param[1],
+            contribution,
+          },
         ]);
       } else {
-        acc.push({ [paramId]: [param[1]] });
+        acc.push({
+          [paramId]: [
+            {
+              contribution,
+              value: param[1],
+            },
+          ],
+        });
       }
       return acc;
     }, []);
 
-    const parameters = tempParams.map(param => {
+    const parameters = tempParams.map((param) => {
       const [key, value] = Object.entries(param)[0];
       return {
         paramId: key,
-        paramValues: value
-      }
-    })
+        paramValues: value,
+      };
+    });
 
     const formData = new FormData();
     formData.append("file", this.state.image.raw);
@@ -304,9 +315,13 @@ class BasePopup extends Component {
                 );
                 if (param && param.paramValues.length > 0) {
                   const reduction = param.paramValues.reduce(
-                    (accumulator, currParamValue, idx) => ({
+                    (accumulator, currParam, idx) => ({
                       ...accumulator,
-                      [item._id + "_" + (idx + 1)]: currParamValue,
+                      [item._id + "_" + (idx + 1)]: currParam.value,
+                      [item._id +
+                      "_" +
+                      (idx + 1) +
+                      "_contrib"]: currParam.contribution,
                     }),
                     {}
                   );
@@ -392,7 +407,7 @@ class BasePopup extends Component {
                     );
                     return isModifyingData ? (
                       param && param.paramValues.length > 0 ? (
-                        param.paramValues.map((currParamValue, index) => (
+                        param.paramValues.map((currParam, index) => (
                           <React.Fragment>
                             <InfoStat>
                               {this.props.parameter === field.value ? (
@@ -404,7 +419,7 @@ class BasePopup extends Component {
                               )}{" "}
                               <ModifyField
                                 name={field._id + "_" + (index + 1)}
-                                defaultValue={currParamValue}
+                                defaultValue={currParam.value}
                               />{" "}
                               {field.unit || ""}
                             </InfoStat>

@@ -33,8 +33,9 @@ const SiteData = new Schema(
 SiteData.pre("save", function(next) {
     // Average all the paramValues
     this.parameters.forEach(param => {
-        if(param.paramValues.length > 0)
-            param.paramAverage = param.paramValues.reduce((a, b) => a+b) / (param.paramValues.length);
+        if(param.paramValues.length > 0) {
+            param.paramAverage = param.paramValues.reduce((a, b) => a+parseInt(b.value), 0) / (param.paramValues.length);
+        }
     })
     next();
 });
@@ -42,8 +43,9 @@ SiteData.pre("save", function(next) {
 SiteData.pre("findOneAndUpdate", function(next) {
     // Average all the paramValues
     this._update.$set.parameters.forEach(param => {
-        if(param.paramValues.length > 0)
-            param.paramAverage = param.paramValues.reduce((a, b) => a+b) / (param.paramValues.length);
+        if(param.paramValues.length > 0) {
+            param.paramAverage = param.paramValues.reduce((a, b) => a+parseInt(b.value), 0) / (param.paramValues.length);
+        }
     })
     next();
 });
