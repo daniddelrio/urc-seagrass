@@ -175,6 +175,7 @@ class BaseSidebar extends Component {
   }
 
   render() {
+    const isDatasetEmpty = this.props.dataset.data.length === 0;
     return (
       <ParentDiv isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
         <SidebarContent className="sidebar-content">
@@ -203,19 +204,24 @@ class BaseSidebar extends Component {
           )}
           <FilledButton
             style={{
-              color: "#63470f",
-              background: "#ffbc32",
+              color: isDatasetEmpty ? "#8a8a8a" : "#63470f",
+              background: isDatasetEmpty ? "#474747" : "#ffbc32",
               marginTop: "0.5rem",
             }}
+            disabled={isDatasetEmpty}
           >
-            <CSVLink
-              data={this.props.dataset.data}
-              headers={this.props.dataset.headers}
-              filename="dataset.csv"
-              style={{ color: "inherit" }}
-            >
-              Download Dataset
-            </CSVLink>
+            {isDatasetEmpty ? (
+              "Download Dataset"
+            ) : (
+              <CSVLink
+                data={this.props.dataset.data}
+                headers={this.props.dataset.headers}
+                filename="dataset.csv"
+                style={{ color: "inherit" }}
+              >
+                Download Dataset
+              </CSVLink>
+            )}
           </FilledButton>
           {/*<PayPalButton>
                       Support us via &nbsp;

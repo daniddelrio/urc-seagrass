@@ -7,22 +7,22 @@ const formatDateTime = (datetime, hasTime) => {
     const month = datetime.getMonth() + 1;
     const day = datetime.getDate();
     const year = datetime.getFullYear();
-    if(hasTime) {
-        return `${month}/${day}/${year} ${datetime.getHours()}:${datetime.getMinutes()}`
+    if (hasTime) {
+        return `${month}/${day}/${year} ${datetime.getHours()}:${datetime.getMinutes()}`;
     }
 
-    return `${month}/${day}/${year}`
-}
+    return `${month}/${day}/${year}`;
+};
 
 const getDataset = async (req, res) => {
     let headers = [
-        { id: "type", title: "Type" },
-        { id: "replicate", title: "Replicate" },
-        { id: "contributor", title: "Contributor" },
-        { id: "loggingDateTime", title: "Date and Time Logged" },
-        { id: "measuringDate", title: "Measuring Date" },
-        { id: "site", title: "Site" },
-        { id: "year", title: "Year" },
+        { key: "type", label: "Type" },
+        { key: "replicate", label: "Replicate" },
+        { key: "contributor", label: "Contributor" },
+        { key: "loggingDateTime", label: "Date and Time Logged" },
+        { key: "measuringDate", label: "Measuring Date" },
+        { key: "site", label: "Site" },
+        { key: "year", label: "Year" },
     ];
     let parameters = {};
     await DataFields.find({}, (err, fields) => {
@@ -39,8 +39,8 @@ const getDataset = async (req, res) => {
             {}
         );
         const parametersHeaders = fields.map((field) => ({
-            id: field.value,
-            title: field.label,
+            key: field.value,
+            label: field.label,
         }));
         headers = headers.concat(parametersHeaders);
     }).catch((err) => console.log(err));
@@ -65,6 +65,7 @@ const getDataset = async (req, res) => {
     }).catch((err) => console.log(err));
 
     let siteDataObj = {};
+    let dataWithoutContribs = [];
     await SiteData.find({}, (err, siteData) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -78,9 +79,33 @@ const getDataset = async (req, res) => {
         siteDataObj = siteData.reduce((accumulator, data) => {
             return {
                 ...accumulator,
-                [data.siteId + " " + data.year]: { ...data.toObject() },
+                [data.siteId + " " + data.year]: data.toObject(),
             };
         }, {});
+
+        siteData.forEach((data) => {
+            const paramsWithoutContribs = data.parameters
+                .map((param) => ({
+                    ...param.toObject(),
+                    paramValue:
+                        param.paramValues.find(
+                            (paramValue) => !paramValue.contribution
+                        ) &&
+                        param.paramValues.find(
+                            (paramValue) => !paramValue.contribution
+                        ).value,
+                }))
+                .filter((param) => param.paramValue);
+            // Make a "contrib" out of the data without links to the contrib
+            if(paramsWithoutContribs.length > 0) {
+                dataWithoutContribs.push({
+                    ...data.toObject(),
+                    date: new Date(data.year, 1, 1),
+                    parameters: paramsWithoutContribs,
+                    isFromAdmin: true,
+                });
+            }
+        });
     }).catch((err) => console.log(err));
 
     let rows = [];
@@ -93,6 +118,8 @@ const getDataset = async (req, res) => {
                 .status(404)
                 .json({ success: false, error: `Contributions not found` });
         }
+
+        contribs = contribs.concat(dataWithoutContribs)
 
         contribs.sort(function(a, b) {
             let dateA = a.date;
@@ -157,7 +184,7 @@ const getDataset = async (req, res) => {
                     replicate: currReplicate, // change
                     contributor: contrib.contributor || "Anonymous",
                     loggingDateTime: formatDateTime(contrib.createdAt, true),
-                    measuringDate: formatDateTime(contrib.date, false),
+                    measuringDate: contrib.isFromAdmin ? "" : formatDateTime(contrib.date, false),
                     site:
                         currSite.siteCode ||
                         currSite.areaName ||
@@ -175,21 +202,9 @@ const getDataset = async (req, res) => {
         });
     }).catch((err) => console.log(err));
 
-    const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-    const csvWriter = createCsvWriter({
-      path: 'dataset.csv',
-      header: headers
-    });
-
-    console.log(rows)
-
-    // return res.status(200).json({ success: true, data: rows, headers: headers });
-    csvWriter
-      .writeRecords(rows)
-      .then(() => console.log('The CSV file was written successfully'));
-
-
-    return res.download('dataset.csv')
+    return res
+        .status(200)
+        .json({ success: true, headers: headers, data: rows });
 };
 
 module.exports = {
