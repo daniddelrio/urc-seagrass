@@ -7,7 +7,6 @@ const Contribution = new Schema(
     {
         siteId: { type: Schema.Types.ObjectId, ref: "siteCoords" },
         areaName: { type: String },
-        siteCode: { type: String },
         coordinates: [mongoose.Mixed],
         contributor: { type: String },
         date: { type: Date, required: true },
@@ -126,7 +125,6 @@ Contribution.post("save", function(doc, next) {
                 type: "Feature",
                 properties: {
                     areaName: newSiteName,
-                    siteCode: contribution.siteCode,
                 },
                 geometry: {
                     type: coordinates.length > 1 ? "Point" : "Polygon",
