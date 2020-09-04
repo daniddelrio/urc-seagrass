@@ -129,6 +129,7 @@ class BaseSidebar extends Component {
         return (
           <SidebarAdminHome
             areas={this.props.areas}
+            coords={this.props.coords}
             isMobile={this.props.isMobile}
             setActiveSidebar={this.setActiveSidebar}
             showLogoutButton={this.showLogoutButton}

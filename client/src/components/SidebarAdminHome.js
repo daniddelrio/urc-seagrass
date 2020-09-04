@@ -415,11 +415,17 @@ class SidebarAdminHome extends Component {
    */
   summarizeContrib = (contrib) => {
     const getParam = (data, field) =>
-     data.parameters ? data.parameters.find((param) => param.paramId == field._id) : [];
+      data.parameters
+        ? data.parameters.find((param) => param.paramId == field._id)
+        : [];
 
     if (contrib && Object.keys(this.props.areas).length > 0) {
       const year = new Date(contrib.date).getFullYear();
       let filteredDataByYearAndId = this.filterDataByYear(contrib.siteId, year);
+      const doesSiteExist = this.props.coords.find(
+        (area) => area._id == contrib.siteId
+      );
+      const siteName = doesSiteExist && doesSiteExist.properties.areaName;
       if (filteredDataByYearAndId.length == 0) {
         let toBeDisplayedFields = this.props.dataFields
           .filter((field) => getParam(contrib, field))
@@ -427,8 +433,9 @@ class SidebarAdminHome extends Component {
             (field) => `${field.label} - ${getParam(contrib, field).paramValue}`
           );
         return (
-          `${contrib.contribName || "Anonymous"}: Add ${year} ${contrib.areaName || "New Area"}: ` +
-          toBeDisplayedFields.join("; ")
+          `${contrib.contributor || "Anonymous"}: Add ${year} ${siteName ||
+            contrib.areaName ||
+            "New Area"}: ` + toBeDisplayedFields.join("; ")
         );
       } else {
         let toBeDisplayedFields = this.props.dataFields
@@ -444,7 +451,9 @@ class SidebarAdminHome extends Component {
                 "_"} to ${getParam(contrib, field)}`
           );
         return (
-          `${contrib.contribName || "Anonymous"}: Change ${year} ${contrib.site}: ` + toBeDisplayedFields.join("; ")
+          `${contrib.contributor ||
+            "Anonymous"}: Change ${year} ${siteName}: ` +
+          toBeDisplayedFields.join("; ")
         );
       }
     }
@@ -624,54 +633,90 @@ class SidebarAdminHome extends Component {
                         initialValues={{
                           label: value.label,
                           unit: value.unit,
-                          greenLess: (value.standards && value.standards.green && value.standards.green.lessThan)
-                            ? value.standards.green.lessThan.hasEqual
-                              ? "lessThanEq"
-                              : "lessThan"
-                            : "",
-                          greenLessVal: (value.standards && value.standards.green && value.standards.green.lessThan)
-                            ? value.standards.green.lessThan.standard
-                            : "",
-                          greenGreater: (value.standards && value.standards.green && value.standards.green.greaterThan)
-                            ? value.standards.green.greaterThan.hasEqual
-                              ? "greaterThanEq"
-                              : "greaterThan"
-                            : "",
-                          greenGreaterVal: (value.standards && value.standards.green && value.standards.green.greaterThan)
-                            ? value.standards.green.greaterThan.standard
-                            : "",
-                          yellowLess: (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
-                            ? value.standards.yellow.lessThan.hasEqual
-                              ? "lessThanEq"
-                              : "lessThan"
-                            : "",
-                          yellowLessVal: (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
-                            ? value.standards.yellow.lessThan.standard
-                            : "",
-                          yellowGreater: (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
-                            ? value.standards.yellow.greaterThan.hasEqual
-                              ? "greaterThanEq"
-                              : "greaterThan"
-                            : "",
-                          yellowGreaterVal: (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
-                            ? value.standards.yellow.greaterThan.standard
-                            : "",
-                          redLess: (value.standards && value.standards.red && value.standards.red.lessThan)
-                            ? value.standards.red.lessThan.hasEqual
-                              ? "lessThanEq"
-                              : "lessThan"
-                            : "",
-                          redLessVal: (value.standards && value.standards.red && value.standards.red.lessThan)
-                            ? value.standards.red.lessThan.standard
-                            : "",
-                          redGreater: (value.standards && value.standards.red && value.standards.red.greaterThan)
-                            ? value.standards.red.greaterThan.hasEqual
-                              ? "greaterThanEq"
-                              : "greaterThan"
-                            : "",
-                          redGreaterVal: (value.standards && value.standards.red && value.standards.red.greaterThan)
-                            ? value.standards.red.greaterThan.standard
-                            : "",
+                          greenLess:
+                            value.standards &&
+                            value.standards.green &&
+                            value.standards.green.lessThan
+                              ? value.standards.green.lessThan.hasEqual
+                                ? "lessThanEq"
+                                : "lessThan"
+                              : "",
+                          greenLessVal:
+                            value.standards &&
+                            value.standards.green &&
+                            value.standards.green.lessThan
+                              ? value.standards.green.lessThan.standard
+                              : "",
+                          greenGreater:
+                            value.standards &&
+                            value.standards.green &&
+                            value.standards.green.greaterThan
+                              ? value.standards.green.greaterThan.hasEqual
+                                ? "greaterThanEq"
+                                : "greaterThan"
+                              : "",
+                          greenGreaterVal:
+                            value.standards &&
+                            value.standards.green &&
+                            value.standards.green.greaterThan
+                              ? value.standards.green.greaterThan.standard
+                              : "",
+                          yellowLess:
+                            value.standards &&
+                            value.standards.yellow &&
+                            value.standards.yellow.lessThan
+                              ? value.standards.yellow.lessThan.hasEqual
+                                ? "lessThanEq"
+                                : "lessThan"
+                              : "",
+                          yellowLessVal:
+                            value.standards &&
+                            value.standards.yellow &&
+                            value.standards.yellow.lessThan
+                              ? value.standards.yellow.lessThan.standard
+                              : "",
+                          yellowGreater:
+                            value.standards &&
+                            value.standards.yellow &&
+                            value.standards.yellow.greaterThan
+                              ? value.standards.yellow.greaterThan.hasEqual
+                                ? "greaterThanEq"
+                                : "greaterThan"
+                              : "",
+                          yellowGreaterVal:
+                            value.standards &&
+                            value.standards.yellow &&
+                            value.standards.yellow.greaterThan
+                              ? value.standards.yellow.greaterThan.standard
+                              : "",
+                          redLess:
+                            value.standards &&
+                            value.standards.red &&
+                            value.standards.red.lessThan
+                              ? value.standards.red.lessThan.hasEqual
+                                ? "lessThanEq"
+                                : "lessThan"
+                              : "",
+                          redLessVal:
+                            value.standards &&
+                            value.standards.red &&
+                            value.standards.red.lessThan
+                              ? value.standards.red.lessThan.standard
+                              : "",
+                          redGreater:
+                            value.standards &&
+                            value.standards.red &&
+                            value.standards.red.greaterThan
+                              ? value.standards.red.greaterThan.hasEqual
+                                ? "greaterThanEq"
+                                : "greaterThan"
+                              : "",
+                          redGreaterVal:
+                            value.standards &&
+                            value.standards.red &&
+                            value.standards.red.greaterThan
+                              ? value.standards.red.greaterThan.standard
+                              : "",
                         }}
                         onSubmit={async (values, { setSubmitting }) => {
                           setSubmitting(false);
@@ -764,7 +809,9 @@ class SidebarAdminHome extends Component {
                                       { value: "lessThanEq", label: "≤" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.green && value.standards.green.lessThan)
+                                      value.standards &&
+                                      value.standards.green &&
+                                      value.standards.green.lessThan
                                         ? value.standards.green.lessThan
                                             .hasEqual
                                           ? { value: "lessThanEq", label: "≤" }
@@ -788,7 +835,9 @@ class SidebarAdminHome extends Component {
                                       { value: "greaterThanEq", label: "≥" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.green && value.standards.green.greaterThan)
+                                      value.standards &&
+                                      value.standards.green &&
+                                      value.standards.green.greaterThan
                                         ? value.standards.green.greaterThan
                                             .hasEqual
                                           ? {
@@ -817,7 +866,9 @@ class SidebarAdminHome extends Component {
                                       { value: "lessThanEq", label: "≤" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.yellow && value.standards.yellow.lessThan)
+                                      value.standards &&
+                                      value.standards.yellow &&
+                                      value.standards.yellow.lessThan
                                         ? value.standards.yellow.lessThan
                                             .hasEqual
                                           ? { value: "lessThanEq", label: "≤" }
@@ -841,7 +892,9 @@ class SidebarAdminHome extends Component {
                                       { value: "greaterThanEq", label: "≥" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.yellow && value.standards.yellow.greaterThan)
+                                      value.standards &&
+                                      value.standards.yellow &&
+                                      value.standards.yellow.greaterThan
                                         ? value.standards.yellow.greaterThan
                                             .hasEqual
                                           ? {
@@ -870,7 +923,9 @@ class SidebarAdminHome extends Component {
                                       { value: "lessThanEq", label: "≤" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.red && value.standards.red.lessThan)
+                                      value.standards &&
+                                      value.standards.red &&
+                                      value.standards.red.lessThan
                                         ? value.standards.red.lessThan.hasEqual
                                           ? { value: "lessThanEq", label: "≤" }
                                           : { value: "lessThan", label: "<" }
@@ -893,7 +948,9 @@ class SidebarAdminHome extends Component {
                                       { value: "greaterThanEq", label: "≥" },
                                     ]}
                                     defaultValue={
-                                      (value.standards && value.standards.red && value.standards.red.greaterThan)
+                                      value.standards &&
+                                      value.standards.red &&
+                                      value.standards.red.greaterThan
                                         ? value.standards.red.greaterThan
                                             .hasEqual
                                           ? {

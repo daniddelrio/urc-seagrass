@@ -24,6 +24,7 @@ class Parent extends Component {
       parameter: "all",
       latLng: null,
       areas: {},
+      coords: {},
       yearOptions: [],
       paramOptions: [],
       dataFields: [],
@@ -73,6 +74,7 @@ class Parent extends Component {
 
           this.setState({
             areas: finalData,
+            coords: coords.data.coords,
             isLoadingMap: false,
             isLoadingPopups: false,
           });
@@ -186,6 +188,7 @@ class Parent extends Component {
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
           areas={this.state.areas}
+          coords={this.state.coords}
           toggleSidebar={this.toggleSidebar}
           toggleModifyingData={this.toggleModifyingData}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
