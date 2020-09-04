@@ -59,7 +59,7 @@ const getDataset = async (req, res) => {
             const { image, ...otherProps } = coord.properties;
             return {
                 ...accumulator,
-                [coord._id]: { ...otherProps, ...coord.geometry },
+                [coord._id]: { ...otherProps, ...coord.geometry, _id: coord._id },
             };
         }, {});
     }).catch((err) => console.log(err));
@@ -160,16 +160,23 @@ const getDataset = async (req, res) => {
 
         let currReplicate = 1;
 
-        contribs.forEach((contrib, idx) => {
-            // Find first based on siteId and year, but if siteId can't be found in contrib, look for the area name
-            const currData = siteDataObj.find(
+        const getDataObject = (currContrib) =>
+            siteDataObj.find(
                 (data) =>
-                    data.year === contrib.date.getFullYear() &&
-                    (new String(data.siteId).valueOf() ===
-                        new String(contrib.siteId).valueOf() ||
-                        new String(contrib.areaName).valueOf() ===
-                            new String(sites[data.siteId].areaName).valueOf())
+                    (currContrib.date && data.year === currContrib.date.getFullYear()) &&
+                    (currContrib.siteId ? new String(data.siteId).valueOf() ===
+                        new String(currContrib.siteId).valueOf() :
+                        new String(currContrib.areaName).valueOf() ===
+                            new String(
+                                sites[data.siteId].areaName
+                            ).valueOf())
             );
+
+        const filteredContribs = contribs.filter(contrib => !!getDataObject(contrib));
+
+        filteredContribs.forEach((contrib, idx) => {
+            // Find first based on siteId and year, but if siteId can't be found in contrib, look for the area name
+            const currData = getDataObject(contrib);
             // const currData =
             //     siteDataObj[contrib.siteId + " " + contrib.date.getFullYear()];
 
@@ -177,14 +184,16 @@ const getDataset = async (req, res) => {
                 const currSite = sites[currData.siteId];
 
                 // Check previous row to see whether to add replicate or reset
-                const prevContrib = idx > 0 && contribs[idx - 1];
+                const prevContrib = idx > 0 && filteredContribs[idx - 1];
+                const prevData = getDataObject(prevContrib)
+                const prevSite = prevData && sites[prevData.siteId];
                 if (
                     idx > 0 &&
-                    (prevContrib.siteId
-                        ? new String(contrib.siteId).valueOf() ===
-                          new String(prevContrib.siteId).valueOf()
-                        : new String(currSite.areaName).valueOf() ===
-                          new String(prevContrib.areaName).valueOf()) &&
+                    (prevSite
+                        ? new String(currSite._id).valueOf() ===
+                          new String(prevSite._id).valueOf()
+                        : new String(currData.siteId).valueOf() ===
+                          new String(prevContrib.siteId).valueOf()) &&
                     contrib.date.getFullYear() ===
                         prevContrib.date.getFullYear()
                 ) {
