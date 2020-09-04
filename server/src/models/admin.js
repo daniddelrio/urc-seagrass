@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt');
-SALT_WORK_FACTOR = 10;
+const SALT_WORK_FACTOR = 10;
 
 const Admin = new Schema({
     username: { type: String, required: true, unique: true },

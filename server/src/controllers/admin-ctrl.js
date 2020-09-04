@@ -2,7 +2,7 @@ const Admin = require("../models/admin");
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require('../config')
 
-signIn = (req, res) => {
+const signIn = (req, res) => {
     Admin.findOne(
         {
             username: req.body.username,
@@ -41,7 +41,7 @@ signIn = (req, res) => {
     ).select('+password');
 };
 
-createAdmin = (req, res) => {
+const createAdmin = (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -74,7 +74,7 @@ createAdmin = (req, res) => {
         });
 };
 
-updateAdmin = async (req, res) => {
+const updateAdmin = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -112,7 +112,7 @@ updateAdmin = async (req, res) => {
     });
 };
 
-deleteAdmin = async (req, res) => {
+const deleteAdmin = async (req, res) => {
     await Admin.findOneAndDelete(
         { username: req.params.username },
         (err, admin) => {
@@ -131,7 +131,7 @@ deleteAdmin = async (req, res) => {
     ).catch((err) => console.log(err));
 };
 
-getAdminByUsername = async (req, res) => {
+const getAdminByUsername = async (req, res) => {
     await Admin.findOne({ username: req.params.username }, (err, admin) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -146,7 +146,7 @@ getAdminByUsername = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAdmins = async (req, res) => {
+const getAdmins = async (req, res) => {
     await Admin.find({}, (err, admin) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
