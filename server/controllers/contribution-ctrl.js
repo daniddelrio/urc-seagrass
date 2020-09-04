@@ -1,5 +1,4 @@
 const Contribution = require("../models/contribution");
-const dataFields = require("../dataFields");
 
 createContribution = (req, res) => {
     const body = req.body;
@@ -45,16 +44,15 @@ updateContribution = async (req, res) => {
     }
 
     await Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
-        if (err) {
+        if (err || !contrib) {
             return res.status(404).json({
                 err,
                 message: "Contribution not found!",
             });
         }
-        contrib.date = body.date;
-        dataFields.forEach((field) => {
-            contrib[field.value] = body[field.value];
-        });
+        if(body.date) contrib.date = body.date;
+        if(body.parameters) contrib.parameters = body.parameters;
+
         if (body.hasOwnProperty("isApproved")) {
             contrib.hasStatus = true;
             contrib.isApproved = body.isApproved;

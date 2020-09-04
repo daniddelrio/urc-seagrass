@@ -1,4 +1,7 @@
 const SiteCoords = require('../models/siteCoord');
+const fs = require('fs'); 
+const path = require('path'); 
+const { imageUploadPath } = require('../config');
 
 createCoords = (req, res) => {
     const body = req.body;
@@ -50,8 +53,10 @@ updateCoords = async (req, res) => {
                 message: 'Site coordinates not found',
             })
         }
-        coords.properties = body.properties
-        coords.geometry = body.geometry
+        if(body.properties)
+            coords.properties = body.properties
+        if(body.geometry)
+            coords.geometry = body.geometry
         coords
             .save()
             .then(() => {
@@ -130,6 +135,45 @@ getAllSiteCoords = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
+uploadSiteImage = async (req, res) => {
+    const file = req.file
+
+    if (!file) {
+        return res.status(400).json({
+            success: false,
+            error: 'You must provide an image to update',
+        })
+    }
+
+    SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
+        if (err) {
+            return res.status(404).json({
+                err,
+                message: 'Site coordinates not found',
+            })
+        }
+        coords.properties.image = { 
+            data: fs.readFileSync(path.join(imageUploadPath, file.filename)), 
+            contentType: 'image/jpg'
+        }
+        coords
+            .save()
+            .then(() => {
+                return res.status(200).json({
+                    success: true,
+                    id: coords._id,
+                    message: 'Site image updated!',
+                })
+            })
+            .catch(error => {
+                return res.status(404).json({
+                    error,
+                    message: 'Site image not updated due to errors in the data!',
+                })
+            })
+    })
+}
+
 module.exports = {
     createCoords,
     updateCoords,
@@ -137,4 +181,5 @@ module.exports = {
     getAllSiteCoords,
     getSiteCoordsById,
     getSiteCoordsByCode,
+    uploadSiteImage,
 }

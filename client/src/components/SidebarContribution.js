@@ -12,15 +12,14 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
-import getData from "../dataFields";
 
 const customStyles = {
-  option: (provided, { data }) => ({
+  option: (provided, { selectProps, data }) => ({
     ...provided,
     background: data.value === "newCoordinates" ? "#585858" : "#5F5F5F",
     fontSize: "13px",
     color: data.value === "newCoordinates" ? "#C8A55F" : "#999999",
-    fontWeight: 600,
+    fontWeight: selectProps.name === "status" ? 400 : 600,
     paddingBottom: "0.3rem",
     paddingTop: "0.3rem",
     cursor: "pointer",
@@ -31,7 +30,7 @@ const customStyles = {
     ...styles,
     background: state.hasValue ? "#5A5A5A" : "#4F4F4F",
     fontSize: "13px",
-    fontWeight: 600,
+    fontWeight: state.selectProps.name === "status" ? 400 : 600,
     border: "0.7px solid #9A9A9A",
     boxSizing: "border-box",
     borderRadius: "4px",
@@ -156,6 +155,8 @@ const validationSchema = (dataFields) =>
     {
       ...dataValidationFields(dataFields),
       area: Yup.mixed().required("Please input an area"),
+      areaName: Yup.string(),
+      status: Yup.string(),
       coordinates: Yup.mixed(),
       date: Yup.date()
         .required("Please input a date")
@@ -176,7 +177,6 @@ class SidebarContribution extends Component {
     super(props);
     this.state = {
       error: null,
-      dataFields: [],
       selectOptions: [],
     };
   }
@@ -186,9 +186,8 @@ class SidebarContribution extends Component {
 
     await coordApi.getAllCoords().then((res) => {
       const selectOptions = res.data.coords
-        .filter((data) => data.geometry.type == "Polygon")
         .map((data) => ({
-          value: data.properties.siteCode,
+          value: data._id,
           label: data.properties.areaName,
         }))
         .concat({ value: "newCoordinates", label: "+ New Coordinates" });
@@ -197,9 +196,6 @@ class SidebarContribution extends Component {
         selectOptions: selectOptions,
       });
     });
-
-    const dataFields = await getData();
-    this.setState({ dataFields });
   }
 
   componentDidUpdate(prevProps, prevstate) {
@@ -210,7 +206,7 @@ class SidebarContribution extends Component {
 
   render() {
     const dataFieldsObj = (values) =>
-      this.state.dataFields.reduce(
+      this.props.dataFields.reduce(
         (obj, item) => ({
           ...obj,
           ...(values[item.value] !== "" && {
@@ -224,15 +220,17 @@ class SidebarContribution extends Component {
       <React.Fragment>
         <SidebarSubheader>
           {this.props.contribName
-            ? `Welcome, {this.props.contribName}!`
+            ? `Welcome, ${this.props.contribName}!`
             : "Welcome!"}
         </SidebarSubheader>
         <Formik
           initialValues={{
             area: null,
+            areaName: "",
+            status: "",
             date: "",
             ...dataFieldsObj(
-              this.state.dataFields.map((field) => ({ [field.value]: null }))
+              this.props.dataFields.map((field) => ({ [field.value]: null }))
             ),
           }}
           onSubmit={async (values, { setSubmitting }) => {
@@ -250,12 +248,23 @@ class SidebarContribution extends Component {
                         this.props.latLng.lng,
                         this.props.latLng.lat,
                       ],
+                      ...(values.areaName && {
+                        areaName: values.areaName,
+                      }),
+                      ...(values.status && {
+                        status: values.status,
+                      }),
                     }
-                  : { site: values.area }),
+                  : { siteId: values.area }),
                 ...(this.props.contribName && {
                   contributor: this.props.contribName,
                 }),
-                ...dataFieldsObj(values),
+                parameters: this.props.dataFields
+                  .filter((field) => values[field.value])
+                  .map((field) => ({
+                    paramId: field._id,
+                    paramValue: values[field.value],
+                  })),
                 date,
               };
               await api.createContribution(body).then((contrib) => {
@@ -264,7 +273,7 @@ class SidebarContribution extends Component {
               });
             }
           }}
-          validationSchema={() => validationSchema(this.state.dataFields)}
+          validationSchema={() => validationSchema(this.props.dataFields)}
         >
           {({
             values,
@@ -305,9 +314,31 @@ class SidebarContribution extends Component {
               />
               <ContributionFields isShown={values.area || this.props.latLng}>
                 {this.props.latLng && (
-                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
-                    this.props.latLng.lng
-                  }`}</LabelField>
+                  <React.Fragment>
+                    <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
+                      this.props.latLng.lng
+                    }`}</LabelField>
+                    <TextField
+                      placeholder="Area Name"
+                      name="areaName"
+                      style={
+                        values.areaName && values.areaName != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
+                    />
+                    <Select
+                      name="status"
+                      placeholder="Area Status"
+                      styles={customStyles}
+                      options={[{label: "Area Status", value: undefined}, {label: "DISTURBED", value: "DISTURBED"}, {label: "CONSERVED", value: "CONSERVED"}]}
+                      onChange={(selectedOption) => {
+                        setFieldValue("status", selectedOption.value);
+                      }}
+                      onBlur={() => setFieldTouched("status")}
+                      error={(error) => setFieldError("status")(error)}
+                    />
+                  </React.Fragment>
                 )}
                 <RelativeDiv>
                   <TextField
@@ -322,9 +353,9 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                {this.state.dataFields.map((field) => (
+                {this.props.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
-                    <LabelField for="seagrassCount">{field.label}</LabelField>
+                    <LabelField for={field.value}>{field.label}</LabelField>
                     <FlexDiv>
                       <TextField
                         id={field.value}
@@ -350,7 +381,7 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {this.state.dataFields.map(
+                {this.props.dataFields.map(
                   (field) =>
                     errors[field.value] &&
                     touched[field.value] && (
@@ -364,7 +395,7 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !this.state.dataFields.some(
+                    !this.props.dataFields.some(
                       (field) => !!values[field.value]
                     )
                   }
