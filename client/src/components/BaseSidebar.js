@@ -16,6 +16,7 @@ import {
 } from "./GlobalSidebarComponents";
 import { logout, isLoggedIn } from "../services/auth-funcs";
 import { CSVLink } from "react-csv";
+import ReactTooltip from 'react-tooltip';
 
 const ParentDiv = styled.div`
   display: flex;
@@ -209,7 +210,7 @@ class BaseSidebar extends Component {
               background: isDatasetEmpty ? "#474747" : "#ffbc32",
               marginTop: "0.5rem",
             }}
-            disabled={isDatasetEmpty}
+            data-tip="Refresh the page if this button doesn't work or the dataset is empty"
           >
             {isDatasetEmpty ? (
               "Download Dataset"
@@ -224,6 +225,7 @@ class BaseSidebar extends Component {
               </CSVLink>
             )}
           </FilledButton>
+          <ReactTooltip place="top" />
           {/*<PayPalButton>
                       Support us via &nbsp;
                       <img src={PayPal} alt="Paypal Logo" />
