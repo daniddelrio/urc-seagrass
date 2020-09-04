@@ -1,6 +1,6 @@
 const DataFields = require("../models/dataFields");
 
-createField = (req, res) => {
+const createField = (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -32,7 +32,7 @@ createField = (req, res) => {
         });
 };
 
-updateField = (req, res) => {
+const updateField = (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -70,7 +70,7 @@ updateField = (req, res) => {
     });
 };
 
-getFieldById = async (req, res) => {
+const getFieldById = async (req, res) => {
     await DataFields.findOne({ _id: req.params.id }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -85,7 +85,7 @@ getFieldById = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAllFields = async (req, res) => {
+const getAllFields = async (req, res) => {
     await DataFields.find({}, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });

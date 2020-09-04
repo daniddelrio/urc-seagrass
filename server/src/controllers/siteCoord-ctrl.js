@@ -135,7 +135,7 @@ const getAllSiteCoords = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-uploadSiteImage = async (req, res) => {
+const uploadSiteImage = async (req, res) => {
     const file = req.file
 
     if (!file) {
