@@ -64,7 +64,7 @@ const getDataset = async (req, res) => {
         }, {});
     }).catch((err) => console.log(err));
 
-    let siteDataObj = {};
+    let siteDataObj = [];
     let dataWithoutContribs = [];
     await SiteData.find({}, (err, siteData) => {
         if (err) {
@@ -76,12 +76,13 @@ const getDataset = async (req, res) => {
                 .json({ success: false, error: `Site data not found` });
         }
 
-        siteDataObj = siteData.reduce((accumulator, data) => {
-            return {
-                ...accumulator,
-                [data.siteId + " " + data.year]: data.toObject(),
-            };
-        }, {});
+        siteDataObj = siteData;
+        // siteDataObj = siteData.reduce((accumulator, data) => {
+        //     return {
+        //         ...accumulator,
+        //         [data.siteId + " " + data.year]: data.toObject(),
+        //     };
+        // }, {});
 
         siteData.forEach((data) => {
             const paramsWithoutContribs = data.parameters
@@ -97,7 +98,7 @@ const getDataset = async (req, res) => {
                 }))
                 .filter((param) => param.paramValue);
             // Make a "contrib" out of the data without links to the contrib
-            if(paramsWithoutContribs.length > 0) {
+            if (paramsWithoutContribs.length > 0) {
                 dataWithoutContribs.push({
                     ...data.toObject(),
                     date: new Date(data.year, 1, 1),
@@ -119,7 +120,7 @@ const getDataset = async (req, res) => {
                 .json({ success: false, error: `Contributions not found` });
         }
 
-        contribs = contribs.concat(dataWithoutContribs)
+        contribs = contribs.concat(dataWithoutContribs);
 
         contribs.sort(function(a, b) {
             let dateA = a.date;
@@ -160,19 +161,32 @@ const getDataset = async (req, res) => {
         let currReplicate = 1;
 
         contribs.forEach((contrib, idx) => {
-            const currData =
-                siteDataObj[contrib.siteId + " " + contrib.date.getFullYear()];
+            // Find first based on siteId and year, but if siteId can't be found in contrib, look for the area name
+            const currData = siteDataObj.find(
+                (data) =>
+                    data.year === contrib.date.getFullYear() &&
+                    (new String(data.siteId).valueOf() ===
+                        new String(contrib.siteId).valueOf() ||
+                        new String(contrib.areaName).valueOf() ===
+                            new String(sites[data.siteId].areaName).valueOf())
+            );
+            // const currData =
+            //     siteDataObj[contrib.siteId + " " + contrib.date.getFullYear()];
 
             if (currData) {
-                const currSite = sites[contrib.siteId];
+                const currSite = sites[currData.siteId];
 
                 // Check previous row to see whether to add replicate or reset
+                const prevContrib = idx > 0 && contribs[idx - 1];
                 if (
                     idx > 0 &&
-                    new String(contrib.siteId).valueOf() ===
-                        new String(contribs[idx - 1].siteId).valueOf() &&
+                    (prevContrib.siteId
+                        ? new String(contrib.siteId).valueOf() ===
+                          new String(prevContrib.siteId).valueOf()
+                        : new String(currSite.areaName).valueOf() ===
+                          new String(prevContrib.areaName).valueOf()) &&
                     contrib.date.getFullYear() ===
-                        contribs[idx - 1].date.getFullYear()
+                        prevContrib.date.getFullYear()
                 ) {
                     currReplicate++;
                 } else {
@@ -184,7 +198,9 @@ const getDataset = async (req, res) => {
                     replicate: currReplicate, // change
                     contributor: contrib.contributor || "Anonymous",
                     loggingDateTime: formatDateTime(contrib.createdAt, true),
-                    measuringDate: contrib.isFromAdmin ? "" : formatDateTime(contrib.date, false),
+                    measuringDate: contrib.isFromAdmin
+                        ? ""
+                        : formatDateTime(contrib.date, false),
                     site:
                         currSite.siteCode ||
                         currSite.areaName ||
