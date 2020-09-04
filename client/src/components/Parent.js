@@ -5,7 +5,8 @@ import styled from "styled-components";
 import { MAX_WIDTH } from "./GlobalDeviceWidths";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import getData from "../dataFields";
+import paramsApi from "../services/dataFields-services";
+import getDataset from "../services/dataset-services";
 
 const AppDiv = styled.div`
   display: flex;
@@ -23,9 +24,16 @@ class Parent extends Component {
       parameter: "all",
       latLng: null,
       areas: {},
+      coords: {},
       yearOptions: [],
       paramOptions: [],
       dataFields: [],
+      isLoadingMap: true,
+      isLoadingPopups: true,
+      dataset: {
+        data: [],
+        headers: [],
+      },
     };
   }
 
@@ -33,16 +41,17 @@ class Parent extends Component {
     window.addEventListener("resize", this.setSidebarOpen);
     window.addEventListener("resize", this.setMobileState);
 
-    const dataFields = await getData();
+    const getFieldsMethod = await paramsApi.getAllFields();
+    const dataFields = getFieldsMethod.data.data;
 
     const paramOptions = [{ value: "all", label: "All Parameters" }].concat(
       dataFields.map((field) => ({
-        ...field,
+        value: field._id,
         label: field.label + (field.unit ? " (" + field.unit + ")" : ""),
       }))
     );
 
-    this.setState({ paramOptions, dataFields });
+    this.setState({ paramOptions, dataFields, isLoadingPopups: false });
 
     await dataApi
       .getAllYears()
@@ -62,42 +71,52 @@ class Parent extends Component {
         .getAllData()
         .then((res) => {
           const finalData = this.processSiteData(newCoords, res.data.data);
-          const areaProps = finalData.map((coord) => coord.properties);
 
           this.setState({
             areas: finalData,
-            isLoading: false,
+            coords: coords.data.coords,
+            isLoadingMap: false,
+            isLoadingPopups: false,
           });
         })
         .catch((err) =>
-          this.setState({ areas: [], isLoading: false })
+          this.setState({
+            areas: {},
+            isLoadingMap: false,
+            isLoadingPopups: false,
+          })
         );
     });
+
+    await getDataset().then((res) => {
+      this.setState({
+        dataset: {
+          headers: res.data.headers,
+          data: res.data.data,
+        }
+      })
+    })
   }
 
   // Make the site code the key in the object
   changeSiteKey = (coords) => {
     const newSites = {};
     coords.forEach((site) => {
-      newSites[(site.properties && site.properties.siteCode) || "test"] = site;
+      newSites[site._id] = site;
     });
     return newSites;
   };
 
-  processSiteData = (newCoords, data) => {
-    let finalData = [];
-    data.forEach((siteData) => {
-      finalData.push({
-        ...newCoords[siteData.siteCode],
-        properties: {
-          ...siteData,
-          ...(newCoords[siteData.siteCode] &&
-            newCoords[siteData.siteCode].properties),
-        },
-      });
-    });
-    return finalData;
-  };
+  processSiteData = (newCoords, data) =>
+    data.map((siteData) => ({
+      ...newCoords[siteData.siteId],
+      properties: {
+        ...siteData,
+        ...(newCoords[siteData.siteId] &&
+          newCoords[siteData.siteId].properties),
+        coordId: newCoords[siteData.siteId] && newCoords[siteData.siteId]._id,
+      },
+    }));
 
   setLatLng = (latlng) => {
     this.setState({ latLng: latlng });
@@ -150,6 +169,8 @@ class Parent extends Component {
           isMobile={this.state.isMobile}
           isChoosingCoords={this.state.isChoosingCoords}
           isModifyingData={this.state.isModifyingData}
+          isLoadingMap={this.state.isLoadingMap}
+          isLoadingPopups={this.state.isLoadingPopups}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
           toggleModifyingData={this.toggleModifyingData}
           toggleSidebar={this.toggleSidebar}
@@ -167,6 +188,7 @@ class Parent extends Component {
           isOpen={this.state.isSidebarOpen}
           isMobile={this.state.isMobile}
           areas={this.state.areas}
+          coords={this.state.coords}
           toggleSidebar={this.toggleSidebar}
           toggleModifyingData={this.toggleModifyingData}
           toggleChoosingSidebar={this.toggleChoosingSidebar}
@@ -175,6 +197,8 @@ class Parent extends Component {
           setLatLng={this.setLatLng}
           latLng={this.state.latLng}
           turnOffModifyingData={this.turnOffModifyingData}
+          dataFields={this.state.dataFields}
+          dataset={this.state.dataset}
         />
       </AppDiv>
     );

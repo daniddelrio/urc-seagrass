@@ -1,16 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Modification = require("./modification");
-const dataFields = require("../dataFields");
-
-const dataFieldsWithSchema = dataFields.reduce(
-    (obj, item) => ({ ...obj, ...{ [item.value]: { type: Number } } }),
-    {}
-);
+const { takeModifications } = require('../config');
 
 const SiteData = new Schema(
     {
-        siteCode: { type: String, required: true },
+        siteId: { type: Schema.Types.ObjectId, ref: "siteCoords", required: true },
         year: { type: Number, required: true },
         status: {
             type: String,
@@ -19,57 +14,90 @@ const SiteData = new Schema(
                 "CONSERVED",
             ],
         },
-        ...dataFieldsWithSchema,
+        parameters: [
+            {
+                paramId: { type: Schema.Types.ObjectId, ref: "dataFields" },
+                paramAverage: Number,
+                paramValues: [
+                    {
+                        value: Number,
+                        contribution: { type: Schema.Types.ObjectId, ref: "contribution" },
+                    }
+                ]
+            }
+        ]
     },
     { timestamps: true }
 );
 
+SiteData.pre("save", function(next) {
+    // Average all the paramValues
+    this.parameters.forEach(param => {
+        if(param.paramValues.length > 0) {
+            param.paramAverage = param.paramValues.reduce((a, b) => a+parseInt(b.value), 0) / (param.paramValues.length);
+        }
+    })
+    next();
+});
+
+SiteData.pre("findOneAndUpdate", function(next) {
+    // Average all the paramValues
+    this._update.$set.parameters.forEach(param => {
+        if(param.paramValues.length > 0) {
+            param.paramAverage = param.paramValues.reduce((a, b) => a+parseInt(b.value), 0) / (param.paramValues.length);
+        }
+    })
+    next();
+});
+
 // If a site is modified, create a Modification in order to log
 SiteData.post("findOneAndUpdate", function(result) {
-    let isModifiedAtAll = false;
-    const changes = [];
+    if(takeModifications == true) {
+        let isModifiedAtAll = false;
+        const changes = [];
 
-    if (this._update["$set"].status) {
-        isModifiedAtAll = true;
-        changes.push({
-            field: "status",
-            newValue: this._update["$set"].status,
-        });
-    }
-
-    dataFields.forEach((field) => {
-        if (this._update["$set"][field.value]) {
+        if (this._update["$set"].status) {
             isModifiedAtAll = true;
             changes.push({
-                field: field.value,
-                newValue: this._update["$set"][field.value],
+                field: "status",
+                newValue: this._update["$set"].status,
             });
         }
-    });
 
-    // only submit a modification if a field was modified
-    if (isModifiedAtAll) {
-        const modificationBody = {
-            siteCode: result.siteCode,
-            year: result.year,
-            changes: changes,
-        };
+        this._update["$set"].parameters.forEach((field) => {
+            if (field) {
+                isModifiedAtAll = true;
+                changes.push({
+                    field: field.paramId,
+                    newValue: field.paramAverage,
+                });
+            }
+        });
 
-        const modification = new Modification(modificationBody);
+        // only submit a modification if a field was modified
+        if (isModifiedAtAll) {
+            const modificationBody = {
+                siteId: result.siteId,
+                year: result.year,
+                changes: changes,
+            };
 
-        if (!modification) {
-            console.log("A modification couldn't be created!");
+            const modification = new Modification(modificationBody);
+
+            if (!modification) {
+                console.log("A modification couldn't be created!");
+            }
+
+            modification
+                .save()
+                .then(() => {
+                    console.log("A modification was added!");
+                })
+                .catch((error) => {
+                    console.log("A modification was not added!");
+                    console.log(error);
+                });
         }
-
-        modification
-            .save()
-            .then(() => {
-                console.log("A modification was added!");
-            })
-            .catch((error) => {
-                console.log("A modification was not added!");
-                console.log(error);
-            });
     }
 });
 

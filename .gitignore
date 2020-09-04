@@ -18,10 +18,11 @@ client/thumb
 client/sketch
 
 */.env
-*/.DS_*
+.DS_Store
 
 ### nodejs ###
 server/node_modules
+server/sitePictures/*
 
 */build
 

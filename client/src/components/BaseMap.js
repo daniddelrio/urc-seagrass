@@ -9,6 +9,7 @@ import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
 import L from "leaflet";
+import { MapLoading } from "./GlobalSidebarComponents";
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -65,7 +66,7 @@ class BaseMap extends Component {
     this.geojson = React.createRef();
     this.state = {
       popup: {},
-      isLoading: false,
+      isLoadingPopups: true,
     };
   }
 
@@ -119,27 +120,37 @@ class BaseMap extends Component {
     });
   };
 
+  setLoadingFalse = () => {
+    this.setState({ isLoadingPopups: false });
+  };
+
   handleClick = (e) => {
     this.props.setLatLng(e.latlng);
     this.props.toggleChoosingSidebar(false);
     if (this.props.isMobile) this.props.toggleSidebar();
   };
 
-  compareStandards = (d, standardsArr) => {
-    return standardsArr.some((curr) => {
-      if (curr[1] == "infinity") {
-        return d >= curr[0];
+  compareStandards = (d, standards) => {
+    const compareLessWithEqual = (comparison) => comparison.hasEqual ? (d <= comparison.standard) : (d < comparison.standard);
+    const compareGreaterWithEqual = (comparison) => comparison.hasEqual ? (d >= comparison.standard) : (d > comparison.standard);
+    if(standards.lessThan && standards.greaterThan) {
+      if(standards.lessThan.standard > standards.greaterThan.standard) {
+        return compareGreaterWithEqual(standards.greaterThan) && compareLessWithEqual(standards.lessThan);
       }
+      return compareGreaterWithEqual(standards.greaterThan) || compareLessWithEqual(standards.lessThan);
+    }
 
-      return d >= curr[0] && d <= curr[1];
-    });
+    if(standards.lessThan) return compareLessWithEqual(standards.lessThan);
+    if(standards.greaterThan) return compareGreaterWithEqual(standards.greaterThan);
+
+    return false;
   };
 
   getColor = (d) => {
     if (this.props.parameter != "all") {
-      const standards = this.props.dataFields.filter(
-        (data) => data.value == this.props.parameter
-      )[0].standards;
+      const standards = this.props.dataFields.find(
+        (field) => field._id == this.props.parameter
+      ).standards;
       if (!standards) {
         return "#DEDEDE";
       }
@@ -160,8 +171,9 @@ class BaseMap extends Component {
   };
 
   render() {
+    const getParamValue = (feature) => feature.properties.parameters.find(param => param.paramId == this.props.parameter);
     const style = (feature) => ({
-      fillColor: this.getColor(feature.properties[this.props.parameter]),
+      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramAverage),
       weight: 3,
       opacity: 0.8,
       color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
@@ -197,7 +209,9 @@ class BaseMap extends Component {
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          {Object.keys(this.props.areas).length !== 0 && (
+          {this.props.isLoadingMap ? (
+            <MapLoading type="spin" />
+          ) : (
             <GeoJSON
               style={style}
               data={this.props.areas}
@@ -213,15 +227,25 @@ class BaseMap extends Component {
             />
           )}
           {popup.position && (
-            <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup
-                isModifyingData={this.props.isModifyingData}
-                parameter={this.props.parameter}
-                properties={{
-                  ...popup.properties,
-                  coordinates: popup.coordinates,
-                }}
-              />
+            <Popup
+              key={`popup-${popup.key}`}
+              position={popup.position}
+              style={{ position: "relative" }}
+            >
+              {this.props.isLoadingPopups ? (
+                <MapLoading type="spin" />
+              ) : (
+                <BasePopup
+                  dataFields={this.props.dataFields}
+                  setLoadingFalse={this.setLoadingFalse}
+                  isModifyingData={this.props.isModifyingData}
+                  parameter={this.props.parameter}
+                  properties={{
+                    ...popup.properties,
+                    coordinates: popup.coordinates,
+                  }}
+                />
+              )}
             </Popup>
           )}
         </LeafletMap>
