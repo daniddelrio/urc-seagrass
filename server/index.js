@@ -7,6 +7,7 @@ const passport = require('passport');
 // const MongoStore = require("connect-mongo")(session);
 const MongoStore = require("connect-mongo");
 const compression = require('compression');
+const helmet = require('helmet');
 
 const { dbUrl, port, jwtSecret, corsOrigin } = require('./config');
 
