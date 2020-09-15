@@ -447,8 +447,8 @@ class SidebarAdminHome extends Component {
           )
           .map(
             (field) =>
-              `${field.label} from ${getParam(filteredDataByYearAndId, field) ||
-                "_"} to ${getParam(contrib, field)}`
+              `${field.label} from ${getParam(filteredDataByYearAndId, field).paramValue ||
+                "_"} to ${getParam(contrib, field).paramValue}`
           );
         return (
           `${contrib.contributor ||

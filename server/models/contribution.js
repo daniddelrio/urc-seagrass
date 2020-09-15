@@ -32,7 +32,7 @@ Contribution.pre("save", function(next) {
 });
 
 // If a contribution is approved, edit the site info given the site and year
-Contribution.post("save", function(doc, next) {
+Contribution.post("save", async function(doc, next) {
     var contribution = this;
 
     // only modify the site info if it has been modified (or is new)
@@ -48,7 +48,7 @@ Contribution.post("save", function(doc, next) {
         const parameters = contribution.parameters;
 
         if (siteId) {
-            SiteData.findOne({ siteId: siteId, year: year }, (err, data) => {
+            await SiteData.findOne({ siteId: siteId, year: year }, async (err, data) => {
                 if (err || !data) {
                     console.log("Site data not found. Creating a new record.");
                     const newParameters = parameters.map(param => {
@@ -73,7 +73,7 @@ Contribution.post("save", function(doc, next) {
                         console.log("New site data not created");
                     }
 
-                    siteData
+                    await siteData
                         .save()
                         .then((data) => {
                             console.log("New site data was created!");
@@ -105,7 +105,8 @@ Contribution.post("save", function(doc, next) {
                             )
                         }
                     })
-                    data.save()
+
+                    await data.save()
                         .then((newData) => {
                             console.log("Site updated");
                         })
@@ -139,9 +140,9 @@ Contribution.post("save", function(doc, next) {
                 console.log("New site not created");
             }
 
-            siteCoord
+            await siteCoord
                 .save()
-                .then((res) => {
+                .then(async (res) => {
                     const newParameters = parameters.map(param => {
                         let tempParam = param.toObject();
                         tempParam.paramValues = [{
@@ -164,7 +165,7 @@ Contribution.post("save", function(doc, next) {
                         console.log("New site data not created");
                     }
 
-                    siteData
+                    await siteData
                         .save()
                         .then((newData) => {
                             console.log("New site data was created!");

@@ -1,6 +1,6 @@
 const SiteData = require("../models/siteInfo");
 
-createData = (req, res) => {
+const createData = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -16,7 +16,7 @@ createData = (req, res) => {
         return res.status(400).json({ success: false, error: err });
     }
 
-    data.save()
+    await data.save()
         .then(() => {
             return res.status(201).json({
                 success: true,
@@ -32,7 +32,7 @@ createData = (req, res) => {
         });
 };
 
-updateData = (req, res) => {
+const updateData = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -42,7 +42,7 @@ updateData = (req, res) => {
         });
     }
 
-    SiteData.findOneAndUpdate(
+    await SiteData.findOneAndUpdate(
         { _id: req.params.id },
         {
             $set: {
@@ -65,7 +65,7 @@ updateData = (req, res) => {
     );
 };
 
-deleteData = async (req, res) => {
+const deleteData = async (req, res) => {
     await SiteData.findOneAndDelete({ _id: req.params.id }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -81,7 +81,7 @@ deleteData = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getSiteDataById = async (req, res) => {
+const getSiteDataById = async (req, res) => {
     await SiteData.findOne({ _id: req.params.id }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -96,7 +96,7 @@ getSiteDataById = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getSiteDataByYear = async (req, res) => {
+const getSiteDataByYear = async (req, res) => {
     await SiteData.find({ year: req.params.year }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -111,7 +111,7 @@ getSiteDataByYear = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAllSiteData = async (req, res) => {
+const getAllSiteData = async (req, res) => {
     await SiteData.find({}, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -125,7 +125,7 @@ getAllSiteData = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAllYears = async (req, res) => {
+const getAllYears = async (req, res) => {
     await SiteData.find({}, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });

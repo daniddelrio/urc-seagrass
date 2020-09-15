@@ -51,7 +51,7 @@ SiteData.pre("findOneAndUpdate", function(next) {
 });
 
 // If a site is modified, create a Modification in order to log
-SiteData.post("findOneAndUpdate", function(result) {
+SiteData.post("findOneAndUpdate", async function(result) {
     if(takeModifications == true) {
         let isModifiedAtAll = false;
         const changes = [];
@@ -88,7 +88,7 @@ SiteData.post("findOneAndUpdate", function(result) {
                 console.log("A modification couldn't be created!");
             }
 
-            modification
+            await modification
                 .save()
                 .then(() => {
                     console.log("A modification was added!");

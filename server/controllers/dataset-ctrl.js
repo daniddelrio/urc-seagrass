@@ -77,12 +77,6 @@ const getDataset = async (req, res) => {
         }
 
         siteDataObj = siteData;
-        // siteDataObj = siteData.reduce((accumulator, data) => {
-        //     return {
-        //         ...accumulator,
-        //         [data.siteId + " " + data.year]: data.toObject(),
-        //     };
-        // }, {});
 
         siteData.forEach((data) => {
             const paramsWithoutContribs = data.parameters

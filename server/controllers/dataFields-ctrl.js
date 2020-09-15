@@ -1,6 +1,6 @@
 const DataFields = require("../models/dataFields");
 
-createField = (req, res) => {
+const createField = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -16,7 +16,7 @@ createField = (req, res) => {
         return res.status(400).json({ success: false, error: err });
     }
 
-    data.save()
+    await data.save()
         .then(() => {
             return res.status(201).json({
                 success: true,
@@ -32,7 +32,7 @@ createField = (req, res) => {
         });
 };
 
-updateField = (req, res) => {
+const updateField = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -42,7 +42,7 @@ updateField = (req, res) => {
         });
     }
 
-    DataFields.findOne({ _id: req.params.id }, (err, field) => {
+    await DataFields.findOne({ _id: req.params.id }, (err, field) => {
         if (err || !field) {
             return res.status(404).json({
                 err,
@@ -70,7 +70,7 @@ updateField = (req, res) => {
     });
 };
 
-getFieldById = async (req, res) => {
+const getFieldById = async (req, res) => {
     await DataFields.findOne({ _id: req.params.id }, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });
@@ -85,7 +85,7 @@ getFieldById = async (req, res) => {
     }).catch((err) => console.log(err));
 };
 
-getAllFields = async (req, res) => {
+const getAllFields = async (req, res) => {
     await DataFields.find({}, (err, data) => {
         if (err) {
             return res.status(400).json({ success: false, error: err });

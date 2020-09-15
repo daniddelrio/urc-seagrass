@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path'); 
 const { imageUploadPath } = require('../config');
 
-createCoords = (req, res) => {
+const createCoords = async (req, res) => {
     const body = req.body;
 
     if (!body) {
@@ -19,7 +19,7 @@ createCoords = (req, res) => {
         return res.status(400).json({ success: false, error: err })
     }
 
-    coords
+    await coords
         .save()
         .then(() => {
             return res.status(201).json({
@@ -36,7 +36,7 @@ createCoords = (req, res) => {
         })
 }
 
-updateCoords = async (req, res) => {
+const updateCoords = async (req, res) => {
     const body = req.body
 
     if (!body) {
@@ -46,7 +46,7 @@ updateCoords = async (req, res) => {
         })
     }
 
-    SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
+    await SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
         if (err) {
             return res.status(404).json({
                 err,
@@ -75,7 +75,7 @@ updateCoords = async (req, res) => {
     })
 }
 
-deleteCoords = async (req, res) => {
+const deleteCoords = async (req, res) => {
     await SiteCoords.findOneAndDelete({ _id: req.params.id }, (err, coords) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -91,7 +91,7 @@ deleteCoords = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-getSiteCoordsById = async (req, res) => {
+const getSiteCoordsById = async (req, res) => {
     await SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -106,7 +106,7 @@ getSiteCoordsById = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-getSiteCoordsByCode = async (req, res) => {
+const getSiteCoordsByCode = async (req, res) => {
     await SiteCoords.findOne({ "properties.siteCode": req.params.code }, (err, coords) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -121,7 +121,7 @@ getSiteCoordsByCode = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-getAllSiteCoords = async (req, res) => {
+const getAllSiteCoords = async (req, res) => {
     await SiteCoords.find({}, (err, coords) => {
         if (err) {
             return res.status(400).json({ success: false, error: err })
@@ -135,7 +135,7 @@ getAllSiteCoords = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
-uploadSiteImage = async (req, res) => {
+const uploadSiteImage = async (req, res) => {
     const file = req.file
 
     if (!file) {
@@ -145,7 +145,7 @@ uploadSiteImage = async (req, res) => {
         })
     }
 
-    SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
+    await SiteCoords.findOne({ _id: req.params.id }, (err, coords) => {
         if (err) {
             return res.status(404).json({
                 err,
