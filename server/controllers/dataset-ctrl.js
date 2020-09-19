@@ -284,7 +284,7 @@ const getDataset = async (req, res) => {
 
     logger.info({
         message: "Dataset was completed",
-        body: { headers, data: row },
+        body: { headers, data: rows },
         type: "dataset",
     });
     return res

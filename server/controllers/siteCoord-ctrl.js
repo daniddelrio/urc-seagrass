@@ -174,7 +174,7 @@ const getSiteCoordsById = async (req, res) => {
                 .json({ success: false, error: `Site coords not found` })
         }
         logger.info({
-            message: "Coordinates were deleted",
+            message: "Coordinates were found",
             body: coords,
             type: "siteCoords",
         });
@@ -210,7 +210,7 @@ const getSiteCoordsByCode = async (req, res) => {
                 .json({ success: false, error: `Site coordinates with given code not found` })
         }
         logger.info({
-            message: "Coordinates were deleted",
+            message: "Coordinates were found",
             body: coords,
             type: "siteCoords",
         });
@@ -244,7 +244,7 @@ const getAllSiteCoords = async (req, res) => {
                 .json({ success: false, error: `Site coordinates not found` })
         }
         logger.info({
-            message: "Coordinates were deleted",
+            message: "Coordinates were found",
             body: coords,
             type: "siteCoords",
         });

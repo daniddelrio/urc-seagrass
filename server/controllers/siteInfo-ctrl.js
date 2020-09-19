@@ -91,7 +91,7 @@ const updateData = async (req, res) => {
 
             logger.info({
                 message: "Site data was updated",
-                body: siteInfo,
+                body: data,
                 type: "siteInfo",
             });
             return res.status(200).json({ success: true, data: data });
@@ -228,7 +228,7 @@ const getAllSiteData = async (req, res) => {
         }
         logger.info({
             message: "Site data was found",
-            body: siteInfo,
+            body: data,
             type: "siteInfo",
         });
         return res.status(200).json({ success: true, data: data });

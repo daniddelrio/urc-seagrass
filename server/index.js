@@ -1,10 +1,7 @@
 const cors = require('cors');
-// const createError = require('http-errors');
 const express = require("express");
 const bodyParser = require("body-parser");
 const passport = require('passport');
-// const session = require("express-session");
-// const MongoStore = require("connect-mongo")(session);
 const MongoStore = require("connect-mongo");
 const compression = require('compression');
 const helmet = require('helmet');
