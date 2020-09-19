@@ -23,6 +23,8 @@ app.use(compression());
 // Create a database variable outside of the database connection callback to reuse the connection pool in your app.
 const db = require('./db')
 
+const logger = require('./logger')
+
 require('./passport')(passport);
 app.use(passport.initialize());
 
@@ -39,7 +41,7 @@ app.use(helmet());
 var distDir = __dirname + "/dist/";
 app.use(express.static(distDir));
 
-db.on('error', console.error.bind(console, 'MongoDB connection error:'))
+db.on('error', logger.error.bind(logger, 'MongoDB connection error:'))
 
 // Pass the global passport object into the configuration function
 
@@ -59,4 +61,4 @@ app.use('/api', modificationRouter)
 app.use('/api', dataFieldsRouter)
 app.use('/api', datasetRouter)
 
-app.listen(port, () => console.log(`Server running on port ${port}`))
+app.listen(port, () => logger.info(`Server running on port ${port}`))

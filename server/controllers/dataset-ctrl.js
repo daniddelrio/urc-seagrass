@@ -2,6 +2,7 @@ const SiteCoord = require("../models/siteCoord");
 const SiteData = require("../models/siteInfo");
 const DataFields = require("../models/dataFields");
 const Contribution = require("../models/contribution");
+const logger = require("../logger")
 
 const formatDateTime = (datetime, hasTime) => {
     const month = datetime.getMonth() + 1;
@@ -27,9 +28,18 @@ const getDataset = async (req, res) => {
     let parameters = {};
     await DataFields.find({}, (err, fields) => {
         if (err) {
+            logger.error({
+                message: "Data fields were not found",
+                errorTrace: err,
+                type: "dataset",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!fields.length) {
+            logger.error({
+                message: "Data fields were not found",
+                type: "dataset",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Fields not found` });
@@ -43,14 +53,29 @@ const getDataset = async (req, res) => {
             label: field.label,
         }));
         headers = headers.concat(parametersHeaders);
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Data fields were not found",
+            errorTrace: err,
+            type: "dataset",
+        })
+    );
 
     let sites = {};
     await SiteCoord.find({}, (err, siteCoord) => {
         if (err) {
+            logger.error({
+                message: "Coordinates were not found",
+                errorTrace: err,
+                type: "dataset",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!siteCoord.length) {
+            logger.error({
+                message: "Coordinates were not found",
+                type: "dataset",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Sites not found` });
@@ -62,15 +87,30 @@ const getDataset = async (req, res) => {
                 [coord._id]: { ...otherProps, ...coord.geometry, _id: coord._id },
             };
         }, {});
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Coordinates were not found",
+            errorTrace: err,
+            type: "dataset",
+        })
+    );
 
     let siteDataObj = [];
     let dataWithoutContribs = [];
     await SiteData.find({}, (err, siteData) => {
         if (err) {
+            logger.error({
+                message: "Site data was not found",
+                errorTrace: err,
+                type: "dataset",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!siteData.length) {
+            logger.error({
+                message: "Site data was not found",
+                type: "dataset",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Site data not found` });
@@ -101,14 +141,29 @@ const getDataset = async (req, res) => {
                 });
             }
         });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Site data was not found",
+            errorTrace: err,
+            type: "dataset",
+        })
+    );
 
     let rows = [];
     await Contribution.find({ isApproved: true }, (err, contribs) => {
         if (err) {
+            logger.error({
+                message: "Contributions were not found",
+                errorTrace: err,
+                type: "dataset",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!contribs.length) {
+            logger.error({
+                message: "Contributions were not found",
+                type: "dataset",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Contributions not found` });
@@ -219,8 +274,19 @@ const getDataset = async (req, res) => {
                 });
             }
         });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Contributions were not found",
+            errorTrace: err,
+            type: "dataset",
+        })
+    );
 
+    logger.info({
+        message: "Dataset was completed",
+        body: { headers, data: row },
+        type: "dataset",
+    });
     return res
         .status(200)
         .json({ success: true, headers: headers, data: rows });

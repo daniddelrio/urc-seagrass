@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const Modification = require("./modification");
 const { takeModifications } = require('../config');
+const logger = require("../logger")
 
 const SiteData = new Schema(
     {
@@ -85,17 +86,28 @@ SiteData.post("findOneAndUpdate", async function(result) {
             const modification = new Modification(modificationBody);
 
             if (!modification) {
-                console.log("A modification couldn't be created!");
+                logger.error({
+                    message: "A modification couldn't be created!",
+                    siteBody: modificationBody,
+                    type: "modification",
+                });
             }
 
             await modification
                 .save()
-                .then(() => {
-                    console.log("A modification was added!");
+                .then((data) => {
+                    logger.info({
+                        message: "A modification was added!",
+                        siteBody: data,
+                        type: "modification",
+                    });
                 })
                 .catch((error) => {
-                    console.log("A modification was not added!");
-                    console.log(error);
+                    logger.error({
+                        message: "A modification was not added!",
+                        errorTrace: error,
+                        type: "modification",
+                    });
                 });
         }
     }

@@ -1,6 +1,7 @@
 const Admin = require("../models/admin");
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require('../config')
+const logger = require("../logger")
 
 const signIn = async (req, res) => {
     await Admin.findOne(
@@ -11,6 +12,11 @@ const signIn = async (req, res) => {
             if (err) throw err;
 
             if (!admin) {
+                logger.error({
+                    message: "Authentication failed. Admin not found.",
+                    body: req.body,
+                    type: "admin",
+                });
                 res.status(401).send({
                     success: false,
                     msg: "Authentication failed. Admin not found.",
@@ -26,10 +32,21 @@ const signIn = async (req, res) => {
                             expiresIn: expires,
                         });
 
-                        // res.cookie('jwt',token);
+                        const { isMaster, username } = admin;
+
+                        logger.info({
+                            message: "Authentication successful.",
+                            body: { isMaster, username },
+                            type: "admin",
+                        });
                         // return the information including token as JSON
-                        res.json({ success: true, token: token, expiresIn: expires, isMaster: admin.isMaster, username: admin.username });
+                        res.json({ success: true, token: token, expiresIn: expires, isMaster, username });
                     } else {
+                        logger.error({
+                            message: "Authentication failed. Wrong password.",
+                            errorTrace: err,
+                            type: "admin",
+                        });
                         res.status(401).send({
                             success: false,
                             msg: "Authentication failed. Wrong password.",
@@ -45,6 +62,10 @@ const createAdmin = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Admin was not created because of lack of data",
+            type: "admin",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide data",
@@ -54,12 +75,22 @@ const createAdmin = async (req, res) => {
     const admin = new Admin(body);
 
     if (!admin) {
-        return res.status(400).json({ success: false, error: err });
+        logger.error({
+            message: "Admin not created due to an error",
+            body: admin,
+            type: "admin",
+        });
+        return res.status(400).json({ success: false, error: "Admin not created due to an error" });
     }
 
     await admin
         .save()
-        .then(() => {
+        .then((data) => {
+            logger.info({
+                message: "Admin was successfully created",
+                body: data,
+                type: "admin",
+            });
             return res.status(201).json({
                 success: true,
                 id: admin._id,
@@ -67,6 +98,11 @@ const createAdmin = async (req, res) => {
             });
         })
         .catch((error) => {
+            logger.error({
+                message: "Admin creation was not successful.",
+                errorTrace: error,
+                type: "admin",
+            });
             return res.status(400).json({
                 error,
                 message: "An admin was not created!",
@@ -78,6 +114,10 @@ const updateAdmin = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Admin was not updated because of lack of data",
+            type: "admin",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide a body to update",
@@ -86,6 +126,11 @@ const updateAdmin = async (req, res) => {
 
     await Admin.findOne({ username: req.params.username }, (err, admin) => {
         if (err || !admin) {
+            logger.error({
+                message: "Admin to be updated was not found",
+                errorTrace: err,
+                type: "admin",
+            });
             return res.status(404).json({
                 err,
                 message: "Admin not found!",
@@ -96,7 +141,12 @@ const updateAdmin = async (req, res) => {
         if(body.isMaster) admin.isMaster = body.isMaster;
         admin
             .save()
-            .then(() => {
+            .then((data) => {
+                logger.info({
+                    message: "Admin updated",
+                    body: data,
+                    type: "admin",
+                });
                 return res.status(200).json({
                     success: true,
                     id: admin._id,
@@ -104,6 +154,11 @@ const updateAdmin = async (req, res) => {
                 });
             })
             .catch((error) => {
+                logger.error({
+                    message: "Admin not updated due to an error",
+                    errorTrace: error,
+                    type: "admin",
+                });
                 return res.status(404).json({
                     error,
                     message: "Admin not updated due to an error!",
@@ -117,47 +172,109 @@ const deleteAdmin = async (req, res) => {
         { username: req.params.username },
         (err, admin) => {
             if (err) {
+                logger.error({
+                    message: "Admin was not deleted",
+                    errorTrace: err,
+                    type: "admin",
+                });
                 return res.status(400).json({ success: false, error: err });
             }
 
             if (!admin) {
+                logger.error({
+                    message: "Admin was not deleted because it does not exist",
+                    body: req.params.username,
+                    type: "admin",
+                });
                 return res
                     .status(404)
                     .json({ success: false, error: `Admin not found` });
             }
 
+            logger.info({
+                message: "Admin was deleted",
+                body: admin,
+                type: "admin",
+            });
             return res.status(200).json({ success: true, data: admin });
         }
-    ).catch((err) => console.log(err));
+    ).catch((err) => 
+        logger.error({
+            message: "Admin was not deleted",
+            errorTrace: err,
+            type: "admin",
+        })
+    );
 };
 
 const getAdminByUsername = async (req, res) => {
     await Admin.findOne({ username: req.params.username }, (err, admin) => {
         if (err) {
+            logger.error({
+                message: "Admin was not found",
+                errorTrace: err,
+                type: "admin",
+            });
             return res.status(400).json({ success: false, error: err });
         }
 
         if (!admin) {
+            logger.error({
+                message: "Admin was not found",
+                body: req.params.username,
+                type: "admin",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Admin not found` });
         }
+        logger.info({
+                message: "Admin was found",
+                body: admin,
+                type: "admin",
+            });
         return res.status(200).json({ success: true, data: admin });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Admin was not found",
+            errorTrace: err,
+            type: "admin",
+        })
+    );
 };
 
 const getAdmins = async (req, res) => {
     await Admin.find({}, (err, admin) => {
         if (err) {
+            logger.error({
+                message: "Admins were not found",
+                errorTrace: err,
+                type: "admin",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!admin.length) {
+            logger.error({
+                message: "Admins were not found",
+                type: "admin",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Admins not found` });
         }
+        logger.info({
+            message: "Admins were found",
+            body: admin,
+            type: "admin",
+        });
         return res.status(200).json({ success: true, data: admin });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Admin was not found",
+            errorTrace: err,
+            type: "admin",
+        })
+    );
 };
 
 module.exports = {
