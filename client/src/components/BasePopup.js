@@ -1,10 +1,13 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import dataFields from "../dataFields";
 import { Formik, Form, Field } from "formik";
 import { CustomErrorMessage } from "./GlobalSidebarComponents";
 import api from "../services/sitedata-services";
+import { uploadSiteImage, updateCoords } from "../services/siteCoord-services";
 import * as Yup from "yup";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCamera } from "@fortawesome/free-solid-svg-icons";
+import mapValues from "lodash/mapValues";
 
 const StatusBoxColors = {
   DISTURBED: {
@@ -20,8 +23,24 @@ const StatusBoxColors = {
 };
 
 const PopupImage = styled.div`
-  height: 106px;
-  background-color: #c4c4c4;
+  height: 150px;
+  width: auto;
+  background: ${({ backgroundImage }) =>
+    backgroundImage
+      ? `url(${backgroundImage}) center/cover no-repeat`
+      : "#c4c4c4"};
+  position: relative;
+`;
+
+const UploadLabel = styled.label`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(232, 232, 232, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
 `;
 
 const AreaInfo = styled.div`
@@ -30,28 +49,22 @@ const AreaInfo = styled.div`
   padding-top: 0.7rem;
 `;
 
-const AreaHeader = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 0.2rem;
-`;
-
 const AreaName = styled.strong`
   font-weight: 600;
   font-size: 13px;
   line-height: 16px;
-  margin-right: 0.4rem;
+  margin-right: 1rem;
 `;
 
 const StatusBox = styled.div`
-  max-width: 150px;
+  max-width: 80px;
   background: ${(props) => StatusBoxColors[props.status]["background"]};
   border: 0.7px solid ${(props) => StatusBoxColors[props.status]["border"]};
   box-sizing: border-box;
   border-radius: 7px;
-  padding: 0.15rem;
-  padding-left: 0.55rem;
-  padding-right: 0.55rem;
+  padding: 0.15rem 0.55rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.5rem;
 
   font-weight: 600;
   font-size: 7px;
@@ -95,7 +108,9 @@ const ModifyField = styled(Field)`
   border-radius: 2px;
 
   color: #767676;
-  width: 30px;
+  width: ${({ isLong, isVeryLong }) =>
+    isVeryLong ? "150px" : isLong ? "80px" : "30px"};
+  margin-right: ${({ isVeryLong }) => (isVeryLong ? "1rem" : 0)};
 `;
 
 const DataErrorMessage = styled(CustomErrorMessage)`
@@ -103,122 +118,349 @@ const DataErrorMessage = styled(CustomErrorMessage)`
   margin-bottom: 0.4rem;
 `;
 
-const validationSchema = Yup.object().shape({
-  ...dataFields.reduce(
-    (obj, item) => ({
-      ...obj,
-      ...{
-        [item.value]: Yup.number().typeError(`${item.label} must be a number`).min(0),
-      },
-    }),
-    {}
-  ),
-});
+const lazyValidationSchema = (dataFields) =>
+  Yup.lazy((obj) =>
+    Yup.object(
+      mapValues(obj, (value, key) => {
+        if (key == "areaName") {
+          return Yup.string().required();
+        }
+        if (key == "siteCode" || key.includes("_contrib")) {
+          return Yup.string();
+        }
+        if (key == "status") {
+          return Yup.string()
+            .uppercase()
+            .matches(
+              /\bCONSERVED\b|\bDISTURBED\b/,
+              "Status must be either CONSERVED or DISTURBED"
+            );
+        }
+        const doesKeyInclude = dataFields.reduce(
+          (accumulator, field) => accumulator || key.includes(field._id),
+          false
+        );
+        if (doesKeyInclude) {
+          return Yup.number()
+            .typeError(`All parameters must be numbers`)
+            .min(0);
+        }
+      })
+    )
+  );
 
 class BasePopup extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
+      dataFields: [],
+      image: {
+        preview: "",
+        raw: "",
+      },
     };
   }
 
+  _arrayBufferToBase64 = (buffer) => {
+    var binary = "";
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  handleChange = (e) => {
+    if (e.target.files.length) {
+      this.setState({
+        image: {
+          preview: URL.createObjectURL(e.target.files[0]),
+          raw: e.target.files[0],
+        },
+      });
+    }
+  };
+
+  handleSubmit = async (properties, values) => {
+    Object.filter = (obj, predicate) =>
+      Object.keys(obj)
+        .filter((key) => predicate(obj[key]))
+        .reduce((res, key) => ((res[key] = obj[key]), res), {});
+    let tempParams = Object.entries(
+      Object.filter(values, (field) => !isNaN(field) && !!field)
+    );
+    tempParams = tempParams.reduce((acc, param) => {
+      const paramId = param[0].split("_")[0];
+      const paramIfExists = acc.findIndex((elem) =>
+        elem.hasOwnProperty(paramId)
+      );
+      const contribution = values[param[0] + "_contrib"];
+      if (paramIfExists != -1) {
+        acc[paramIfExists][paramId] = acc[paramIfExists][paramId].concat([
+          {
+            value: param[1],
+            contribution,
+          },
+        ]);
+      } else {
+        acc.push({
+          [paramId]: [
+            {
+              contribution,
+              value: param[1],
+            },
+          ],
+        });
+      }
+      return acc;
+    }, []);
+
+    const parameters = tempParams.map((param) => {
+      const [key, value] = Object.entries(param)[0];
+      return {
+        paramId: key,
+        paramValues: value,
+      };
+    });
+
+    const formData = new FormData();
+    formData.append("file", this.state.image.raw);
+    const config = { headers: { "Content-Type": "multipart/form-data" } };
+
+    await Promise.all([
+      await api
+        .updateData(properties._id, {
+          status: values.status,
+          parameters,
+        })
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.setState({ error: err });
+        }),
+      await updateCoords(properties.coordId, {
+        properties: {
+          areaName: values.areaName,
+          siteCode: values.siteCode,
+        },
+      })
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.setState({ error: err });
+        }),
+      this.state.image.preview &&
+        (await uploadSiteImage(properties.coordId, formData, config).catch(
+          (err) => {
+            console.log(err);
+            this.setState({ error: err });
+          }
+        )),
+    ])
+      .then((data) => {
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.log(err);
+        this.setState({ error: err });
+      });
+  };
+
   render() {
     const { properties, isModifyingData } = this.props;
-    console.log(properties)
 
     return (
       <React.Fragment>
-        <PopupImage />
+        <PopupImage
+          backgroundImage={
+            (isModifyingData && this.state.image.preview) ||
+            (properties.image &&
+              `data:${
+                properties.image.contentType
+              };base64,${this._arrayBufferToBase64(
+                properties.image.data.data
+              )}`) ||
+            null
+          }
+        >
+          {isModifyingData && (
+            <React.Fragment>
+              <UploadLabel htmlFor="upload-button">
+                <FontAwesomeIcon size="3x" icon={faCamera} />
+              </UploadLabel>
+              <input
+                type="file"
+                id="upload-button"
+                style={{ display: "none" }}
+                onChange={this.handleChange}
+              />
+            </React.Fragment>
+          )}
+        </PopupImage>
         <AreaInfo>
-          <AreaHeader>
-            <AreaName>{properties.areaName || properties.coordinates.reverse().map(coord => coord.toFixed(4)).join(", ")} | {properties.year}</AreaName>
-            {properties.status && (
-              <StatusBox status={properties.status}>
-                {properties.status}
-              </StatusBox>
-            )}
-          </AreaHeader>
           <Formik
             initialValues={{
-              ...dataFields.reduce(
-                (obj, item) => ({
+              areaName: properties.areaName,
+              status: properties.status,
+              siteCode: properties.siteCode,
+              ...this.props.dataFields.reduce((obj, item) => {
+                const param = properties.parameters.find(
+                  (param) => param.paramId == item._id
+                );
+                if (param && param.paramValues.length > 0) {
+                  const reduction = param.paramValues.reduce(
+                    (accumulator, currParam, idx) => ({
+                      ...accumulator,
+                      [item._id + "_" + (idx + 1)]: currParam.value,
+                      [item._id +
+                      "_" +
+                      (idx + 1) +
+                      "_contrib"]: currParam.contribution,
+                    }),
+                    {}
+                  );
+                  return {
+                    ...obj,
+                    ...reduction,
+                  };
+                }
+
+                return {
                   ...obj,
                   ...{
-                    [item.value]: properties[item.value] || "",
+                    [item._id + "_1"]: "",
                   },
-                }),
-                {}
-              ),
+                };
+              }, {}),
             }}
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(false);
-              Object.filter = (obj, predicate) =>
-                Object.keys(obj)
-                  .filter((key) => predicate(obj[key]))
-                  .reduce((res, key) => ((res[key] = obj[key]), res), {});
-              const filteredValues = Object.filter(
-                values,
-                (field) => !!field
-              );
-
-              await api
-                .updateData(properties._id, {
-                  ...filteredValues,
-                  ...properties,
-                })
-                .then((data) => {
-                  window.location.reload();
-                })
-                .catch((err) => {
-                  this.setState({ error: err });
-                });
+              await this.handleSubmit(properties, values);
             }}
-            validationSchema={validationSchema}
+            validationSchema={() => lazyValidationSchema(this.props.dataFields)}
           >
             {({ isSubmitting, errors, touched }) => (
               <Form>
-                <FieldsDiv>
-                {this.state.error && (
-                  <DataErrorMessage>
-                    <span>Error: {this.state.error}</span>
-                  </DataErrorMessage>
+                {isModifyingData ? (
+                  <ModifyField
+                    name="areaName"
+                    defaultValue={properties.areaName}
+                    isVeryLong
+                  />
+                ) : (
+                  <AreaName>
+                    {properties.areaName ||
+                      properties.coordinates
+                        .reverse()
+                        .map((coord) => coord.toFixed(4))
+                        .join(", ")}{" "}
+                    | {properties.year}
+                  </AreaName>
                 )}
-                {Object.keys(errors).map(
-                  (key) =>
-                    errors[key] &&
-                    touched[key] && (
-                      <DataErrorMessage>
-                        <span>Error: {errors[key]}</span>
-                      </DataErrorMessage>
-                    )
-                )}
-                {dataFields.map((field) =>
-                  isModifyingData ? (
-                    <React.Fragment>
-                      <InfoStat>
-                        {field.label}: <ModifyField 
-                          name={field.value}
-                          defaultValue={properties[field.value]}
-                        /> {field.unit}
-                      </InfoStat>
-                      <br />
-                    </React.Fragment>
-                  ) : (
-                    properties[field.value] && (
-                      <React.Fragment>
-                        <InfoStat>
-                          {field.label}:{" "}
-                          <strong>{`${properties[field.value]} ${
-                            field.unit
-                          }`}</strong>
-                        </InfoStat>
-                        <br />
-                      </React.Fragment>
-                    )
+                {isModifyingData ? (
+                  <ModifyField
+                    name="status"
+                    defaultValue={properties.status}
+                    isLong
+                  />
+                ) : (
+                  properties.status && (
+                    <StatusBox status={properties.status}>
+                      {properties.status}
+                    </StatusBox>
                   )
                 )}
-              </FieldsDiv>
+                <FieldsDiv>
+                  {this.state.error && (
+                    <DataErrorMessage>
+                      <span>Error: {this.state.error}</span>
+                    </DataErrorMessage>
+                  )}
+                  {Object.keys(errors).map(
+                    (key) =>
+                      errors[key] &&
+                      touched[key] && (
+                        <DataErrorMessage>
+                          <span>Error: {errors[key]}</span>
+                        </DataErrorMessage>
+                      )
+                  )}
+                  {isModifyingData && (
+                    <InfoStat>
+                      Site Code: &nbsp;{" "}
+                      <ModifyField
+                        name="siteCode"
+                        defaultValue={properties.siteCode}
+                      />
+                      <br />
+                    </InfoStat>
+                  )}
+                  {this.props.dataFields.map((field) => {
+                    const param = properties.parameters.find(
+                      (param) => param.paramId == field._id
+                    );
+                    return isModifyingData ? (
+                      param && param.paramValues.length > 0 ? (
+                        param.paramValues.map((currParam, index) => (
+                          <React.Fragment>
+                            <InfoStat>
+                              {this.props.parameter === field.value ? (
+                                <strong>
+                                  {field.label + " #" + (index + 1)}:
+                                </strong>
+                              ) : (
+                                field.label + " #" + (index + 1) + ":"
+                              )}{" "}
+                              <ModifyField
+                                name={field._id + "_" + (index + 1)}
+                                defaultValue={currParam.value}
+                              />{" "}
+                              {field.unit || ""}
+                            </InfoStat>
+                            <br />
+                          </React.Fragment>
+                        ))
+                      ) : (
+                        <React.Fragment>
+                          <InfoStat>
+                            {this.props.parameter === field.value ? (
+                              <strong>{field.label}:</strong>
+                            ) : (
+                              field.label + ":"
+                            )}{" "}
+                            <ModifyField
+                              name={field._id + "_1"}
+                              defaultValue={""}
+                            />{" "}
+                            {field.unit || ""}
+                          </InfoStat>
+                          <br />
+                        </React.Fragment>
+                      )
+                    ) : (
+                      param && !isNaN(param.paramAverage) && (
+                        <React.Fragment>
+                          <InfoStat>
+                            {this.props.parameter === field.value ? (
+                              <strong>{field.label}:</strong>
+                            ) : (
+                              field.label + ":"
+                            )}{" "}
+                            <strong>{`${param.paramAverage} ${field.unit ||
+                              ""}`}</strong>
+                          </InfoStat>
+                          <br />
+                        </React.Fragment>
+                      )
+                    );
+                  })}
+                </FieldsDiv>
                 <ModifyButton type="submit" disabled={!isModifyingData}>
                   Modify Data
                 </ModifyButton>

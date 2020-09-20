@@ -7,6 +7,7 @@ export const deleteData = id => api.delete(`/sitedata/${id}`)
 export const getAllData = () => api.get(`/sitedata`)
 export const getDataById = id => api.get(`/sitedata/${id}`)
 export const getDataByYear = year => api.get(`/sitedata/year/${year}`)
+export const getAllYears = () => api.get(`/year`)
 
 const siteDataApis = {
     createData,
@@ -15,6 +16,7 @@ const siteDataApis = {
     getAllData,
     getDataById,
     getDataByYear,
+    getAllYears,
 }
 
 export default siteDataApis

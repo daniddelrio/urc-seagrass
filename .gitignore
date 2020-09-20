@@ -18,9 +18,14 @@ client/thumb
 client/sketch
 
 */.env
-*/.DS_*
+.DS_Store
+
+server/*.log
 
 ### nodejs ###
 server/node_modules
+server/sitePictures/*
+
+*/build
 
 # End of https://www.gitignore.io/api/react

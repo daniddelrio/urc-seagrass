@@ -11,9 +11,12 @@ import MediaQuery from "react-responsive";
 import {
   SidebarSubheader,
   ParentButton,
+  FilledButton,
   EmptyButton,
 } from "./GlobalSidebarComponents";
 import { logout, isLoggedIn } from "../services/auth-funcs";
+import { CSVLink } from "react-csv";
+import ReactTooltip from 'react-tooltip';
 
 const ParentDiv = styled.div`
   display: flex;
@@ -105,6 +108,9 @@ class BaseSidebar extends Component {
     } else {
       logout();
     }
+    this.props.turnOffModifyingData(false);
+    this.props.toggleChoosingSidebar(false);
+    this.props.setLatLng(null);
     this.setActiveSidebar("home");
     this.setState({ isLogoutPresent: false });
   };
@@ -124,11 +130,13 @@ class BaseSidebar extends Component {
         return (
           <SidebarAdminHome
             areas={this.props.areas}
+            coords={this.props.coords}
             isMobile={this.props.isMobile}
             setActiveSidebar={this.setActiveSidebar}
             showLogoutButton={this.showLogoutButton}
             toggleModifyingData={this.props.toggleModifyingData}
             isModifyingData={this.props.isModifyingData}
+            dataFields={this.props.dataFields}
           />
         );
       case "contribLogin":
@@ -143,6 +151,7 @@ class BaseSidebar extends Component {
       case "contribHome":
         return (
           <SidebarContribution
+            areas={this.props.areas}
             showLogoutButton={this.showLogoutButton}
             setActiveSidebar={this.setActiveSidebar}
             contribName={this.state.contribName}
@@ -152,6 +161,7 @@ class BaseSidebar extends Component {
             isChoosingCoords={this.state.isChoosingCoords}
             setLatLng={this.props.setLatLng}
             latLng={this.props.latLng}
+            dataFields={this.props.dataFields}
           />
         );
       case "contribDone":
@@ -167,6 +177,7 @@ class BaseSidebar extends Component {
   }
 
   render() {
+    const isDatasetEmpty = this.props.dataset.data.length === 0;
     return (
       <ParentDiv isOpen={this.props.isOpen} isMobile={this.props.isMobile}>
         <SidebarContent className="sidebar-content">
@@ -193,10 +204,32 @@ class BaseSidebar extends Component {
               {this.state.logoutButtonText}
             </EmptyButton>
           )}
-          <PayPalButton>
-            Support us via &nbsp;
-            <img src={PayPal} alt="Paypal Logo" />
-          </PayPalButton>
+          <FilledButton
+            style={{
+              color: isDatasetEmpty ? "#8a8a8a" : "#63470f",
+              background: isDatasetEmpty ? "#474747" : "#ffbc32",
+              marginTop: "0.5rem",
+            }}
+            data-tip="Refresh the page if this button doesn't work or the dataset is empty"
+          >
+            {isDatasetEmpty ? (
+              "Download Dataset"
+            ) : (
+              <CSVLink
+                data={this.props.dataset.data}
+                headers={this.props.dataset.headers}
+                filename="dataset.csv"
+                style={{ color: "inherit" }}
+              >
+                Download Dataset
+              </CSVLink>
+            )}
+          </FilledButton>
+          <ReactTooltip place="top" />
+          {/*<PayPalButton>
+                      Support us via &nbsp;
+                      <img src={PayPal} alt="Paypal Logo" />
+                    </PayPalButton>*/}
         </BottomDiv>
       </ParentDiv>
     );

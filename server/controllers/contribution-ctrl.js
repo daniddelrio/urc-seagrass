@@ -1,10 +1,15 @@
 const Contribution = require("../models/contribution");
-const dataFields = require("../dataFields");
+const logger = require("../logger")
 
-createContribution = (req, res) => {
+const createContribution = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Contribution was not created due to lack of data",
+            body: body,
+            type: "contribution",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide data",
@@ -14,12 +19,22 @@ createContribution = (req, res) => {
     const contrib = new Contribution(body);
 
     if (!contrib) {
+        logger.error({
+            message: "Contribution was not created",
+            body: body,
+            type: "contribution",
+        });
         return res.status(400).json({ success: false, error: err });
     }
 
-    contrib
+    await contrib
         .save()
-        .then(() => {
+        .then((data) => {
+            logger.info({
+                message: "Contribution was created",
+                body: data,
+                type: "contribution",
+            });
             return res.status(201).json({
                 success: true,
                 id: contrib._id,
@@ -27,6 +42,11 @@ createContribution = (req, res) => {
             });
         })
         .catch((error) => {
+            logger.error({
+                message: "Contribution was not created",
+                errorTrace: err,
+                type: "contribution",
+            });
             return res.status(400).json({
                 error,
                 message: "A contribution was not added!",
@@ -34,10 +54,15 @@ createContribution = (req, res) => {
         });
 };
 
-updateContribution = async (req, res) => {
+const updateContribution = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Contribution was not updated",
+            body: body,
+            type: "contribution",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide a body to update",
@@ -45,23 +70,32 @@ updateContribution = async (req, res) => {
     }
 
     await Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
-        if (err) {
+        if (err || !contrib) {
+            logger.error({
+                message: "Contribution was not found",
+                errorTrace: err,
+                type: "contribution",
+            });
             return res.status(404).json({
                 err,
                 message: "Contribution not found!",
             });
         }
-        contrib.date = body.date;
-        dataFields.forEach((field) => {
-            contrib[field.value] = body[field.value];
-        });
+        if(body.date) contrib.date = body.date;
+        if(body.parameters) contrib.parameters = body.parameters;
+
         if (body.hasOwnProperty("isApproved")) {
             contrib.hasStatus = true;
             contrib.isApproved = body.isApproved;
         }
         contrib
             .save()
-            .then(() => {
+            .then((data) => {
+                logger.info({
+                    message: "Contribution was updated",
+                    body: data,
+                    type: "contribution",
+                });
                 return res.status(200).json({
                     success: true,
                     id: contrib._id,
@@ -69,6 +103,11 @@ updateContribution = async (req, res) => {
                 });
             })
             .catch((error) => {
+                logger.error({
+                    message: "Contribution was not updated",
+                    errorTrace: error,
+                    type: "contribution",
+                });
                 return res.status(404).json({
                     error,
                     message: "Contribution not updated!",
@@ -77,41 +116,83 @@ updateContribution = async (req, res) => {
     });
 };
 
-deleteContribution = async (req, res) => {
+const deleteContribution = async (req, res) => {
     await Contribution.findOneAndDelete(
         { _id: req.params.id },
         (err, contrib) => {
             if (err) {
+                logger.error({
+                    message: "Contribution was not deleted",
+                    errorTrace: err,
+                    type: "contribution",
+                });
                 return res.status(400).json({ success: false, error: err });
             }
 
             if (!contrib) {
+                logger.error({
+                    message: "Contribution was not found",
+                    body: req.params.id,
+                    type: "contribution",
+                });
                 return res
                     .status(404)
                     .json({ success: false, error: `Contribution not found` });
             }
 
+            logger.info({
+                message: "Contribution was deleted",
+                body: contrib,
+                type: "contribution",
+            });
             return res.status(200).json({ success: true, data: contrib });
         }
-    ).catch((err) => console.log(err));
+    ).catch((err) => 
+        logger.error({
+            message: "Contribution was not deleted",
+            errorTrace: err,
+            type: "contribution",
+        })
+    )
 };
 
-getContributionById = async (req, res) => {
+const getContributionById = async (req, res) => {
     await Contribution.findOne({ _id: req.params.id }, (err, contrib) => {
         if (err) {
+            logger.error({
+                message: "Contribution was not found",
+                errorTrace: err,
+                type: "contribution",
+            });
             return res.status(400).json({ success: false, error: err });
         }
 
         if (!contrib) {
+            logger.error({
+                message: "Contribution was not found",
+                body: body,
+                type: "contribution",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Contribution not found` });
         }
+        logger.info({
+            message: "Contribution was found",
+            body: contrib,
+            type: "contribution",
+        });
         return res.status(200).json({ success: true, data: contrib });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Contribution was not found",
+            errorTrace: err,
+            type: "contribution",
+        })
+    )
 };
 
-getContributionsByStatus = async (req, res) => {
+const getContributionsByStatus = async (req, res) => {
     await Contribution.find(
         {
             ...((req.params.status == "approved" ||
@@ -122,31 +203,71 @@ getContributionsByStatus = async (req, res) => {
         },
         (err, contrib) => {
             if (err) {
+                logger.error({
+                    message: "Contribution was not found",
+                    errorTrace: err,
+                    type: "contribution",
+                });
                 return res.status(400).json({ success: false, error: err });
             }
 
             if (!contrib) {
+                logger.error({
+                    message: "Contribution was not found",
+                    type: "contribution",
+                });
                 return res
                     .status(404)
                     .json({ success: false, error: `Contribution not found` });
             }
+            logger.info({
+                message: "Contribution was found",
+                body: contrib,
+                type: "contribution",
+            });
             return res.status(200).json({ success: true, data: contrib });
         }
-    ).catch((err) => console.log(err));
+    ).catch((err) =>
+        logger.error({
+            message: "Contributions were not found",
+            errorTrace: err,
+            type: "contribution",
+        })
+    )
 };
 
-getContributions = async (req, res) => {
+const getContributions = async (req, res) => {
     await Contribution.find({}, (err, contrib) => {
         if (err) {
+            logger.error({
+                message: "Contribution was not found",
+                errorTrace: err,
+                type: "contribution",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!contrib.length) {
+            logger.error({
+                message: "Contribution was not found",
+                type: "contribution",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Contribution not found` });
         }
+        logger.info({
+            message: "Contribution was found",
+            body: contrib,
+            type: "contribution",
+        });
         return res.status(200).json({ success: true, data: contrib });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Contributions were not found",
+            errorTrace: err,
+            type: "contribution",
+        })
+    )
 };
 
 module.exports = {

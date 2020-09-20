@@ -4,8 +4,12 @@ const Schema = mongoose.Schema;
 const SiteCoords = new Schema({
     type: { type: String, default: "Feature" },
     properties: {
-        siteCode: String,
+        siteCode: { type: String, unique: true, sparse: true },
         areaName: String,
+        image: {
+            data: Buffer, 
+            contentType: String 
+        }
     },
     geometry: {
         type: {

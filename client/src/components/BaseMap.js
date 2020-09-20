@@ -3,12 +3,13 @@ import { Map, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import styled from "styled-components";
 import sites from "../data/sites.json";
 import BasePopup from "./BasePopup";
-import YearDropdown from "./YearDropdown";
+import SelectDropdown from "./SelectDropdown";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
 import dataApi from "../services/sitedata-services";
-import L from 'leaflet';
+import L from "leaflet";
+import { MapLoading } from "./GlobalSidebarComponents";
 
 const LeafletMap = styled(Map)`
   position: relative;
@@ -49,6 +50,14 @@ const ReminderMessage = styled.div`
   color: #bb5f0a;
 `;
 
+const FlexDiv = styled.div`
+  display: flex;
+  position: absolute;
+  top: 1.2rem;
+  left: 3.3rem;
+  z-index: 10;
+`;
+
 let numMapClicks = 0;
 
 class BaseMap extends Component {
@@ -57,7 +66,7 @@ class BaseMap extends Component {
     this.geojson = React.createRef();
     this.state = {
       popup: {},
-      isLoading: false,
+      isLoadingPopups: true,
     };
   }
 
@@ -67,7 +76,9 @@ class BaseMap extends Component {
         key: numMapClicks++,
         position: e.latlng,
         properties: e.target.feature.properties,
-        ...e.target.feature.geometry.type == "Point" && {coordinates: e.target.feature.geometry.coordinates}
+        ...(e.target.feature.geometry.type == "Point" && {
+          coordinates: e.target.feature.geometry.coordinates,
+        }),
       },
     });
   };
@@ -109,26 +120,81 @@ class BaseMap extends Component {
     });
   };
 
+  setLoadingFalse = () => {
+    this.setState({ isLoadingPopups: false });
+  };
+
   handleClick = (e) => {
     this.props.setLatLng(e.latlng);
     this.props.toggleChoosingSidebar(false);
     if (this.props.isMobile) this.props.toggleSidebar();
   };
 
+  compareStandards = (d, standards) => {
+    const compareLessWithEqual = (comparison) => comparison.hasEqual ? (d <= comparison.standard) : (d < comparison.standard);
+    const compareGreaterWithEqual = (comparison) => comparison.hasEqual ? (d >= comparison.standard) : (d > comparison.standard);
+    if(standards.lessThan && standards.greaterThan) {
+      if(standards.lessThan.standard > standards.greaterThan.standard) {
+        return compareGreaterWithEqual(standards.greaterThan) && compareLessWithEqual(standards.lessThan);
+      }
+      return compareGreaterWithEqual(standards.greaterThan) || compareLessWithEqual(standards.lessThan);
+    }
+
+    if(standards.lessThan) return compareLessWithEqual(standards.lessThan);
+    if(standards.greaterThan) return compareGreaterWithEqual(standards.greaterThan);
+
+    return false;
+  };
+
+  getColor = (d) => {
+    if (this.props.parameter != "all") {
+      const standards = this.props.dataFields.find(
+        (field) => field._id == this.props.parameter
+      ).standards;
+      if (!standards) {
+        return "#DEDEDE";
+      }
+      if (standards.green) {
+        if (this.compareStandards(d, standards.green)) return "#C5F9D0";
+      }
+      if (standards.yellow) {
+        if (this.compareStandards(d, standards.yellow)) return "#FFDCBC";
+      }
+      if (standards.red) {
+        if (this.compareStandards(d, standards.red)) return "#FFC4C4";
+      }
+
+      return "#DEDEDE";
+    }
+
+    return "#C5F9D0";
+  };
+
   render() {
-    const style = {
-      fillColor: "#C5F9D0",
-      weight: 2,
-      opacity: 1,
-      color: "#C5F9D0",
-      fillOpacity: 0.7,
-    };
+    const getParamValue = (feature) => feature.properties.parameters.find(param => param.paramId == this.props.parameter);
+    const style = (feature) => ({
+      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramAverage),
+      weight: 3,
+      opacity: 0.8,
+      color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
+      fillOpacity: 0.8,
+    });
 
     const { popup } = this.state;
 
     return (
       <React.Fragment>
-        <YearDropdown setYear={this.props.setYear} />
+        <FlexDiv>
+          <SelectDropdown
+            isYear
+            setYear={this.props.setYear}
+            yearOptions={this.props.yearOptions}
+          />
+          <SelectDropdown
+            setParameter={this.props.setParameter}
+            paramOptions={this.props.paramOptions}
+          />
+        </FlexDiv>
         <LeafletMap
           center={[15.52, 119.93]}
           zoom={13}
@@ -143,20 +209,43 @@ class BaseMap extends Component {
             url="https://api.mapbox.com/styles/v1/urcseagrass/ck948uacr3vxy1il8a2p5jaux/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoidXJjc2VhZ3Jhc3MiLCJhIjoiY2s5MWg5OXJjMDAxdzNub2sza3Q1OWQwOCJ9.D7jlj6hhwCqCYa80erPKNw"
             attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>'
           />
-          {Object.keys(this.props.areas).length !== 0 && (
+          {this.props.isLoadingMap ? (
+            <MapLoading type="spin" />
+          ) : (
             <GeoJSON
               style={style}
               data={this.props.areas}
               key={this.props.year}
               onEachFeature={this.onEachFeature}
               pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
-              filter={(site) => site.properties.year == this.props.year}
+              filter={(site) =>
+                this.props.year
+                  ? site.properties.year == this.props.year
+                  : site.properties.year == this.props.yearOptions[0].value
+              }
               ref={this.geojson}
             />
           )}
           {popup.position && (
-            <Popup key={`popup-${popup.key}`} position={popup.position}>
-              <BasePopup isModifyingData={this.props.isModifyingData} properties={{...popup.properties, coordinates: popup.coordinates}} />
+            <Popup
+              key={`popup-${popup.key}`}
+              position={popup.position}
+              style={{ position: "relative" }}
+            >
+              {this.props.isLoadingPopups ? (
+                <MapLoading type="spin" />
+              ) : (
+                <BasePopup
+                  dataFields={this.props.dataFields}
+                  setLoadingFalse={this.setLoadingFalse}
+                  isModifyingData={this.props.isModifyingData}
+                  parameter={this.props.parameter}
+                  properties={{
+                    ...popup.properties,
+                    coordinates: popup.coordinates,
+                  }}
+                />
+              )}
             </Popup>
           )}
         </LeafletMap>

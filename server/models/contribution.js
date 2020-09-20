@@ -1,28 +1,39 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const SiteData = require('./siteInfo')
-const SiteCoord = require('./siteCoord')
-const dataFields = require('../dataFields')
+const SiteData = require("./siteInfo");
+const SiteCoord = require("./siteCoord");
+const logger = require("../logger")
 
-const dataFieldsWithSchema = dataFields.reduce((obj, item) => (obj[item.value] = { type: Number }, obj), {})
+const Contribution = new Schema(
+    {
+        siteId: { type: Schema.Types.ObjectId, ref: "siteCoords" },
+        areaName: { type: String },
+        coordinates: [mongoose.Mixed],
+        contributor: { type: String },
+        date: { type: Date, required: true },
+        status: {
+            type: String,
+            enum: ["DISTURBED", "CONSERVED"],
+        },
+        parameters: [
+            {
+                paramId: { type: Schema.Types.ObjectId, ref: "dataFields" },
+                paramValue: Number,
+            },
+        ],
+        hasStatus: { type: Boolean, default: false },
+        isApproved: { type: Boolean },
+    },
+    { timestamps: true }
+);
 
-const Contribution = new Schema({
-    site: { type: String },
-    coordinates: [mongoose.Mixed],
-    contributor: { type: String },
-    date: { type: Date, required: true },
-    ...dataFieldsWithSchema,
-    hasStatus: { type: Boolean, default: false },
-    isApproved: { type: Boolean },
-}, { timestamps: true }, );
-
-Contribution.pre('save', function (next) {
+Contribution.pre("save", function(next) {
     this.wasNew = this.isNew;
     next();
 });
 
 // If a contribution is approved, edit the site info given the site and year
-Contribution.post('save', function(doc, next) {
+Contribution.post("save", async function(doc, next) {
     var contribution = this;
 
     // only modify the site info if it has been modified (or is new)
@@ -31,113 +42,177 @@ Contribution.post('save', function(doc, next) {
     // don't modify the site info if it is new
     if (this.wasNew) return next();
 
-    if(contribution.isApproved != null) {
-        const dataFieldsObj = dataFields.reduce((obj, item) => ({...obj, ...(contribution[item.value] !== undefined && {
-            [item.value]: contribution[item.value]
-        })}), {});
+    if (contribution.isApproved != null && contribution.isApproved == true) {
+        const siteId = contribution.siteId;
+        const year = new Date(contribution.date).getFullYear();
+        const coordinates = contribution.coordinates;
+        const parameters = contribution.parameters;
 
-    	const site = contribution.site
-    	const year = new Date(contribution.date).getFullYear()
-        const coordinates = contribution.coordinates
-
-        if(site) {
-            SiteData.findOne({ siteCode: site, year: year }, (err, data) => {
-                if (err || data == null) {
-                    console.log("Site data not found. Creating a new record.")
+        if (siteId) {
+            await SiteData.findOne({ siteId: siteId, year: year }, async (err, data) => {
+                if (err || !data) {
+                    logger.info({
+                        message: "Site data not found. Creating a new record.",
+                        type: "contribution",
+                    });
+                    const newParameters = parameters.map(param => {
+                        let tempParam = param.toObject();
+                        tempParam.paramValues = [{
+                            value: tempParam.paramValue,
+                            contribution: contribution._id
+                        }];
+                        return tempParam;
+                    })
 
                     const dataBody = {
-                        siteCode: site,
-                        year: year,
-                        // status is lacking
-                        ...dataFieldsObj
-                    }
+                        siteId,
+                        year,
+                        status: contribution.status,
+                        parameters: newParameters,
+                    };
 
-                    const siteData = new SiteData(dataBody)
+                    const siteData = new SiteData(dataBody);
 
                     if (!siteData) {
-                        console.log("New site data not created")
+                        logger.info({
+                            message: "New site data not created",
+                            type: "contribution",
+                        });
                     }
 
-                    siteData
+                    await siteData
                         .save()
-                        .then(() => {
-                            console.log("New site data was created!")
+                        .then((data) => {
+                            logger.info({
+                                message: "New site data was created!",
+                                type: "contribution",
+                            });
                         })
-                        .catch(error => {
-                            console.log("New site data was not created!")
-                        })
-                }
-                else {
-                    dataFields.forEach(field => {
-                        if(contribution[field.value]) {
-                            data[field.value] = contribution[field.value]
+                        .catch((error) => {
+                            logger.error({
+                                message: "New site data was not created!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
+                        });
+                } else {
+                    // Parameters of the current contribution
+                    parameters.forEach(param => {
+                        const paramInData = data.parameters.find((dataParam) => new String(dataParam.paramId).valueOf() === new String(param.paramId).valueOf());
+                        if(paramInData && paramInData.paramValues) {
+                            paramInData.paramValues.push({
+                                value: param.paramValue,
+                                contribution: contribution._id
+                            })
+                        }
+                        else {
+                            data.parameters.push(
+                                {
+                                    paramId: param.paramId,
+                                    paramValues: [
+                                        {
+                                            value: param.paramValue,
+                                            contribution: contribution._id,
+                                        }
+                                    ]
+                                }
+                            )
                         }
                     })
-                    data
-                        .save()
-                        .then(() => {
-                            console.log("Site updated")
+
+                    await data.save()
+                        .then((newData) => {
+                            logger.info({
+                                message: "Site updated",
+                                type: "contribution",
+                            });
                         })
-                        .catch(error => {
-                            console.log("Site not updated")
-                        })
+                        .catch((error) => {
+                            logger.error({
+                                message: "Site not updated!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
+                        });
                 }
-            })
-        }
-        else if(coordinates) {
-            const newSiteName = `${!contribution.contributor ? "Anonymous" : contribution.contributor} ${contribution.date} ${contribution.coordinates[0]}`
+            });
+        } else if (coordinates) {
+            const newSiteName =
+                contribution.areaName ||
+                `${!contribution.contributor || "Anonymous"} ${
+                    contribution.date
+                } ${contribution.coordinates[0]}`;
             const siteCoordBody = {
                 type: "Feature",
                 properties: {
-                    siteCode: newSiteName
+                    areaName: newSiteName,
                 },
                 geometry: {
-                    type: coordinates.length > 1 ? "Point" : "Polygon" ,
-                    coordinates: coordinates.length > 1 ? coordinates : [coordinates],
+                    type: coordinates.length > 1 ? "Point" : "Polygon",
+                    coordinates:
+                        coordinates.length > 1 ? coordinates : [coordinates],
                 },
             };
 
-            const siteCoord = new SiteCoord(siteCoordBody)
+            const siteCoord = new SiteCoord(siteCoordBody);
 
             if (!siteCoord) {
-                console.log("New site not created")
+                logger.error({
+                    message: "New site was not created!",
+                    siteBody: siteCoordBody,
+                    type: "contribution",
+                });
+                next();
             }
 
-            siteCoord
+            await siteCoord
                 .save()
-                .then(() => {
-                    console.log("A new site was created!")
+                .then(async (res) => {
+                    const newParameters = parameters.map(param => {
+                        let tempParam = param.toObject();
+                        tempParam.paramValues = [{
+                            value: tempParam.paramValue,
+                            contribution: contribution._id
+                        }];
+                        return tempParam;
+                    });
 
                     const dataBody = {
-                        siteCode: newSiteName,
-                        year: year,
-                        // status is lacking
-                        ...dataFieldsObj
-                    }
+                        siteId: res._id,
+                        year,
+                        status: contribution.status,
+                        parameters: newParameters,
+                    };
 
-                    const siteData = new SiteData(dataBody)
+                    const siteData = new SiteData(dataBody);
 
-                    if (!siteData) {
-                        console.log("New site data not created")
-                    }
-
-                    siteData
+                    await siteData
                         .save()
-                        .then(() => {
-                            console.log("New site data was created!")
+                        .then((newData) => {
+                            logger.info({
+                                message: "New site data was created!",
+                                type: "contribution",
+                            });
                         })
-                        .catch(error => {
-                            console.log("New site data was not created!")
-                        })
+                        .catch((error) => {
+                            logger.error({
+                                message: "New site data was not created!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
+                        });
                 })
-                .catch(error => {
-                    console.log("A new site was not created!")
-                })
+                .catch((error) => {
+                    logger.error({
+                        message: "A new site was not created!",
+                        errorTrace: error,
+                        type: "contribution",
+                    });
+                });
         }
-
-    	next();
     }
+
+    next();
 });
 
-
-module.exports = mongoose.model('contribution', Contribution);
+module.exports = mongoose.model("contribution", Contribution);

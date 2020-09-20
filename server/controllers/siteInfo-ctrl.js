@@ -1,10 +1,14 @@
 const SiteData = require("../models/siteInfo");
-const dataFields = require('../dataFields')
+const logger = require("../logger")
 
-createData = (req, res) => {
+const createData = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Site data was not created",
+            type: "siteInfo",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide data",
@@ -14,11 +18,21 @@ createData = (req, res) => {
     const data = new SiteData(body);
 
     if (!data) {
+        logger.error({
+            message: "Site data was not created",
+            body: body,
+            type: "siteInfo",
+        });
         return res.status(400).json({ success: false, error: err });
     }
 
-    data.save()
-        .then(() => {
+    await data.save()
+        .then((data) => {
+            logger.info({
+                message: "Site data was created",
+                body: data,
+                type: "siteInfo",
+            });
             return res.status(201).json({
                 success: true,
                 id: data._id,
@@ -26,6 +40,12 @@ createData = (req, res) => {
             });
         })
         .catch((error) => {
+            logger.error({
+                message: "Site data was not created",
+                errorTrace: error,
+                type: "siteInfo",
+            });
+
             return res.status(400).json({
                 error,
                 message: "Data was not added!",
@@ -33,101 +53,231 @@ createData = (req, res) => {
         });
 };
 
-updateData = (req, res) => {
+const updateData = async (req, res) => {
     const body = req.body;
 
     if (!body) {
+        logger.error({
+            message: "Site data was not updated",
+            type: "siteInfo",
+        });
         return res.status(400).json({
             success: false,
             error: "You must provide a body to update",
         });
     }
 
-    const dataFieldsObj = dataFields.reduce((obj, item) => ({...obj, ...(body[item.value] !== undefined && {
-        [item.value]: body[item.value]
-    })}), {})
-
-    SiteData.findOneAndUpdate(
+    await SiteData.findOneAndUpdate(
         { _id: req.params.id },
         {
             $set: {
                 ...(body.status !== undefined && { status: body.status }),
-                ...dataFieldsObj
+                parameters: body.parameters
             },
         },
         { new: true },
         (err, data) => {
             if (err) {
+                logger.error({
+                    message: "Site data was not updated",
+                    errorTrace: err,
+                    type: "siteInfo",
+                });
                 return res.status(404).json({
                     err,
                     message: "Data not found!",
                 });
             }
 
+            logger.info({
+                message: "Site data was updated",
+                body: data,
+                type: "siteInfo",
+            });
             return res.status(200).json({ success: true, data: data });
         }
     );
 };
 
-deleteData = async (req, res) => {
+const deleteData = async (req, res) => {
     await SiteData.findOneAndDelete({ _id: req.params.id }, (err, data) => {
         if (err) {
+            logger.error({
+                message: "Site data was not deleted",
+                errorTrace: err,
+                type: "siteInfo",
+            });
             return res.status(400).json({ success: false, error: err });
         }
 
         if (!data) {
+            logger.error({
+                message: "Site data was not deleted",
+                body: req.params.id,
+                type: "siteInfo",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Site data not found` });
         }
 
+        logger.info({
+            message: "Site data was deleted",
+            body: data,
+            type: "siteInfo",
+        });
         return res.status(200).json({ success: true, data: data });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Site data was not deleted",
+            errorTrace: err,
+            type: "siteInfo",
+        })
+    );
 };
 
-getSiteDataById = async (req, res) => {
+const getSiteDataById = async (req, res) => {
     await SiteData.findOne({ _id: req.params.id }, (err, data) => {
         if (err) {
+            logger.error({
+                message: "Site data was not found",
+                errorTrace: err,
+                type: "siteInfo",
+            });
             return res.status(400).json({ success: false, error: err });
         }
 
         if (!data) {
+            logger.error({
+                message: "Site data was not found",
+                body: req.params.id,
+                type: "siteInfo",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Site data not found` });
         }
+        logger.info({
+            message: "Site data was found",
+            body: data,
+            type: "siteInfo",
+        });
         return res.status(200).json({ success: true, data: data });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Site data was not found",
+            errorTrace: err,
+            type: "siteInfo",
+        })
+    );
 };
 
-getSiteDataByYear = async (req, res) => {
+const getSiteDataByYear = async (req, res) => {
     await SiteData.find({ year: req.params.year }, (err, data) => {
         if (err) {
+            logger.error({
+                message: "Site data was not found",
+                errorTrace: err,
+                type: "siteInfo",
+            });
             return res.status(400).json({ success: false, error: err });
         }
 
         if (!data) {
+            logger.error({
+                message: "Site data was not found",
+                type: "siteInfo",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Site data not found` });
         }
+        logger.info({
+            message: "Site data was found",
+            body: data,
+            type: "siteInfo",
+        });
         return res.status(200).json({ success: true, data: data });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Site data was not found",
+            errorTrace: err,
+            type: "siteInfo",
+        })
+    );
 };
 
-getAllSiteData = async (req, res) => {
+const getAllSiteData = async (req, res) => {
     await SiteData.find({}, (err, data) => {
         if (err) {
+            logger.error({
+                message: "Site data was not found",
+                errorTrace: err,
+                type: "siteInfo",
+            });
             return res.status(400).json({ success: false, error: err });
         }
         if (!data.length) {
+            logger.error({
+                message: "Site data was not found",
+                type: "siteInfo",
+            });
             return res
                 .status(404)
                 .json({ success: false, error: `Site data not found` });
         }
+        logger.info({
+            message: "Site data was found",
+            body: data,
+            type: "siteInfo",
+        });
         return res.status(200).json({ success: true, data: data });
-    }).catch((err) => console.log(err));
+    }).catch((err) =>
+        logger.error({
+            message: "Site data was not found",
+            errorTrace: err,
+            type: "siteInfo",
+        })
+    );
 };
+
+const getAllYears = async (req, res) => {
+    await SiteData.find({}, (err, data) => {
+        if (err) {
+            logger.error({
+                message: "Years not found",
+                errorTrace: err,
+                type: "siteInfo",
+            });
+            return res.status(400).json({ success: false, error: err });
+        }
+        if (!data.length) {
+            logger.error({
+                message: "Years not found",
+                type: "siteInfo",
+            });
+            return res
+                .status(404)
+                .json({ success: false, error: `Years not found` });
+        }
+        let uniqueYears = [...new Set(data.map(point => point.year))];
+        uniqueYears.sort(function(a, b){return b-a});
+        uniqueYears = uniqueYears.map(year => ({value: year, label: year}));
+        logger.info({
+            message: "Years were found",
+            body: uniqueYears,
+            type: "siteInfo",
+        });
+        return res.status(200).json({ success: true, data: uniqueYears });
+    }).catch((err) =>
+        logger.error({
+            message: "Years were not found",
+            errorTrace: err,
+            type: "siteInfo",
+        })
+    );
+};
+
 
 module.exports = {
     createData,
@@ -136,4 +286,5 @@ module.exports = {
     getAllSiteData,
     getSiteDataById,
     getSiteDataByYear,
+    getAllYears
 };

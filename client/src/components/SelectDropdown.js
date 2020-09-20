@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import {
   SidebarSubheader,
@@ -6,14 +6,6 @@ import {
   AdminTextField,
 } from "./GlobalSidebarComponents";
 import Select from "react-select";
-
-const selectOptions = [
-  { value: "2020", label: "2020" },
-  { value: "2019", label: "2019" },
-  { value: "2018", label: "2018" },
-  { value: "2017", label: "2017" },
-  { value: "2016", label: "2016" },
-];
 
 const customStyles = {
   option: (provided, state) => ({
@@ -31,13 +23,10 @@ const customStyles = {
       background: "rgba(92, 92, 92, 0.15)",
     },
   }),
-  control: (styles, state) => ({
+  control: (styles, { selectProps }) => ({
     ...styles,
-    position: "absolute",
-    top: "1.2rem",
-    left: "3.3rem",
-    zIndex: "10",
-    width: "75px",
+    marginLeft: "0.5rem",
+    width: selectProps.name == "mapField" ? "125px" : "75px",
     background: "rgba(92, 92, 92, 0.15)",
     border: "none",
     borderRadius: "14.5px",
@@ -67,17 +56,29 @@ const customStyles = {
   }),
 };
 
-const YearDropdown = React.memo((props) => (
-  <Select
-    name="mapYear"
-    styles={customStyles}
-    options={selectOptions}
-    defaultValue={{ label: "2020", value: "2020" }}
-    onChange={(e) => {
-      props.setYear(e.value); 
-    }}
-    menuPortalTarget={document.body}
-  />
-));
+const handleChange = (e, props) => {
+  if (props.isYear) props.setYear(e.value);
+  else props.setParameter(e.value);
+};
 
-export default YearDropdown;
+
+const SelectDropdown = React.memo((props) => {
+  return (
+    <Select
+      name={props.isYear ? "mapYear" : "mapField"}
+      styles={customStyles}
+      options={props.isYear ? props.yearOptions : props.paramOptions}
+      defaultValue={
+        props.isYear
+          ? props.yearOptions[0] || { label: new Date().getFullYear(), value: new Date().getFullYear() }
+          : { label: "All Parameters", value: "all" }
+      }
+      onChange={(e) => {
+        handleChange(e, props);
+      }}
+      menuPortalTarget={document.body}
+    />
+  );
+});
+
+export default SelectDropdown;

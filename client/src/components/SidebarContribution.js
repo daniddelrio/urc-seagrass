@@ -10,26 +10,16 @@ import Select from "react-select";
 import Calendar from "../assets/calendar.svg";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import coordApi from "../services/siteCoord-services";
 import api from "../services/contrib-services";
-import dataFields from "../dataFields";
-
-const selectOptions = [
-  { value: "SM", label: "Seagrass Meadow" },
-  { value: "CP", label: "Adjacent Coal Power Plant" },
-  { value: "RA", label: "Adjacent Residential Area" },
-  { value: "CR", label: "Adjacent Coral Reef" },
-  { value: "MF", label: "Adjacent Mangrove Forest" },
-  { value: "AC", label: "Adjacent Aquaculture" },
-  { value: "newCoordinates", label: "+ New Coordinates" },
-];
 
 const customStyles = {
-  option: (provided, { data }) => ({
+  option: (provided, { selectProps, data }) => ({
     ...provided,
     background: data.value === "newCoordinates" ? "#585858" : "#5F5F5F",
     fontSize: "13px",
     color: data.value === "newCoordinates" ? "#C8A55F" : "#999999",
-    fontWeight: 600,
+    fontWeight: selectProps.name === "status" ? 400 : 600,
     paddingBottom: "0.3rem",
     paddingTop: "0.3rem",
     cursor: "pointer",
@@ -40,7 +30,7 @@ const customStyles = {
     ...styles,
     background: state.hasValue ? "#5A5A5A" : "#4F4F4F",
     fontSize: "13px",
-    fontWeight: 600,
+    fontWeight: state.selectProps.name === "status" ? 400 : 600,
     border: "0.7px solid #9A9A9A",
     boxSizing: "border-box",
     borderRadius: "4px",
@@ -124,13 +114,16 @@ const SubmitButton = styled(ParentButton)`
 `;
 
 // Produces all pairs of an array
-const pairsOfArray = array => (
-    array.reduce((acc, val, i1) => [
+const pairsOfArray = (array) =>
+  array.reduce(
+    (acc, val, i1) => [
       ...acc,
-      ...new Array(array.length - 1 - i1).fill(0)
-        .map((v, i2) => ([array[i1], array[i1 + 1 + i2]]))
-    ], [])
-  )
+      ...new Array(array.length - 1 - i1)
+        .fill(0)
+        .map((v, i2) => [array[i1], array[i1 + 1 + i2]]),
+    ],
+    []
+  );
 
 const dataValidationFields = (fields) => {
   return fields.reduce(
@@ -140,11 +133,11 @@ const dataValidationFields = (fields) => {
         [item.value]: Yup.number()
           .typeError(`${item.label} must be a number`)
           .when(
-            dataFields
+            fields
               .filter((field) => field.value != item.value)
               .map((field) => field.value),
             {
-              is: (...args) => args.every(obj => !obj),
+              is: (...args) => args.every((obj) => !obj),
               then: Yup.number()
                 .typeError(`${item.label} must be a number`)
                 .min(0)
@@ -157,63 +150,88 @@ const dataValidationFields = (fields) => {
   );
 };
 
-const validationSchema = Yup.object().shape(
-  {
-    ...dataValidationFields(dataFields),
-    area: Yup.mixed().required("Please input an area"),
-    coordinates: Yup.mixed(),
-    date: Yup.date()
-      .required("Please input a date")
-      .max(new Date(), "Measuring date must be before today's date"),
-  },
-  // If the fields are: seagrassCount, carbonPercentage, phosphates
-  // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
-  [["area"]].concat(pairsOfArray(dataFields.map(field => field.value)))
-);
+const validationSchema = (dataFields) =>
+  Yup.object().shape(
+    {
+      ...dataValidationFields(dataFields),
+      area: Yup.mixed().required("Please input an area"),
+      areaName: Yup.string(),
+      status: Yup.string(),
+      coordinates: Yup.mixed(),
+      date: Yup.date()
+        .required("Please input a date")
+        .max(new Date(), "Measuring date must be before today's date"),
+    },
+    // If the fields are: seagrassCount, carbonPercentage, phosphates
+    // It should look something like: [carbonPercentage, phosphates], [seagrassCount, phosphates], [seagrassCount, carbonPercentage]
+    [["area"]].concat(pairsOfArray(dataFields.map((field) => field.value)))
+  );
 
 const AdminErrorMessage = styled(CustomErrorMessage)`
   font-size: 13px;
   margin-bottom: 0.4rem;
 `;
 
-
 class SidebarContribution extends Component {
   constructor(props) {
     super(props);
     this.state = {
       error: null,
+      selectOptions: [],
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.props.showLogoutButton("Log out");
+
+    await coordApi.getAllCoords().then((res) => {
+      const selectOptions = res.data.coords
+        .map((data) => ({
+          value: data._id,
+          label: data.properties.areaName,
+        }))
+        .concat({ value: "newCoordinates", label: "+ New Coordinates" });
+
+      this.setState({
+        selectOptions: selectOptions,
+      });
+    });
   }
 
-  componentDidUpdate(prevProps,prevstate){
-    if(this.props.latLng !== prevProps.latLng && this.props.latLng){
-       this.setState({error: null})
+  componentDidUpdate(prevProps, prevstate) {
+    if (this.props.latLng !== prevProps.latLng && this.props.latLng) {
+      this.setState({ error: null });
     }
   }
 
   render() {
-    const dataFieldsObj = (values) => dataFields.reduce(
-      (obj, item) => ({
-        ...obj,
-        ...(values[item.value] !== "" && {
-          [item.value]: values[item.value],
+    const dataFieldsObj = (values) =>
+      this.props.dataFields.reduce(
+        (obj, item) => ({
+          ...obj,
+          ...(values[item.value] !== "" && {
+            [item.value]: values[item.value],
+          }),
         }),
-      }),
-      {}
-    );
+        {}
+      );
 
     return (
       <React.Fragment>
-        <SidebarSubheader>Welcome, Pedro!</SidebarSubheader>
+        <SidebarSubheader>
+          {this.props.contribName
+            ? `Welcome, ${this.props.contribName}!`
+            : "Welcome!"}
+        </SidebarSubheader>
         <Formik
           initialValues={{
             area: null,
+            areaName: "",
+            status: "",
             date: "",
-            ...dataFieldsObj(dataFields.map(field => ({[field.value] : null})))
+            ...dataFieldsObj(
+              this.props.dataFields.map((field) => ({ [field.value]: null }))
+            ),
           }}
           onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(false);
@@ -230,12 +248,23 @@ class SidebarContribution extends Component {
                         this.props.latLng.lng,
                         this.props.latLng.lat,
                       ],
+                      ...(values.areaName && {
+                        areaName: values.areaName,
+                      }),
+                      ...(values.status && {
+                        status: values.status,
+                      }),
                     }
-                  : { site: values.area }),
+                  : { siteId: values.area }),
                 ...(this.props.contribName && {
                   contributor: this.props.contribName,
                 }),
-                ...dataFieldsObj(values),
+                parameters: this.props.dataFields
+                  .filter((field) => values[field.value])
+                  .map((field) => ({
+                    paramId: field._id,
+                    paramValue: values[field.value],
+                  })),
                 date,
               };
               await api.createContribution(body).then((contrib) => {
@@ -244,7 +273,7 @@ class SidebarContribution extends Component {
               });
             }
           }}
-          validationSchema={validationSchema}
+          validationSchema={() => validationSchema(this.props.dataFields)}
         >
           {({
             values,
@@ -269,7 +298,7 @@ class SidebarContribution extends Component {
                 name="area"
                 placeholder="Choose Area"
                 styles={customStyles}
-                options={selectOptions}
+                options={this.state.selectOptions}
                 onChange={(selectedOption) => {
                   if (selectedOption.value == "newCoordinates") {
                     if (this.props.isMobile) this.props.toggleSidebar();
@@ -285,7 +314,31 @@ class SidebarContribution extends Component {
               />
               <ContributionFields isShown={values.area || this.props.latLng}>
                 {this.props.latLng && (
-                  <LabelField>{`Coordinates: ${this.props.latLng.lat} ${this.props.latLng.lng}`}</LabelField>
+                  <React.Fragment>
+                    <LabelField>{`Coordinates: ${this.props.latLng.lat} ${
+                      this.props.latLng.lng
+                    }`}</LabelField>
+                    <TextField
+                      placeholder="Area Name"
+                      name="areaName"
+                      style={
+                        values.areaName && values.areaName != ""
+                          ? { background: "#5A5A5A", color: "#ABABAB" }
+                          : null
+                      }
+                    />
+                    <Select
+                      name="status"
+                      placeholder="Area Status"
+                      styles={customStyles}
+                      options={[{label: "Area Status", value: undefined}, {label: "DISTURBED", value: "DISTURBED"}, {label: "CONSERVED", value: "CONSERVED"}]}
+                      onChange={(selectedOption) => {
+                        setFieldValue("status", selectedOption.value);
+                      }}
+                      onBlur={() => setFieldTouched("status")}
+                      error={(error) => setFieldError("status")(error)}
+                    />
+                  </React.Fragment>
                 )}
                 <RelativeDiv>
                   <TextField
@@ -300,9 +353,9 @@ class SidebarContribution extends Component {
                   />
                   <CalendarIcon src={Calendar} />
                 </RelativeDiv>
-                {dataFields.map((field) => (
+                {this.props.dataFields.map((field) => (
                   <React.Fragment key={"contribField" + field.value}>
-                    <LabelField for="seagrassCount">{field.label}</LabelField>
+                    <LabelField for={field.value}>{field.label}</LabelField>
                     <FlexDiv>
                       <TextField
                         id={field.value}
@@ -328,7 +381,7 @@ class SidebarContribution extends Component {
                     <span>Error: {errors.date}</span>
                   </AdminErrorMessage>
                 )}
-                {dataFields.map(
+                {this.props.dataFields.map(
                   (field) =>
                     errors[field.value] &&
                     touched[field.value] && (
@@ -342,8 +395,8 @@ class SidebarContribution extends Component {
                   disabled={
                     isSubmitting ||
                     !touched.date ||
-                    !(
-                      dataFields.some(field => !!values[field.value])
+                    !this.props.dataFields.some(
+                      (field) => !!values[field.value]
                     )
                   }
                 >
