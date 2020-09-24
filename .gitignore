@@ -20,6 +20,8 @@ client/sketch
 */.env
 .DS_Store
 
+server/*.log
+
 ### nodejs ###
 server/node_modules
 server/sitePictures/*

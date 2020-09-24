@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const SiteData = require("./siteInfo");
 const SiteCoord = require("./siteCoord");
+const logger = require("../logger")
 
 const Contribution = new Schema(
     {
@@ -32,7 +33,7 @@ Contribution.pre("save", function(next) {
 });
 
 // If a contribution is approved, edit the site info given the site and year
-Contribution.post("save", function(doc, next) {
+Contribution.post("save", async function(doc, next) {
     var contribution = this;
 
     // only modify the site info if it has been modified (or is new)
@@ -48,9 +49,12 @@ Contribution.post("save", function(doc, next) {
         const parameters = contribution.parameters;
 
         if (siteId) {
-            SiteData.findOne({ siteId: siteId, year: year }, (err, data) => {
+            await SiteData.findOne({ siteId: siteId, year: year }, async (err, data) => {
                 if (err || !data) {
-                    console.log("Site data not found. Creating a new record.");
+                    logger.info({
+                        message: "Site data not found. Creating a new record.",
+                        type: "contribution",
+                    });
                     const newParameters = parameters.map(param => {
                         let tempParam = param.toObject();
                         tempParam.paramValues = [{
@@ -70,16 +74,26 @@ Contribution.post("save", function(doc, next) {
                     const siteData = new SiteData(dataBody);
 
                     if (!siteData) {
-                        console.log("New site data not created");
+                        logger.info({
+                            message: "New site data not created",
+                            type: "contribution",
+                        });
                     }
 
-                    siteData
+                    await siteData
                         .save()
                         .then((data) => {
-                            console.log("New site data was created!");
+                            logger.info({
+                                message: "New site data was created!",
+                                type: "contribution",
+                            });
                         })
                         .catch((error) => {
-                            console.log("New site data was not created!");
+                            logger.error({
+                                message: "New site data was not created!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
                         });
                 } else {
                     // Parameters of the current contribution
@@ -105,13 +119,20 @@ Contribution.post("save", function(doc, next) {
                             )
                         }
                     })
-                    data.save()
+
+                    await data.save()
                         .then((newData) => {
-                            console.log("Site updated");
+                            logger.info({
+                                message: "Site updated",
+                                type: "contribution",
+                            });
                         })
                         .catch((error) => {
-                            console.log(error);
-                            console.log("Site not updated");
+                            logger.error({
+                                message: "Site not updated!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
                         });
                 }
             });
@@ -136,12 +157,17 @@ Contribution.post("save", function(doc, next) {
             const siteCoord = new SiteCoord(siteCoordBody);
 
             if (!siteCoord) {
-                console.log("New site not created");
+                logger.error({
+                    message: "New site was not created!",
+                    siteBody: siteCoordBody,
+                    type: "contribution",
+                });
+                next();
             }
 
-            siteCoord
+            await siteCoord
                 .save()
-                .then((res) => {
+                .then(async (res) => {
                     const newParameters = parameters.map(param => {
                         let tempParam = param.toObject();
                         tempParam.paramValues = [{
@@ -160,23 +186,28 @@ Contribution.post("save", function(doc, next) {
 
                     const siteData = new SiteData(dataBody);
 
-                    if (!siteData) {
-                        console.log("New site data not created");
-                    }
-
-                    siteData
+                    await siteData
                         .save()
                         .then((newData) => {
-                            console.log("New site data was created!");
+                            logger.info({
+                                message: "New site data was created!",
+                                type: "contribution",
+                            });
                         })
                         .catch((error) => {
-                            console.log(error);
-                            console.log("New site data was not created!");
+                            logger.error({
+                                message: "New site data was not created!",
+                                errorTrace: error,
+                                type: "contribution",
+                            });
                         });
                 })
                 .catch((error) => {
-                    console.log(error);
-                    console.log("A new site was not created!");
+                    logger.error({
+                        message: "A new site was not created!",
+                        errorTrace: error,
+                        type: "contribution",
+                    });
                 });
         }
     }
