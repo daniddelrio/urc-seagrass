@@ -4,7 +4,7 @@ dotenv.config();
 
 module.exports = {
   dbUrl: process.env.DB_URL,
-  port: process.env.PORT,
+  port: process.env.PORT || 8000,
   jwtSecret: process.env.JWT_SECRET,
   corsOrigin: process.env.CORS_ORIGIN,
   takeModifications: process.env.TAKE_MODIFICATIONS,
