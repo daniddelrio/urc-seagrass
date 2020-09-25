@@ -235,11 +235,7 @@ class BasePopup extends Component {
           status: values.status,
           parameters,
         })
-        .then((data) => {
-          console.log(data);
-        })
         .catch((err) => {
-          console.log(err);
           this.setState({ error: err });
         }),
       await updateCoords(properties.coordId, {
@@ -248,17 +244,12 @@ class BasePopup extends Component {
           siteCode: values.siteCode,
         },
       })
-        .then((data) => {
-          console.log(data);
-        })
         .catch((err) => {
-          console.log(err);
           this.setState({ error: err });
         }),
       this.state.image.preview &&
         (await uploadSiteImage(properties.coordId, formData, config).catch(
           (err) => {
-            console.log(err);
             this.setState({ error: err });
           }
         )),
@@ -267,7 +258,6 @@ class BasePopup extends Component {
         window.location.reload();
       })
       .catch((err) => {
-        console.log(err);
         this.setState({ error: err });
       });
   };
