@@ -33,26 +33,24 @@ const getDataset = async (req, res) => {
                 errorTrace: err,
                 type: "dataset",
             });
-            return res.status(400).json({ success: false, error: err });
         }
-        if (!fields.length) {
+        else if (!fields.length) {
             logger.error({
                 message: "Data fields were not found",
                 type: "dataset",
             });
-            return res
-                .status(404)
-                .json({ success: false, error: `Fields not found` });
         }
-        parameters = fields.reduce(
-            (accumulator, field) => ({ ...accumulator, [field._id]: field }),
-            {}
-        );
-        const parametersHeaders = fields.map((field) => ({
-            key: field.value,
-            label: field.label,
-        }));
-        headers = headers.concat(parametersHeaders);
+        else {
+            parameters = fields.reduce(
+                (accumulator, field) => ({ ...accumulator, [field._id]: field }),
+                {}
+            );
+            const parametersHeaders = fields.map((field) => ({
+                key: field.value,
+                label: field.label,
+            }));
+            headers = headers.concat(parametersHeaders);
+        }
     }).catch((err) =>
         logger.error({
             message: "Data fields were not found",
@@ -69,24 +67,22 @@ const getDataset = async (req, res) => {
                 errorTrace: err,
                 type: "dataset",
             });
-            return res.status(400).json({ success: false, error: err });
         }
-        if (!siteCoord.length) {
+        else if (!siteCoord.length) {
             logger.error({
                 message: "Coordinates were not found",
                 type: "dataset",
             });
-            return res
-                .status(404)
-                .json({ success: false, error: `Sites not found` });
         }
-        sites = siteCoord.reduce((accumulator, coord) => {
-            const { image, ...otherProps } = coord.properties;
-            return {
-                ...accumulator,
-                [coord._id]: { ...otherProps, ...coord.geometry, _id: coord._id },
-            };
-        }, {});
+        else {
+            sites = siteCoord.reduce((accumulator, coord) => {
+                const { image, ...otherProps } = coord.properties;
+                return {
+                    ...accumulator,
+                    [coord._id]: { ...otherProps, ...coord.geometry, _id: coord._id },
+                };
+            }, {});
+        }
     }).catch((err) =>
         logger.error({
             message: "Coordinates were not found",
@@ -104,43 +100,40 @@ const getDataset = async (req, res) => {
                 errorTrace: err,
                 type: "dataset",
             });
-            return res.status(400).json({ success: false, error: err });
         }
-        if (!siteData.length) {
+        else if (!siteData.length) {
             logger.error({
                 message: "Site data was not found",
                 type: "dataset",
             });
-            return res
-                .status(404)
-                .json({ success: false, error: `Site data not found` });
         }
+        else {
+            siteDataObj = siteData;
 
-        siteDataObj = siteData;
-
-        siteData.forEach((data) => {
-            const paramsWithoutContribs = data.parameters
-                .map((param) => ({
-                    ...param.toObject(),
-                    paramValue:
-                        param.paramValues.find(
-                            (paramValue) => !paramValue.contribution
-                        ) &&
-                        param.paramValues.find(
-                            (paramValue) => !paramValue.contribution
-                        ).value,
-                }))
-                .filter((param) => param.paramValue);
-            // Make a "contrib" out of the data without links to the contrib
-            if (paramsWithoutContribs.length > 0) {
-                dataWithoutContribs.push({
-                    ...data.toObject(),
-                    date: new Date(data.year, 1, 1),
-                    parameters: paramsWithoutContribs,
-                    isFromAdmin: true,
-                });
-            }
-        });
+            siteData.forEach((data) => {
+                const paramsWithoutContribs = data.parameters
+                    .map((param) => ({
+                        ...param.toObject(),
+                        paramValue:
+                            param.paramValues.find(
+                                (paramValue) => !paramValue.contribution
+                            ) &&
+                            param.paramValues.find(
+                                (paramValue) => !paramValue.contribution
+                            ).value,
+                    }))
+                    .filter((param) => param.paramValue);
+                // Make a "contrib" out of the data without links to the contrib
+                if (paramsWithoutContribs.length > 0) {
+                    dataWithoutContribs.push({
+                        ...data.toObject(),
+                        date: new Date(data.year, 1, 1),
+                        parameters: paramsWithoutContribs,
+                        isFromAdmin: true,
+                    });
+                }
+            });
+        }
     }).catch((err) =>
         logger.error({
             message: "Site data was not found",
@@ -157,123 +150,120 @@ const getDataset = async (req, res) => {
                 errorTrace: err,
                 type: "dataset",
             });
-            return res.status(400).json({ success: false, error: err });
         }
-        if (!contribs.length) {
+        else if (!contribs.length) {
             logger.error({
                 message: "Contributions were not found",
                 type: "dataset",
             });
-            return res
-                .status(404)
-                .json({ success: false, error: `Contributions not found` });
         }
+        else {
+            contribs = contribs.concat(dataWithoutContribs);
 
-        contribs = contribs.concat(dataWithoutContribs);
+            contribs.sort(function(a, b) {
+                let dateA = a.date;
+                let dateB = b.date;
+                let yearA = dateA.getFullYear();
+                let yearB = dateB.getFullYear();
+                let siteIdA = new String(a.siteId).valueOf(); // ignore upper and lowercase
+                let siteIdB = new String(b.siteId).valueOf(); // ignore upper and lowercase
 
-        contribs.sort(function(a, b) {
-            let dateA = a.date;
-            let dateB = b.date;
-            let yearA = dateA.getFullYear();
-            let yearB = dateB.getFullYear();
-            let siteIdA = new String(a.siteId).valueOf(); // ignore upper and lowercase
-            let siteIdB = new String(b.siteId).valueOf(); // ignore upper and lowercase
-
-            if (yearA < yearB) {
-                return 1;
-            }
-            if (yearA > yearB) {
-                return -1;
-            }
-
-            if (yearA == yearB) {
-                if (siteIdA < siteIdB) {
-                    return -1;
-                }
-                if (siteIdA > siteIdB) {
+                if (yearA < yearB) {
                     return 1;
                 }
+                if (yearA > yearB) {
+                    return -1;
+                }
 
-                if (siteIdA === siteIdB) {
-                    if (dateA < dateB) {
+                if (yearA == yearB) {
+                    if (siteIdA < siteIdB) {
                         return -1;
                     }
-                    if (dateA > dateB) {
+                    if (siteIdA > siteIdB) {
                         return 1;
                     }
-                }
-            }
 
-            return 0;
-        });
-
-        let currReplicate = 1;
-
-        const getDataObject = (currContrib) =>
-            siteDataObj.find(
-                (data) =>
-                    (currContrib.date && data.year === currContrib.date.getFullYear()) &&
-                    (currContrib.siteId ? new String(data.siteId).valueOf() ===
-                        new String(currContrib.siteId).valueOf() :
-                        new String(currContrib.areaName).valueOf() ===
-                            new String(
-                                sites[data.siteId].areaName
-                            ).valueOf())
-            );
-
-        const filteredContribs = contribs.filter(contrib => !!getDataObject(contrib));
-
-        filteredContribs.forEach((contrib, idx) => {
-            // Find first based on siteId and year, but if siteId can't be found in contrib, look for the area name
-            const currData = getDataObject(contrib);
-            // const currData =
-            //     siteDataObj[contrib.siteId + " " + contrib.date.getFullYear()];
-
-            if (currData) {
-                const currSite = sites[currData.siteId];
-
-                // Check previous row to see whether to add replicate or reset
-                const prevContrib = idx > 0 && filteredContribs[idx - 1];
-                const prevData = getDataObject(prevContrib)
-                const prevSite = prevData && sites[prevData.siteId];
-                if (
-                    idx > 0 &&
-                    (prevSite
-                        ? new String(currSite._id).valueOf() ===
-                          new String(prevSite._id).valueOf()
-                        : new String(currData.siteId).valueOf() ===
-                          new String(prevContrib.siteId).valueOf()) &&
-                    contrib.date.getFullYear() ===
-                        prevContrib.date.getFullYear()
-                ) {
-                    currReplicate++;
-                } else {
-                    currReplicate = 1;
+                    if (siteIdA === siteIdB) {
+                        if (dateA < dateB) {
+                            return -1;
+                        }
+                        if (dateA > dateB) {
+                            return 1;
+                        }
+                    }
                 }
 
-                rows.push({
-                    type: currData.status,
-                    replicate: currReplicate, // change
-                    contributor: contrib.contributor || "Anonymous",
-                    loggingDateTime: formatDateTime(contrib.createdAt, true),
-                    measuringDate: contrib.isFromAdmin
-                        ? ""
-                        : formatDateTime(contrib.date, false),
-                    site:
-                        currSite.siteCode ||
-                        currSite.areaName ||
-                        currSite.coordinates,
-                    year: contrib.date.getFullYear(),
-                    ...contrib.parameters.reduce(
-                        (accumulator, param) => ({
-                            ...accumulator,
-                            [parameters[param.paramId].value]: param.paramValue,
-                        }),
-                        {}
-                    ),
-                });
-            }
-        });
+                return 0;
+            });
+
+            let currReplicate = 1;
+
+            const getDataObject = (currContrib) =>
+                siteDataObj.find(
+                    (data) =>
+                        (currContrib.date && data.year === currContrib.date.getFullYear()) &&
+                        (currContrib.siteId ? new String(data.siteId).valueOf() ===
+                            new String(currContrib.siteId).valueOf() :
+                            new String(currContrib.areaName).valueOf() ===
+                                new String(
+                                    sites[data.siteId].areaName
+                                ).valueOf())
+                );
+
+            const filteredContribs = contribs.filter(contrib => !!getDataObject(contrib));
+
+            filteredContribs.forEach((contrib, idx) => {
+                // Find first based on siteId and year, but if siteId can't be found in contrib, look for the area name
+                const currData = getDataObject(contrib);
+                // const currData =
+                //     siteDataObj[contrib.siteId + " " + contrib.date.getFullYear()];
+
+                if (currData) {
+                    const currSite = sites[currData.siteId];
+
+                    // Check previous row to see whether to add replicate or reset
+                    const prevContrib = idx > 0 && filteredContribs[idx - 1];
+                    const prevData = getDataObject(prevContrib)
+                    const prevSite = prevData && sites[prevData.siteId];
+                    if (
+                        idx > 0 &&
+                        (prevSite
+                            ? new String(currSite._id).valueOf() ===
+                              new String(prevSite._id).valueOf()
+                            : new String(currData.siteId).valueOf() ===
+                              new String(prevContrib.siteId).valueOf()) &&
+                        contrib.date.getFullYear() ===
+                            prevContrib.date.getFullYear()
+                    ) {
+                        currReplicate++;
+                    } else {
+                        currReplicate = 1;
+                    }
+
+                    rows.push({
+                        type: currData.status,
+                        replicate: currReplicate, // change
+                        contributor: contrib.contributor || "Anonymous",
+                        loggingDateTime: formatDateTime(contrib.createdAt, true),
+                        measuringDate: contrib.isFromAdmin
+                            ? ""
+                            : formatDateTime(contrib.date, false),
+                        site:
+                            currSite.siteCode ||
+                            currSite.areaName ||
+                            currSite.coordinates,
+                        year: contrib.date.getFullYear(),
+                        ...contrib.parameters.reduce(
+                            (accumulator, param) => ({
+                                ...accumulator,
+                                [parameters[param.paramId].value]: param.paramValue,
+                            }),
+                            {}
+                        ),
+                    });
+                }
+            });
+        }
     }).catch((err) =>
         logger.error({
             message: "Contributions were not found",
