@@ -1,9 +1,24 @@
-import React from "react";
+import React, { Component } from "react";
 import styled from "styled-components";
 import { ParentButton } from "./GlobalSidebarComponents";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Modal from "react-bootstrap/Modal";
 import api from "../services/contrib-services";
+import ReactLoading from "react-loading";
+
+const ContribLoading = styled.div`
+  position: absolute;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  span {
+    margin-top: 1rem;
+    color: #bababa;
+  }
+`;
 
 const BaseFrame = styled(Modal)`
   font-family: Open Sans;
@@ -57,67 +72,92 @@ const DenyButton = styled(ParentButton)`
   color: #e38787;
 `;
 
-const handleClick = async (props) => {
-  try {
-    const updateAllData = async () => {
-      const finalData = [];
-      for(const contrib of Object.values(props.data)) {
-        const curr = await api.updateContribution(contrib._id, {
-          ...contrib,
-          isApproved: props.isApprove,
-        });
-        finalData.push(curr);
-      }
-      return finalData;
+class ContributionPopup extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: false,
     };
-    const updatedData = await updateAllData();
-    if(updatedData) {
-      window.location.reload();
+  }
+
+  handleClick = async () => {
+    try {
+      this.setState({ isLoading: true });
+      const updateAllData = async () => {
+        const finalData = [];
+        for (const contrib of Object.values(this.props.data)) {
+          const curr = await api.updateContribution(contrib._id, {
+            ...contrib,
+            isApproved: this.props.isApprove,
+          });
+          finalData.push(curr);
+        }
+        return finalData;
+      };
+      const updatedData = await updateAllData();
+      if (updatedData) {
+        this.setState({ isLoading: false });
+        window.location.reload();
+      }
+    } catch (err) {
+      this.setState({ isLoading: false });
+      console.log("An error has just occured!");
+      console.log(err);
     }
-  }
-  catch(err) {
-    console.log("An error has just occured!");
-    console.log(err);
+  };
 
+  render() {
+    return (
+      <React.Fragment>
+        <BaseFrame
+          show={this.props.show}
+          onHide={this.props.closeModal}
+          className="special-modal-content"
+        >
+          <Header
+            isApprove={this.props.isApprove}
+            closeButton
+          >{`Are you sure to ${
+            this.props.isApprove ? "approve" : "deny"
+          }...`}</Header>
+          <Modal.Body>
+            <Contributions>
+              {Object.entries(this.props.data).map(([key, value]) => (
+                <li>{this.props.summarizeContrib(value)}</li>
+              ))}
+            </Contributions>
+          </Modal.Body>
+          <ButtonGroup>
+            {this.props.isApprove ? (
+              <ApproveButton
+                onClick={async () => {
+                  await this.handleClick();
+                }}
+              >
+                Approve
+              </ApproveButton>
+            ) : (
+              <DenyButton
+                onClick={async () => {
+                  await this.handleClick();
+                }}
+              >
+                Deny
+              </DenyButton>
+            )}
+            {this.state.isLoading && (
+              <ContribLoading>
+                <ReactLoading type="spin" />
+                <span>{`${
+                  this.props.isApprove ? "Approv" : "Reject"
+                }ing contributions. Please do not refresh.`}</span>
+              </ContribLoading>
+            )}
+          </ButtonGroup>
+        </BaseFrame>
+      </React.Fragment>
+    );
   }
-};
-
-const ContributionPopup = (props) => (
-  <BaseFrame
-    show={props.show}
-    onHide={props.closeModal}
-    className="special-modal-content"
-  >
-    <Header isApprove={props.isApprove} closeButton>{`Are you sure to ${
-      props.isApprove ? "approve" : "deny"
-    }...`}</Header>
-    <Modal.Body>
-      <Contributions>
-        {Object.entries(props.data).map(([key, value]) => (
-          <li>{props.summarizeContrib(value)}</li>
-        ))}
-      </Contributions>
-    </Modal.Body>
-    <ButtonGroup>
-      {props.isApprove ? (
-        <ApproveButton
-          onClick={() => {
-            handleClick(props);
-          }}
-        >
-          Approve
-        </ApproveButton>
-      ) : (
-        <DenyButton
-          onClick={async () => {
-            await handleClick(props);
-          }}
-        >
-          Deny
-        </DenyButton>
-      )}
-    </ButtonGroup>
-  </BaseFrame>
-);
+}
 
 export default ContributionPopup;
