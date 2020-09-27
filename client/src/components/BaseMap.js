@@ -131,17 +131,26 @@ class BaseMap extends Component {
   };
 
   compareStandards = (d, standards) => {
-    const compareLessWithEqual = (comparison) => comparison.hasEqual ? (d <= comparison.standard) : (d < comparison.standard);
-    const compareGreaterWithEqual = (comparison) => comparison.hasEqual ? (d >= comparison.standard) : (d > comparison.standard);
-    if(standards.lessThan && standards.greaterThan) {
-      if(standards.lessThan.standard > standards.greaterThan.standard) {
-        return compareGreaterWithEqual(standards.greaterThan) && compareLessWithEqual(standards.lessThan);
+    const compareLessWithEqual = (comparison) =>
+      comparison.hasEqual ? d <= comparison.standard : d < comparison.standard;
+    const compareGreaterWithEqual = (comparison) =>
+      comparison.hasEqual ? d >= comparison.standard : d > comparison.standard;
+    if (standards.lessThan && standards.greaterThan) {
+      if (standards.lessThan.standard > standards.greaterThan.standard) {
+        return (
+          compareGreaterWithEqual(standards.greaterThan) &&
+          compareLessWithEqual(standards.lessThan)
+        );
       }
-      return compareGreaterWithEqual(standards.greaterThan) || compareLessWithEqual(standards.lessThan);
+      return (
+        compareGreaterWithEqual(standards.greaterThan) ||
+        compareLessWithEqual(standards.lessThan)
+      );
     }
 
-    if(standards.lessThan) return compareLessWithEqual(standards.lessThan);
-    if(standards.greaterThan) return compareGreaterWithEqual(standards.greaterThan);
+    if (standards.lessThan) return compareLessWithEqual(standards.lessThan);
+    if (standards.greaterThan)
+      return compareGreaterWithEqual(standards.greaterThan);
 
     return false;
   };
@@ -171,9 +180,14 @@ class BaseMap extends Component {
   };
 
   render() {
-    const getParamValue = (feature) => feature.properties.parameters.find(param => param.paramId == this.props.parameter);
+    const getParamValue = (feature) =>
+      feature.properties.parameters.find(
+        (param) => param.paramId == this.props.parameter
+      );
     const style = (feature) => ({
-      fillColor: this.getColor(getParamValue(feature) && getParamValue(feature).paramAverage),
+      fillColor: this.getColor(
+        getParamValue(feature) && getParamValue(feature).paramAverage
+      ),
       weight: 3,
       opacity: 0.8,
       color: feature.properties.status === "CONSERVED" ? "#C5F9D0" : "#FFC4C4",
@@ -219,9 +233,10 @@ class BaseMap extends Component {
               onEachFeature={this.onEachFeature}
               pointToLayer={(feature, latlng) => L.circleMarker(latlng, null)}
               filter={(site) =>
-                this.props.year
+                site.properties &&
+                (this.props.year
                   ? site.properties.year == this.props.year
-                  : site.properties.year == this.props.yearOptions[0].value
+                  : site.properties.year == this.props.yearOptions[0].value)
               }
               ref={this.geojson}
             />

@@ -224,7 +224,7 @@ const getAllSiteData = async (req, res) => {
             });
             return res
                 .status(404)
-                .json({ success: false, error: `Site data not found` });
+                .json({ success: false, error: `Site data not found`, data: [] });
         }
         logger.info({
             message: "Site data was found",
@@ -258,7 +258,7 @@ const getAllYears = async (req, res) => {
             });
             const currYear = new Date().getFullYear();
             return res
-                .status(404)
+                .status(200)
                 .json({ success: true, data: [{ value: currYear, label: currYear }] });
         }
         let uniqueYears = [...new Set(data.map(point => point.year))];
