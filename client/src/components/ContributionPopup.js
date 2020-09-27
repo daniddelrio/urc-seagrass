@@ -59,14 +59,18 @@ const DenyButton = styled(ParentButton)`
 
 const handleClick = async (props) => {
   try {
-    const updatedData = await Promise.all(
-      Object.values(props.data).map(async (contrib) => {
-        await api.updateContribution(contrib._id, {
+    const updateAllData = async () => {
+      const finalData = [];
+      for(const contrib of Object.values(props.data)) {
+        const curr = await api.updateContribution(contrib._id, {
           ...contrib,
           isApproved: props.isApprove,
         });
-      })
-    );
+        finalData.push(curr);
+      }
+      return finalData;
+    };
+    const updatedData = await updateAllData();
     if(updatedData) {
       window.location.reload();
     }
