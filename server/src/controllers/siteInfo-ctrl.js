@@ -252,13 +252,14 @@ const getAllYears = async (req, res) => {
             return res.status(400).json({ success: false, error: err });
         }
         if (!data.length) {
-            logger.error({
-                message: "Years not found",
+            logger.info({
+                message: "Years not found. Returning this year.",
                 type: "siteInfo",
             });
+            const currYear = new Date().getFullYear();
             return res
                 .status(404)
-                .json({ success: false, error: `Years not found` });
+                .json({ success: true, data: [{ value: currYear, label: currYear }] });
         }
         let uniqueYears = [...new Set(data.map(point => point.year))];
         uniqueYears.sort(function(a, b){return b-a});
