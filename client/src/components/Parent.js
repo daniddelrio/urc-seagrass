@@ -23,8 +23,8 @@ class Parent extends Component {
       year: "",
       parameter: "all",
       latLng: null,
-      areas: {},
-      coords: {},
+      areas: [],
+      coords: [],
       yearOptions: [],
       paramOptions: [],
       dataFields: [],
@@ -81,7 +81,7 @@ class Parent extends Component {
         })
         .catch((err) =>
           this.setState({
-            areas: {},
+            areas: [],
             isLoadingMap: false,
             isLoadingPopups: false,
           })
