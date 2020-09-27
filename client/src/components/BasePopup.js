@@ -452,7 +452,7 @@ class BasePopup extends Component {
                             ) : (
                               field.label + ":"
                             )}{" "}
-                            <strong>{`${param.paramAverage} ${field.unit ||
+                            <strong>{`${param.paramAverage.toFixed(4)} ${field.unit ||
                               ""}`}</strong>
                           </InfoStat>
                           <br />

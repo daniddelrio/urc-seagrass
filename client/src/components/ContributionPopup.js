@@ -58,21 +58,24 @@ const DenyButton = styled(ParentButton)`
 `;
 
 const handleClick = async (props) => {
-  const updatedData = await Promise.all(
-    Object.values(props.data).map((contrib) => {
-      api.updateContribution(contrib._id, {
-        ...contrib,
-        isApproved: props.isApprove,
-      });
-    })
-  )
-    .then((data) => {
+  try {
+    const updatedData = await Promise.all(
+      Object.values(props.data).map(async (contrib) => {
+        await api.updateContribution(contrib._id, {
+          ...contrib,
+          isApproved: props.isApprove,
+        });
+      })
+    );
+    if(updatedData) {
       window.location.reload();
-    })
-    .catch((err) => {
-      console.log("An error has just occured!");
-      console.log(err);
-    });
+    }
+  }
+  catch(err) {
+    console.log("An error has just occured!");
+    console.log(err);
+
+  }
 };
 
 const ContributionPopup = (props) => (
@@ -102,8 +105,8 @@ const ContributionPopup = (props) => (
         </ApproveButton>
       ) : (
         <DenyButton
-          onClick={() => {
-            handleClick(props);
+          onClick={async () => {
+            await handleClick(props);
           }}
         >
           Deny
