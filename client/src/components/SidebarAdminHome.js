@@ -419,7 +419,7 @@ class SidebarAdminHome extends Component {
         ? data.parameters.find((param) => param.paramId == field._id)
         : [];
 
-    if (contrib && Object.keys(this.props.areas).length > 0) {
+    if (contrib) {
       const year = new Date(contrib.date).getFullYear();
       let filteredDataByYearAndId = this.filterDataByYear(contrib.siteId, year);
       const doesSiteExist = this.props.coords.find(
