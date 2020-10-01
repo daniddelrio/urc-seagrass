@@ -4,6 +4,7 @@ import styled from "styled-components";
 import sites from "../data/sites.json";
 import BasePopup from "./BasePopup";
 import SelectDropdown from "./SelectDropdown";
+import MapLegend from "./MapLegend";
 import Hamburger from "../assets/hamburger.svg";
 import OpenHamburger from "../assets/open_hamburger.svg";
 import coordsApi from "../services/siteCoord-services";
@@ -273,6 +274,7 @@ class BaseMap extends Component {
             isMobile={this.props.isMobile}
           />
         )}
+        <MapLegend isStatusShowing={this.props.isModifyingData || this.props.isChoosingCoords} />
         {(this.props.isMobile ? !this.props.isOpen : true) &&
           (this.props.isChoosingCoords || this.props.isModifyingData) && (
             <ReminderMessage>{`You are currently ${
