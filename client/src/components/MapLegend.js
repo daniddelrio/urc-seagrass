@@ -15,7 +15,7 @@ const MapFrame = styled.div`
 
   @media screen and (max-width: 850px) {
     width: 130px;
-    height: 150px;
+    height: 140px;
   }
 `;
 
@@ -46,13 +46,12 @@ const SquarePoint = styled.div`
 `;
 
 const LegendText = styled.span`
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 0.8em;
   font-family: Open Sans;
   color: ${({ color }) => color};
 
   @media screen and (max-width: 850px) {
-    font-size: 10px;
+    font-size: 0.59em;
   }
 `;
 
